@@ -7,7 +7,6 @@ import java.awt.*;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
 import org.HoI4Optimizer.MyPlotter.Plot;
 
-
 public class Main
 {
     //Main simulation

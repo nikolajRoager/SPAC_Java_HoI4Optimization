@@ -278,6 +278,23 @@ public class NationalSetup {
     {
         this.buildingStart = buildingStart;
         try {
+            List<Equipment> equipmentList = Equipment.EquipmentLoader.loadEquipment("equipment.json");
+            for (Equipment equipment : equipmentList) {
+                System.out.println("Id: " + equipment.getId());
+                System.out.println("Name: " + equipment.getName());
+                if (equipment.getNextGen() != null) {
+                    System.out.println("Next Gen Id: " + equipment.getNextGen().getId());
+                } else {
+                    System.out.println("No Next Gen");
+                }
+                System.out.println();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        try {
 
             //Read the csv file line by line
             BufferedReader in = new BufferedReader(new FileReader(filename));

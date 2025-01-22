@@ -1,31 +1,97 @@
 package org.HoI4Optimizer.NationalConstants;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+
 /// A piece of military equipment
 public class Equipment {
+
+
+    private int Id;
+
+    public int getId() {
+        return Id;
+    }
+
+    public void setId(int id) {
+        Id = id;
+    }
+
+    /// Name of this exact make of equipment, a unique name is prefered but not required
+    private String name;
+
+    /// A short descriptive which should be the same for different models of same thing (for example "riffle")
+    private String shortname;
+
+    public String getShortname() {
+        return shortname;
+    }
+    public void setShortname(String shortname) {
+        this.shortname = shortname;
+    }
+
     /// Name of this exact make of equipment
-    private final String name;
-    /// Name of this exact make of equipment
-    public String getName() {return name;}
-    ///The unit cost in Military Industrial Capacity
-    private final double unit_cost;
-    ///The unit cost in Military Industrial Capacity
-    public double getUnit_cost() {return unit_cost;}
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /// The unit cost in Military Industrial Capacity
+    private double unit_cost;
+
+    /// The unit cost in Military Industrial Capacity
+    public double getUnit_cost() {
+        return unit_cost;
+    }
+
+    public void setUnit_cost(double unit_cost) {
+        this.unit_cost = unit_cost;
+    }
+
     /// When is this unlocked after January 1 1936:
-    private final int ResearchTime;
+    private int researchTime;
+
     /// When is this unlocked after January 1 1936:
-    public int getResearchTime() {return ResearchTime;}
+    public int getResearchTime() {
+        return researchTime;
+    }
+
+    public void setResearchTime(int ResearchTime) {
+        this.researchTime = ResearchTime;
+    }
 
     /// Next upgraded model of this thing
-    private final Equipment NextGen;
+    private Equipment nextGen;
+
     /// Next upgraded model of this thing
-    public Equipment getNext_gen() {return NextGen;}
+    public Equipment getNextGen() {
+        return nextGen;
+    }
+
+    public void setNextGen(Equipment NextGen) {
+        this.nextGen = NextGen;
+    }
+
     /// (Only relevant if this is a NextGen), is this a small upgrade which factories can switch to for only 10% efficiency loss
     /// A small upgrade could be for Example Bf 109 F ->  Bf 109 G, a large could be Panzer III -> Panther
-    private final boolean smallUpgrade;
+    private boolean smallUpgrade;
+
     /// (Only relevant if this is a NextGen), is this a small upgrade which factories can switch to for only 10% efficiency loss
     /// A small upgrade could be for Example Bf 109 F ->  Bf 109 G, a large could be Panzer III -> Panther
-    public boolean isSmallUpgrade() {
+    public boolean getSmallUpgrade() {
         return smallUpgrade;
+    }
+
+    public void setSmallUpgrade(boolean smallUpgrade) {
+        this.smallUpgrade = smallUpgrade;
     }
 
     /// How much rubber is required per production line?
@@ -43,29 +109,69 @@ public class Equipment {
     public int getAluminium() {
         return aluminium;
     }
+
     /// How much tungsten is required per production line?
     public int getTungsten() {
         return tungsten;
     }
+
     /// How much rubber is required per production line?
     public int getRubber() {
         return rubber;
     }
+
     /// How much steel is required per production line?
     public int getSteel() {
         return steel;
     }
+
     /// How much Chromium is required per production line?
     public int getChromium() {
         return chromium;
     }
 
-    /// Constructor, create a piece of equipment
-    public Equipment(String name, double unit_cost, int ResearchTime, boolean smallUpgrade) {
-        this.name = name;
-        this.unit_cost = unit_cost;
-        this.ResearchTime = ResearchTime;
-        this.NextGen = null;
-        this.smallUpgrade = smallUpgrade;
+    public void setAluminium(int aluminium) {
+        this.aluminium = aluminium;
     }
+
+    public void setTungsten(int tungsten) {
+        this.tungsten = tungsten;
+    }
+
+    public void setRubber(int rubber) {
+        this.rubber = rubber;
+    }
+
+    public void setSteel(int steel) {
+        this.steel = steel;
+    }
+
+    public void setChromium(int chromium) {
+        this.chromium = chromium;
+    }
+
+    /// Constructor, this is meant to be used by the Json loader
+    public Equipment() {
+        this.Id = 0;
+        this.name = "Consumer Good";
+        this.unit_cost = 1.0;
+        this.researchTime = 0;
+        this.nextGen = null;
+        this.smallUpgrade = false;
+        this.rubber = 0;
+        this.steel = 0;
+        this.chromium = 0;
+        this.aluminium = 0;
+        this.tungsten = 0;
+    }
+
+    //Class for loading a list of equipment
+    public static class EquipmentLoader {
+        public static List<Equipment> loadEquipment(String filePath) throws IOException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(new File(filePath), new TypeReference<List<Equipment>>() {
+            });
+        }
+    }
+
 }
