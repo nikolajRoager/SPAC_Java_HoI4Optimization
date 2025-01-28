@@ -1,0 +1,312 @@
+[
+  {
+    "id": 1,
+    "type":"rural",
+    "supplyhub": true,
+    "extraBuildingSlots": 0,
+    "infrastructure": 3,
+    "name": "Białystok",
+    "factoryNames":["Białystok","Suwalki","Białystok","Belarus","Northern"],
+    "factories":
+    [
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "type":"city",
+    "supplyhub": true,
+    "extraBuildingSlots": 0,
+    "infrastructure": 3,
+    "name": "Gdansk",
+    "factoryNames":["Gdansk","Baltic","Danzig","Hel","Peninsula","Northern","Preussen"]
+  },
+  {
+    "id": 3,
+    "type":"city",
+    "supplyhub": true,
+    "extraBuildingSlots": 0,
+    "infrastructure": 3,
+    "name": "Gdynia",
+    "factoryNames":["Gdynia","Baltic","Bydgozcz","Torun","Western","Northern","Preussen"],
+    "factories":
+    [
+      {
+        "type": "military",
+        "productName": "support equipment",
+        "underConstruction":false
+      },
+      {
+        "type": "military",
+        "productName": "Jastrząb mk 1",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "type":"city",
+    "supplyhub": true,
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "factoryNames":["Katowice","Silesian","Tychy","Dąbrowa Górnicza","Zagłębie Dąbrowskie","Jaworzno","Mysłowice","Sosnowiec"],
+    "name": "Katowice",
+    "base_steel": 19,
+    "base_aluminium": 7,
+    "factories":
+    [
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "infrastructure": 3,
+    "base_steel": 8,
+    "supplyhub": true,
+    "type":"town",
+    "extraBuildingSlots": 0,
+    "name": "Kielce",
+    "factoryNames":["Kielce","Central","Radom","Częstochowa"]
+  },
+  {
+    "id": 6,
+    "infrastructure": 3,
+    "supplyhub": true,
+    "base_steel": 5,
+    "base_oil": 3,
+    "type":"large_city",
+    "extraBuildingSlots": 0,
+    "name": "Kraków",
+    "factoryNames":["Kraków","Tarnów","Zamosc","Southern","Carpathian","Royal","Commonwealth"],
+    "factories":
+    [
+      {
+        "type": "military",
+        "productName": "40mm wz. 36",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "supplyhub": true,
+    "type":"town",
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "name": "Łódz",
+    "factoryNames":["Łódz","Warta","Western","Piotrków"],
+    "factories":
+    [
+      {
+        "type": "civilian",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "supplyhub": true,
+    "type":"town",
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "factoryNames":["Lublin","Chełm","Biała Podlaska","Central"],
+    "name": "Lublin",
+    "factories":
+    [
+      {
+        "type": "civilian",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "supplyhub": true,
+    "type":"city",
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "name": "Lwów",
+    "factoryNames":["Lwów","Lviv","Ukrainian","Krystynopil","Eastern"],
+    "factories":
+    [
+      {
+        "type": "civilian",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "supplyhub": true,
+    "type":"rural",
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "name": "Nowogródek",
+    "factoryNames":["Grodno","Baranowicze","Belarusian","Eastern"]
+  },
+  {
+    "id": 11,
+    "type":"rural",
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "name": "Płock",
+    "factoryNames":["Płock","Wyszków","Northern","Ostrołęka"]
+  },
+  {
+    "id": 12,
+    "type":"rural",
+    "infrastructure": 2,
+    "extraBuildingSlots": 0,
+    "supplyhub": true,
+    "name": "Polesie",
+    "factoryNames":["Brześć-Litweski","Pińsk","Belarusian","Eastern"]
+  },
+  {
+    "id": 13,
+    "type":"city",
+    "extraBuildingSlots": 0,
+    "supplyhub": true,
+    "infrastructure": 3,
+    "name": "Poznan",
+    "factoryNames":["Poznan","Western","Leszno","Gniezno","Piła"],
+    "factories":
+    [
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "type":"town",
+    "extraBuildingSlots": 0,
+    "infrastructure": 3,
+    "name": "Stanisławów",
+    "factoryNames":["Stanisławów","Ukrainian","Southern","Eastern","Carpathian","Drohobych","Kalush"]
+  },
+  {
+    "id": 15,
+    "type":"large_city",
+    "supplyhub": true,
+    "extraBuildingSlots": 0,
+    "infrastructure": 4,
+    "name": "Warsawa",
+    "factoryNames":["Warsawa","Siedlce","J. Pilsudski","Ursus","Gocław","Pruszków","Piaseczno","Praga Południe","Wola","Muranów"],
+    "factories":
+    [
+      {
+        "type": "military",
+        "productName": "40mm wz. 36",
+        "underConstruction":false
+      },
+      {
+        "type": "military",
+        "productName": "75mm wz. 31",
+        "underConstruction":false
+      },
+      {
+        "type": "military",
+        "productName": "75mm wz. 31",
+        "underConstruction":false
+      },
+      {
+        "type": "military",
+        "efficiency": 0.5,
+        "productName": "1936 infrantry equipment",
+        "underConstruction":false
+      },
+      {
+        "type": "military",
+        "efficiency": 0.5,
+        "productName":"PZInż 140",
+        "underConstruction":false
+      },
+      {
+        "type": "military",
+        "efficiency": 0.5,
+        "productName": "10TP",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      },
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "type":"rural",
+    "extraBuildingSlots": 0,
+    "infrastructure": 2,
+    "name": "Wilejka",
+    "factoryNames":["Mołodeczno","Eastern","Belarusian","Northern","Wilejka"]
+  },
+  {
+    "id": 17,
+    "type":"rural",
+    "supplyhub": true,
+    "extraBuildingSlots": 0,
+    "infrastructure": 3,
+    "name": "Wilno",
+    "factoryNames":["Wilno","Vilnius","Lithuanian","Commonwealth","Northern"],
+    "factories":
+    [
+      {
+        "type": "civilian",
+        "underConstruction":false
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "type":"town",
+    "supplyhub": true,
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "name": "Wołyn",
+    "factoryNames":["Kowel","Równe","Wołyn","Ukrainian","Eastern"]
+  }
+]

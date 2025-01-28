@@ -5,12 +5,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /// A piece of military equipment
 public class Equipment {
 
+    /// Possible brand names for this product, may be empty "state" "national" and none can always be used (though with lower priority)
+    public List<String> brandNames;
+    /// Possible names the auto-generated factory name can use
+    public List<String> factoryNames;
 
     private int Id;
 
@@ -27,6 +33,22 @@ public class Equipment {
 
     /// A short descriptive which should be the same for different models of same thing (for example "riffle")
     private String shortname;
+
+    public List<String> getBrandNames() {
+        return brandNames;
+    }
+
+    public List<String> getFactoryNames() {
+        return factoryNames;
+    }
+
+    public void setBrandNames(List<String> brandNames) {
+        this.brandNames = brandNames;
+    }
+
+    public void setFactoryNames(List<String> factoryNames) {
+        this.factoryNames = factoryNames;
+    }
 
     public String getShortname() {
         return shortname;
@@ -165,13 +187,18 @@ public class Equipment {
         this.tungsten = 0;
     }
 
-    //Class for loading a list of equipment
-    public static class EquipmentLoader {
-        public static List<Equipment> loadEquipment(String filePath) throws IOException {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(new File(filePath), new TypeReference<List<Equipment>>() {
-            });
-        }
-    }
+    ///load a list of equipment from json, identified by a unique name
+    public static Map<String,Equipment> loadEquipment(String filePath) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        var EquipList= objectMapper.readValue(new File(filePath), new TypeReference<List<Equipment>>() {});
+        var Out = new HashMap<String,Equipment>();
+        for (var E : EquipList)
+        {
+            Out.put(E.name,E);
+            for (var Next = E.nextGen; Next!=null; Next=Next.nextGen)
+                Out.put(Next.name,Next);
 
+        }
+        return Out;
+    }
 }

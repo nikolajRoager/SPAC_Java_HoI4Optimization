@@ -1,0 +1,23 @@
+{
+  "rulingParty": "Nonaligned",
+  "base_stability": 0.50,
+  "autocracy_growth": 0.12,
+  "autocracy_support": 0.3804,
+  "democracy_support": 0.3197,
+  "fascism_support": 0.1099,
+  "communism_support": 0.1898,
+  "mil_construction_speed_bonus": -0.3,
+  "civ_construction_speed_bonus": -0.3,
+  "efficiency_cap": 0.5,
+  "base_consumer_goods_ratio":0.4,
+  "base_consumer_goods_multiplier":1.0,
+  "base_fuel":48,
+  "refinery_fuel_bonus":0,
+  "rubber_per_refineries": 1,
+  "resources_to_market": 0.25,
+  "natural_fuel_bonus":-0.6,
+  "fuel_capacity_per_infrastructure":1500,
+  "basic_fuel_capacity":50000,
+  "buildingSlotBonus":0,
+  "embargoed":true
+}
