@@ -2,27 +2,34 @@ package org.HoI4Optimizer.Nation;
 
 
 import com.diogonunes.jcolor.Attribute;
+import org.HoI4Optimizer.Building.SharedBuilding.CivilianFactory;
+import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
+import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
 import org.HoI4Optimizer.Calender;
-import org.HoI4Optimizer.Factory.CivilianFactory;
-import org.HoI4Optimizer.Factory.MilitaryFactory;
+import org.HoI4Optimizer.Building.*;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
-import org.HoI4Optimizer.Factory.Refinery;
 
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import static com.diogonunes.jcolor.Ansi.PREFIX;
 import static com.diogonunes.jcolor.Ansi.colorize;
 
 /// The state of a nation, at some point in time, it is essentially a "save" we can return to
 public class NationState  implements Cloneable
 {
+    /// A construction line for some building, with between 0 and 15 civilian factories assigned
+    private static class constructionLine{
+        /// The  thing we build
+        public Building building;
+        constructionLine(Building building){
+            this.building = building;
+        }
+    }
 
-    /// What point in time are we looking at now?
-    int day=0;
+    /// What time are we looking at now?
+    private int day=0;
 
     /// A very long list of modifiers
     private NationalProperties properties;
@@ -45,8 +52,11 @@ public class NationState  implements Cloneable
     /// References to all civilian factories in all core states
     public List<Refinery> refineries;
 
+    public int getDay() {return day;}
+
     public void setStates(List<State> states) {this.states = states;}
 
+    public List<constructionLine> constructionLines;
 
     /// Load setup from a folder, assumed to be start of the simulation
     public NationState(String countryName,NationalSetup setup) throws IOException {
@@ -60,6 +70,8 @@ public class NationState  implements Cloneable
         civilianFactories=new ArrayList<>();
         militaryFactories=new ArrayList<>();
         refineries=new ArrayList<>();
+
+        constructionLines=new ArrayList<>();
 
         for (var s : states)
         {
@@ -104,6 +116,36 @@ public class NationState  implements Cloneable
             return colorize((modifier<1?" ":"")+(modifier<.1?" ":"")+"+"+(int)(100*modifier)+"%",Attribute.RED_TEXT());
         else
             return colorize((modifier>-1?" ":"")+(modifier>-.1?" ":"")+(int)(100*modifier)+"%",Attribute.GREEN_TEXT());
+    }
+
+    public void apply(BuildingDecision buildingDecision) throws RuntimeException
+    {
+        if (!states.contains(buildingDecision.getTarget()))
+            throw new RuntimeException("Target state does not exist");
+        switch (buildingDecision.getDecisionType())
+        {
+            case BuildRefinery -> {
+                var New = buildingDecision.getTarget().buildRefinery(properties.getBuildingSlotBonus());
+                refineries.add(New);
+                constructionLines.add(new constructionLine(New));
+            }
+            case BuildCivilianFactory ->
+            {
+                var New = buildingDecision.getTarget().buildCivilianFactory(properties.getBuildingSlotBonus());
+                civilianFactories.add(New);
+                constructionLines.add(new constructionLine(New));
+            }
+            case BuildMilitaryFactory ->
+            {
+                var New = buildingDecision.getTarget().buildMilitaryFactory(properties.getBuildingSlotBonus());
+                militaryFactories.add(New);
+                constructionLines.add(new constructionLine(New));
+            }
+            case BuildInfrastructure -> {
+                var New = buildingDecision.getTarget().buildInfrastructure();
+                constructionLines.add(new constructionLine(New));
+            }
+        }
     }
 
 
@@ -157,7 +199,14 @@ public class NationState  implements Cloneable
             }
         }
 
-        int factories =militaryFactories.size()+civilianFactories.size();
+        int factories =0;
+        for (var f : militaryFactories)
+            if (!f.getUnderConstruction())
+                factories++;
+        for (var f : civilianFactories)
+            if (!f.getUnderConstruction())
+                factories++;
+
         double cg = properties.getConsumer_goods_ratio();
         int cg_factories = (int)(factories*cg);
 
@@ -252,7 +301,7 @@ public class NationState  implements Cloneable
         double naturalFuel =properties.getBase_fuel()*(1+properties.getNatural_fuel_bonus())*oil;
         double refineryFuel=properties.getBase_fuel()*(1+properties.getRefinery_fuel_bonus())*refineries.size();
 
-        out.println(colorize("\t\tFuel gain per day..................:",Attribute.BLUE_TEXT())+(baseFuel+naturalFuel+refineryFuel));
+        out.println(colorize("\t\tFuel gain per day..................:",Attribute.BLUE_TEXT())+String.format("%.2f",baseFuel+naturalFuel+refineryFuel));
 
         //Missing fuel capacity
 
@@ -265,7 +314,8 @@ public class NationState  implements Cloneable
         out.println(colorize("\t\tRequired for special projects......: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+properties.getSpecial_projects_civs(),Attribute.WHITE_TEXT()));
         int exportGoods=0;
         out.println(colorize("\t\tProducing export goods.............: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+0,Attribute.WHITE_TEXT()));
-        out.println(colorize("\t\tRemains available for construction.: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize("+"+(civilianFactories.size()-properties.getSpecial_projects_civs()-cg_factories),Attribute.BRIGHT_YELLOW_TEXT()));
+        int unassignedCivs = (civilianFactories.size()-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
+        out.println(colorize("\t\tRemains available for construction.: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize("+"+unassignedCivs,Attribute.BRIGHT_YELLOW_TEXT()));
         if (showFactories) {
             out.println(colorize("\t\t Our " + civilianFactories.size() + " civilian factories:", Attribute.BRIGHT_YELLOW_TEXT()));
             for (var f : civilianFactories) {
@@ -280,14 +330,29 @@ public class NationState  implements Cloneable
             }
         }
 
-        if (showStates) {
 
+        out.println();
+        out.println(colorize("\t\tOngoing construction projects: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize("+"+(constructionLines.size()),Attribute.BRIGHT_YELLOW_TEXT()));
+
+        if (showConstructionLines) {
+            for (var line : constructionLines) {
+                //Calculate assigned factories directly
+                out.println(colorize("\t\t\tBuilding " + line.building.getName() + " in " + line.building.getLocation().getName() + " production: " + line.building.getCIC_invested() + "/" + Building.getCost(line.building.getMyType()) + " CIC Assigned factories " + Math.min(15, unassignedCivs) + "/15", (line.building.getMyType() == Building.type.Civilian ? Attribute.YELLOW_TEXT() : (line.building.getMyType() == Building.type.Military ? Attribute.GREEN_TEXT() : Attribute.BLUE_TEXT()))));
+                unassignedCivs = Math.max(0, unassignedCivs - 15);
+            }
+
+            //If we have left over civs, round up to get number of construction lines we can start
+            if (unassignedCivs > 0) {
+                out.println(colorize("\t\t We have " + unassignedCivs + " unassigned civilian factories (" + (unassignedCivs + 14) / 15 + " construction lines)", Attribute.RED_TEXT(), Attribute.BOLD()));
+            }
+        }
+
+        if (showStates) {
             out.println("--State report--");
             for (var S : states) {
                 S.printReport(out, properties.getBuildingSlotBonus(), properties.getRubber_per_refineries(), "\t");
             }
         }
-
 
         //Now turn the streams into List<String> so we can print them next to each other
         //This is AI generated code
@@ -304,11 +369,6 @@ public class NationState  implements Cloneable
         }
 
         lines.forEach(Output::println);
-
-
-
-
-
     }
 
     @Override
@@ -339,6 +399,69 @@ public class NationState  implements Cloneable
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
+        }
+    }
+
+    /// Apply an event to my properties
+    public void apply(Event thisEvent,PrintStream out) {
+        thisEvent.apply(properties, states,day, out);
+    }
+
+    ///Step forward a number of days, or until a decision is required, only print if some important event happened
+    public void update(int days,PrintStream out)
+    {
+        for (int d = 0; d < days; d++) {
+            ++day;
+
+            // First step, update production
+            // TBD
+
+            // Now, update construction
+            //First get the number of civilian factories available for construction
+            int factories =0;
+            for (var f : militaryFactories)
+                if (!f.getUnderConstruction())
+                    factories++;
+            for (var f : civilianFactories)
+                if (!f.getUnderConstruction())
+                    factories++;
+
+            double cg = properties.getConsumer_goods_ratio();
+            int cg_factories = (int)(factories*cg);
+            int exportGoods=0;
+            int unassignedCivs = (civilianFactories.size()-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
+
+            boolean finished=false;
+
+            for (int i = constructionLines.size()-1; i>=0; i--) {
+                var c = constructionLines.get(i);
+                //Add 5 daily CIC plus 20%,40%,60%,80% or 100% bonus per level infrastructure, plus construction speed bonus
+                if (c.building.construct(5*Math.min(unassignedCivs,15)*(1+0.2*c.building.getLocation().getInfrastructure())*(1+properties.getConstruction_speed()
+                        +(c.building instanceof MilitaryFactory ? properties.getMil_construction_speed_bonus() :0.0)
+                        +(c.building instanceof CivilianFactory ? properties.getCiv_construction_speed_bonus() :0.0)
+                )))
+                {
+                    finished=true;
+                    constructionLines.remove(i);
+                }
+
+                //We used up to 15 factories on this
+                unassignedCivs=Math.max(0,unassignedCivs-15);
+            }
+
+            //Apply events at the end of the day (I believe it is similar to the game)
+            for (Event e : setup.getEvent(day))
+            {
+                e.apply(properties, states,day, out);
+            }
+
+            //Oh no, a decision has to be made of what to do with the free factories!
+            //This will only trigger one day late, just like in game!
+            if (unassignedCivs>0)
+            {
+                out.println(colorize("Stopped due to unassigned civilian factories!",Attribute.BRIGHT_YELLOW_TEXT()));
+                return;
+            }
         }
     }
 }

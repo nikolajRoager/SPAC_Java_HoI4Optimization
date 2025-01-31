@@ -1,6 +1,7 @@
-package org.HoI4Optimizer.Factory;
+package org.HoI4Optimizer.Building.SharedBuilding;
 
 import com.diogonunes.jcolor.Attribute;
+import org.HoI4Optimizer.Building.Building;
 import org.HoI4Optimizer.Nation.State;
 
 import java.io.PrintStream;
@@ -34,7 +35,7 @@ public class Refinery extends Factory implements Cloneable{
     /// They are essentially interchangeable
     @Override
     public type getMyType() {
-        return type.Refinery;
+        return Building.type.Refinery;
     }
 
     @Override
@@ -56,10 +57,12 @@ public class Refinery extends Factory implements Cloneable{
         try {
             Refinery clone = (Refinery) super.clone();
             clone.CIC_invested=CIC_invested;
-            clone.location=null;//MUST BE SET LATER BY THE STATE OWNING US
+
+            //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
+            clone.location=location;
+
             clone.name=name;
             clone.underConstruction=underConstruction;
-            // TODO: copy mutable state here, so the clone can't change the internals of the original
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();

@@ -1,6 +1,7 @@
-package org.HoI4Optimizer.Factory;
+package org.HoI4Optimizer.Building.SharedBuilding;
 
 import com.diogonunes.jcolor.Attribute;
+import org.HoI4Optimizer.Building.Building;
 import org.HoI4Optimizer.Nation.State;
 
 import java.io.PrintStream;
@@ -36,12 +37,12 @@ public class CivilianFactory extends Factory implements Cloneable{
     };
 
     /// Create civilian factory with this name, which may or may not have been unlocked already
-    public CivilianFactory(String name, State location, boolean underConstruction)
+    public CivilianFactory(String townName, State location, boolean underConstruction)
     {
-        super(name,location,underConstruction);
+        super(townName,location,underConstruction);
     }
 
-    /// For use by JSon deserializer
+    /// For use by JSon deserializer, creates already constructed civilian factory
     public CivilianFactory()
     {
         super("null",null,false);
@@ -52,8 +53,8 @@ public class CivilianFactory extends Factory implements Cloneable{
     /// Civilian factories add civilian construction industrial capacity CIC to the nation's production line
     /// They are essentially interchangeable
     @Override
-    public type getMyType() {
-        return type.Civilian;
+    public Building.type getMyType() {
+        return Building.type.Civilian;
     }
 
     @Override
@@ -82,7 +83,9 @@ public class CivilianFactory extends Factory implements Cloneable{
         try {
             CivilianFactory clone = (CivilianFactory) super.clone();
             clone.CIC_invested=CIC_invested;
-            clone.location=null;//MUST BE SET LATER BY THE STATE OWNING US
+
+            //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
+            clone.location=location;
             clone.name=name;
             clone.underConstruction=underConstruction;
             return clone;

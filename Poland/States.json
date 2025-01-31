@@ -6,7 +6,7 @@
     "extraBuildingSlots": 0,
     "infrastructure": 3,
     "name": "Białystok",
-    "factoryNames":["Białystok","Suwalki","Białystok","Belarus","Northern"],
+    "factoryNames":["Białystok","Suwalki","Białystok","Northern"],
     "factories":
     [
       {
@@ -16,6 +16,7 @@
     ]
   },
   {
+    "noBuilding": true,
     "id": 2,
     "type":"city",
     "supplyhub": true,

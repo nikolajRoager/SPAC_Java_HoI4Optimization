@@ -3,10 +3,11 @@ package org.HoI4Optimizer.Nation;
 import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.HoI4Optimizer.Factory.CivilianFactory;
-import org.HoI4Optimizer.Factory.Factory;
-import org.HoI4Optimizer.Factory.MilitaryFactory;
-import org.HoI4Optimizer.Factory.Refinery;
+import org.HoI4Optimizer.Building.*;
+import org.HoI4Optimizer.Building.SharedBuilding.CivilianFactory;
+import org.HoI4Optimizer.Building.SharedBuilding.Factory;
+import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
+import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
 import org.HoI4Optimizer.NationalConstants.*;
 import java.io.File;
 import java.io.IOException;
@@ -29,11 +30,9 @@ public class State implements Cloneable {
     /// Name of the state, often the name of the capital city
     private String name;
 
-    /// Infrastructure level from 0 to 5, boosts local construction speed
-    private int infrastructure;
 
     /// Is this connected to capital network, gives flat 20% boost to mines
-    boolean supplyhub=false;
+    private boolean supplyhub=false;
 
     private int base_oil=0;
     private int base_rubber=0;
@@ -41,6 +40,10 @@ public class State implements Cloneable {
     private int base_aluminium=0;
     private int base_tungsten=0;
     private int base_chromium=0;
+
+    private boolean noBuilding=false;
+
+    private Infrastructure infrastructure;
 
     /// Military Factories in this state
     private List<MilitaryFactory> militaryFactories;
@@ -53,33 +56,33 @@ public class State implements Cloneable {
     public int getOil()
     {
         //No refineries, they make fuel directly
-        return (int)(base_oil*(supplyhub?1.2:1.0)*(1+infrastructure*0.2));
+        return (int)(base_oil*(supplyhub?1.2:1.0)*(1+infrastructure.getLevel()*0.2));
     }
     ///rubber in state Rounded down
     public int getRubber(int rubber_per_refinery)
     {
         //Synthetic rubber is unaffected by infrastructure
-        return (int)(base_rubber*(supplyhub?1.2:1.0)*(1+infrastructure*0.2))+refineries.size()*rubber_per_refinery;
+        return (int)(base_rubber*(supplyhub?1.2:1.0)*(1+infrastructure.getLevel()*0.2))+refineries.size()*rubber_per_refinery;
     }
     ///Aluminium in state
     public int getAluminium()
     {
-        return (int)(base_aluminium*(supplyhub?1.2:1.0)*(1+infrastructure*0.2));
+        return (int)(base_aluminium*(supplyhub?1.2:1.0)*(1+infrastructure.getLevel()*0.2));
     }
     ///Steel in state
     public int getSteel()
     {
-        return (int)(base_steel*(supplyhub?1.2:1.0)*(1+infrastructure*0.2));
+        return (int)(base_steel*(supplyhub?1.2:1.0)*(1+infrastructure.getLevel()*0.2));
     }
     ///Tungsten in state
     public int getTungsten()
     {
-        return (int)(base_tungsten*(supplyhub?1.2:1.0)*(1+infrastructure*0.2));
+        return (int)(base_tungsten*(supplyhub?1.2:1.0)*(1+infrastructure.getLevel()*0.2));
     }
     ///Chromium in state
     public int getChromium()
     {
-        return (int)(base_chromium*(supplyhub?1.2:1.0)*(1+infrastructure*0.2));
+        return (int)(base_chromium*(supplyhub?1.2:1.0)*(1+infrastructure.getLevel()*0.2));
     }
 
     public void setBase_oil(int base_oil) {
@@ -111,12 +114,16 @@ public class State implements Cloneable {
     }
 
     public int getInfrastructure() {
-        return infrastructure;
+        return infrastructure.getLevel();}
+
+    public void setInfrastructure(int level)
+    {
+        infrastructure=new Infrastructure(this,level,false);
     }
 
-    public void setInfrastructure(int infrastructure) {
-        this.infrastructure = Math.clamp(infrastructure,0,5);
-    }
+    /// Is it possible to
+    public boolean canUpgradeInfrastructure() {return infrastructure.getLevel()<Infrastructure.maxLevel && !infrastructure.getUnderConstruction();}
+
     /// Names used to auto-generating names of factories
     private List<String> factoryNames;
     /// Get our factories as a list
@@ -240,8 +247,11 @@ public class State implements Cloneable {
     public void printReport(PrintStream out,double building_slot_bonus,int rubber_per_refinery,String prefix)
     {
         out.println(colorize(prefix+"~~State of "+name+"~~", Attribute.BOLD()) );
-        out.println(colorize(prefix+"\tinfrastructure "+infrastructure+"/5",Attribute.YELLOW_TEXT()));
+        out.println(colorize(prefix+"\tinfrastructure "+infrastructure.getLevel()+"/5",Attribute.YELLOW_TEXT()));
         out.println(colorize(prefix+"\tBuilding slots unlocked "+getBuildingSlots(building_slot_bonus),Attribute.GREEN_TEXT()));
+        out.println(colorize(prefix+"\tCan build civilian factories: "+(canBuildCivilianFactory(building_slot_bonus)?"yes":"no"),Attribute.BRIGHT_YELLOW_TEXT()));
+        out.println(colorize(prefix+"\tCan build military factories: "+(canBuildMilitaryFactory(building_slot_bonus)?"yes":"no"),Attribute.BRIGHT_GREEN_TEXT()));
+        out.println(colorize(prefix+"\tCan build refinery factories: "+(canBuildRefineryFactory(building_slot_bonus)?"yes":"no"),Attribute.BLUE_TEXT()));
         if (!civilianFactories.isEmpty())
         {
             out.println(colorize(prefix+"\t"+civilianFactories.size()+" Civilian Factories:",Attribute.BRIGHT_YELLOW_TEXT()));
@@ -266,7 +276,83 @@ public class State implements Cloneable {
         //Resources available
         out.print(colorize(String.format(prefix+"\tBase resources......:%3s %6s %8s %7s %6s %7s%n",  base_oil, base_aluminium, base_rubber, base_tungsten, base_steel, base_chromium),Attribute.GREEN_TEXT()));
         out.print(colorize(String.format(prefix+"\tWith Industry bonus.:%3s %6s %8s %7s %6s %7s%n", getOil() , getAluminium(), getRubber(rubber_per_refinery), getTungsten(), getSteel(), getChromium()),Attribute.GREEN_TEXT()));
+    }
 
+    /// Start construction of a new civilian factory
+    public Infrastructure buildInfrastructure() throws RuntimeException
+    {
+        if (!canUpgradeInfrastructure())
+            throw new RuntimeException("Can not upgrade infrastructure in "+name);
+        //Create a new factory, with a randomly generated town name
+        Random rand = new Random();
+        infrastructure = new Infrastructure(this,infrastructure.getLevel()+1,true);
+        return infrastructure;
+    }
+    /// Start construction of a new civilian factory
+    public CivilianFactory buildCivilianFactory(double building_slot_bonus) throws RuntimeException
+    {
+        if (!canBuildCivilianFactory(building_slot_bonus))
+            throw new RuntimeException("Can not build civilian factory in "+name);
+        //Create a new factory, with a randomly generated town name
+        Random rand = new Random();
+        var New = new CivilianFactory(factoryNames.get(rand.nextInt(0,factoryNames.size())),this,true);
+        civilianFactories.add(New);
+        return New;
+    }
+    /// Start construction of a new military factory
+    public MilitaryFactory buildMilitaryFactory(double building_slot_bonus) throws RuntimeException
+    {
+        if (!canBuildMilitaryFactory(building_slot_bonus))
+            throw new RuntimeException("Can not build military factory in "+name);
+        //Create a new factory, with a randomly generated town name
+        Random rand = new Random();
+        var New = new MilitaryFactory(factoryNames.get(rand.nextInt(0,factoryNames.size())),this,true);
+        militaryFactories.add(New);
+        return New;
+    }
+    /// Start construction of a new refinery
+    public Refinery buildRefinery(double building_slot_bonus) throws RuntimeException
+    {
+        if (!canBuildRefineryFactory(building_slot_bonus))
+            throw new RuntimeException("Can not build refinery in "+name);
+        //Create a new factory, with a randomly generated town name
+        Random rand = new Random();
+        var New = new Refinery(factoryNames.get(rand.nextInt(0,factoryNames.size())),this,true);
+        refineries.add(New);
+        return New;
+    }
+
+    public boolean canBuildCivilianFactory(double building_slot_bonus) {
+        //check if there are no civilian factories in construction
+        for (var f : civilianFactories)
+            if (f.getUnderConstruction())
+            {
+                return false;
+            }
+        //If then, see if we have free slots
+        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0);
+    }
+
+    public boolean canBuildMilitaryFactory(double building_slot_bonus) {
+        //check if there are no military factories in construction
+        for (var f : militaryFactories)
+            if (f.getUnderConstruction())
+            {
+                return false;
+            }
+        //If then, see if we have free slots
+        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0);
+    }
+
+    public boolean canBuildRefineryFactory(double building_slot_bonus) {
+        //check if there are no refineries factories in construction
+        for (var f : refineries)
+            if (f.getUnderConstruction())
+            {
+                return false;
+            }
+        //If then, see if we have free slots
+        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0);
     }
 
     @Override
@@ -277,7 +363,8 @@ public class State implements Cloneable {
             clone.type              =type;
             clone.extraBuildingSlots=extraBuildingSlots;
             clone.name              =name;
-            clone.infrastructure    =infrastructure;
+            clone.infrastructure    =infrastructure.clone();
+            clone.infrastructure.setLocation(this);
             clone.supplyhub         =supplyhub;
             clone.base_oil          =base_oil;
             clone.base_rubber       =base_rubber;
@@ -314,5 +401,9 @@ public class State implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    void setNoBuilding(boolean noBuilding) {
+        this.noBuilding = noBuilding;
     }
 }

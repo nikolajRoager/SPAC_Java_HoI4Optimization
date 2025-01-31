@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 /// A class with properties, which we want to be able to load from a json file
-/* Deliberately left package-private*/public class NationalProperties implements Cloneable
+public class NationalProperties implements Cloneable
 {
     /// Countries have 1 of 4 ideologies
     /// Roughly in order of how good/bad they are
@@ -333,8 +333,9 @@ import java.io.IOException;
         return special_tungsten;
     }
 
+    /// Clamped to above -1.0 (-100% = no production), has not upper limit
     public void setBase_factory_output(double base_factory_output) {
-        this.base_factory_output = base_factory_output;
+        this.base_factory_output = Math.max(-1.0,base_factory_output);
     }
 
     /// should only be used by json deserializer! this does not re-normalize other parties (necessary to make loading work)
@@ -342,20 +343,24 @@ import java.io.IOException;
         this.autocracy_support = autocracy_support;
     }
 
+    /// Consumer goods multiplier, do not modify by adding!, instead multiply with (1+thingToAdd)
     public void setBase_consumer_goods_multiplier(double base_consumer_goods_multiplier) {
-        this.base_consumer_goods_multiplier = base_consumer_goods_multiplier;
+        this.base_consumer_goods_multiplier = Math.max(base_consumer_goods_multiplier,0.0);
     }
 
+    /// Base consumer goods ratio, between 0.0 and 1.0
     public void setBase_consumer_goods_ratio(double base_consumer_goods_ratio) {
-        this.base_consumer_goods_ratio = base_consumer_goods_ratio;
+        this.base_consumer_goods_ratio = Math.clamp(base_consumer_goods_ratio, 0.0, 1.0);
     }
 
+    /// Base stability before permanent effects are applied, is between 0 and 1
     public void setBase_stability(double base_stability) {
-        this.base_stability = base_stability;
+        this.base_stability = Math.clamp(base_stability,0.0,1.0);
     }
 
+    /// Clamped to above -1.0 (-100% = no construction), has not upper limit
     public void setCiv_construction_speed_bonus(double civ_construction_speed_bonus) {
-        this.civ_construction_speed_bonus = civ_construction_speed_bonus;
+        this.civ_construction_speed_bonus = Math.max(-1.0,civ_construction_speed_bonus);
     }
 
     /// should only be used by json deserializer! this does not re-normalize other parties (necessary to make loading work)
@@ -363,8 +368,9 @@ import java.io.IOException;
         this.communism_support = communism_support;
     }
 
+    /// Clamped to above -1.0 (-100% = no construction), has not upper limit
     public void setConstruction_speed(double construction_speed) {
-        this.construction_speed = construction_speed;
+        this.construction_speed = Math.max(-1.0,construction_speed);
     }
 
     /// should only be used by json deserializer! this does not re-normalize other parties (necessary to make loading work)
@@ -372,8 +378,9 @@ import java.io.IOException;
         this.democracy_support = democracy_support;
     }
 
+    /// Clamped to between 0.0 and 1.0
     public void setEfficiency_cap(double efficiency_cap) {
-        Efficiency_cap = efficiency_cap;
+        Efficiency_cap = Math.clamp(efficiency_cap,0.0,1.0);
     }
 
     /// should only be used by json deserializer! this does not re-normalize other parties (necessary to make loading work)
@@ -381,42 +388,52 @@ import java.io.IOException;
         this.fascism_support = fascism_support;
     }
 
+    /// Clamped to above -1.0 (-100% = no construction), has not upper limit
     public void setMil_construction_speed_bonus(double mil_construction_speed_bonus) {
-        this.mil_construction_speed_bonus = mil_construction_speed_bonus;
+        this.mil_construction_speed_bonus = Math.max(-1.0, mil_construction_speed_bonus);
     }
 
+    /// Clamped to above -1.0 (-100% = no resources), has not upper limit
     public void setResource_gain_bonus(double resource_gain_bonus) {
-        this.resource_gain_bonus = resource_gain_bonus;
+        this.resource_gain_bonus = Math.max(-1.0, resource_gain_bonus);
     }
 
+    /// Set ruling party without changing supports
     public void setRulingParty(ideology rulingParty) {
         RulingParty = rulingParty;
     }
 
+    /// Clamped to a positive number or 0
     public void setSpecial_aluminium(int special_aluminium) {
-        this.special_aluminium = special_aluminium;
+        this.special_aluminium = Math.max(0,special_aluminium);
     }
 
+    /// Clamped to a positive number or 0
     public void setSpecial_chromium(int special_chromium) {
-        this.special_chromium = special_chromium;
+        this.special_chromium = Math.max(0,special_chromium);
     }
 
+    /// Clamped to a positive number or 0
     public void setSpecial_projects_civs(int special_projects_civs) {
-        this.special_projects_civs = special_projects_civs;
+        this.special_projects_civs = Math.max(0,special_projects_civs);
     }
 
+    /// Clamped to a positive number or 0
     public void setSpecial_rubber(int special_rubber) {
-        this.special_rubber = special_rubber;
+        this.special_rubber = Math.max(0,special_rubber);
     }
 
+    /// Clamped to a positive number or 0
     public void setSpecial_steel(int special_steel) {
-        this.special_steel = special_steel;
+        this.special_steel = Math.max(0,special_steel);
     }
 
+    /// Clamped to a positive number or 0
     public void setSpecial_tungsten(int special_tungsten) {
-        this.special_tungsten = special_tungsten;
+        this.special_tungsten = Math.max(0,special_tungsten);
     }
 
+    /// Permanent stability effects is not clamped, you can have effects going above 100%, but the resulting stability is clamped, anything above that can act as a "buffer"
     public void setPermanent_stability(double permanent_stability) {
         this.permanent_stability = permanent_stability;
     }
@@ -443,7 +460,7 @@ import java.io.IOException;
         {
             case Democratic -> {NewSupport= democracy_support;democracy_support=0;}//Oh no
             case Fascist -> {NewSupport= fascism_support;fascism_support=0;}//Good riddance
-            case Nonaligned -> {NewSupport= autocracy_support;autocracy_support=0;}//history finaly caught up with you
+            case Nonaligned -> {NewSupport= autocracy_support;autocracy_support=0;}//history finally caught up with you
             case Communist -> {NewSupport= communism_support;communism_support=0;}//that was inevitable
             default -> {NewSupport=0;}
         }
@@ -460,14 +477,14 @@ import java.io.IOException;
     //Derived properties: calculated from the others in a predictable way
     /// Derived total stability, permanent stability effects, plus stability (clamped)
     public double getStability() {
-        return permanent_stability+Math.clamp(base_stability,0,1)+getRulingParty_support()*.15;
+        return Math.clamp(permanent_stability+Math.clamp(base_stability,0,1)+getRulingParty_support()*.15,0,1);
     }
 
     /// Actual consumer goods ratio required
     public double getConsumer_goods_ratio() {
         double stab = getStability();
-        //Up to 20% multiplicative reduction
-        return base_consumer_goods_ratio*base_consumer_goods_multiplier*(1+(stab>0.5? (stab-0.5)*2*.2 : 0 ));
+        //Up to 20% multiplicative reduction from stability
+        return Math.clamp(base_consumer_goods_ratio*base_consumer_goods_multiplier*(1+(stab>0.5? (stab-0.5)*2*.2 : 0 )),0.1/*There is a minimum ratio*/,1.0);
     }
 
     /// Actual factory output, includig stability effects

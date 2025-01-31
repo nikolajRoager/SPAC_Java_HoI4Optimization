@@ -85,30 +85,56 @@
     "factoryNames": ["aviation industry","plane factory","aircraft factory"],
     "brandNames": ["PZL"],
     "name": "Jastrząb mk 1",
-    "unit_cost": 26.0,
-    "researchTime": 0,
+    "unit_cost": 24.0,
+    "researchTime": 467,
     "smallUpgrade": false,
     "rubber": 1,
     "steel": 0,
     "chromium": 0,
     "aluminium": 3,
     "tungsten": 0,
-    "nextGen":
-    {
-      "id": 7,
+    "nextGen": {
+      "id": 6,
       "shortname": "fighter plane",
-      "factoryNames": ["aviation industry","plane factory","aircraft factory"],
-      "brandNames": ["PZL"],
-      "name": "Jastrząb mk 2",
-      "unit_cost": 28.0,
-      "researchTime": 600,
+      "factoryNames": [
+        "aviation industry",
+        "plane factory",
+        "aircraft factory"
+      ],
+      "brandNames": [
+        "PZL"
+      ],
+      "name": "Jastrząb mk 1",
+      "unit_cost": 26.0,
+      "researchTime": 535,
       "smallUpgrade": true,
-      "rubber": 2,
+      "rubber": 1,
       "steel": 0,
       "chromium": 0,
       "aluminium": 3,
       "tungsten": 0,
-      "nextGen":null
+      "nextGen": {
+        "id": 7,
+        "shortname": "fighter plane",
+        "factoryNames": [
+          "aviation industry",
+          "plane factory",
+          "aircraft factory"
+        ],
+        "brandNames": [
+          "PZL"
+        ],
+        "name": "Jastrząb mk 2",
+        "unit_cost": 28.0,
+        "researchTime": 600,
+        "smallUpgrade": true,
+        "rubber": 2,
+        "steel": 0,
+        "chromium": 0,
+        "aluminium": 3,
+        "tungsten": 0,
+        "nextGen": null
+      }
     }
   },
   {
@@ -134,7 +160,7 @@
     "brandNames": ["PZInż"],
     "name": "PZInż 140",
     "unit_cost": 2.27,
-    "researchTime": 366,
+    "researchTime": 448,
     "smallUpgrade": false,
     "rubber": 0,
     "steel": 1,
@@ -149,8 +175,8 @@
     "factoryNames": ["Armor factory","heavy vehicle factory"],
     "brandNames": ["PZInż"],
     "name": "10TP",
-    "unit_cost": 5.92,
-    "researchTime": 400,
+    "unit_cost": 6.75,
+    "researchTime": 637,
     "smallUpgrade": false,
     "rubber": 0,
     "steel": 1,
@@ -166,7 +192,7 @@
     "brandNames": ["PZInż"],
     "name": "27TP",
     "unit_cost": 17.84,
-    "researchTime": 200,
+    "researchTime": 448,
     "smallUpgrade": false,
     "rubber": 0,
     "steel": 1,

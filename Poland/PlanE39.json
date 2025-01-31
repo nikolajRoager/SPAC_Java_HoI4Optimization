@@ -1,0 +1,496 @@
+{
+  "35": [{
+    "name": "Military raids German Nazi sympathisers in the \"Free\" city of Danzig"
+  }],
+  "70": [{
+    "name": "4-year Industrial plan passed",
+    "properties":
+    [{
+        "target":"construction_speed",
+        "value":0.10,
+        "add": true
+      }]
+  }],
+  "140": [{
+    "name": "Fill the railway gap completed",
+    "states":
+    [
+      {
+        "state": 12,
+        "target":"Infrastructure",
+        "number":1
+      },
+      {
+        "state": 16,
+        "target":"Infrastructure",
+        "number":1
+      }
+    ]
+  }],
+  "142":[{
+    "name": "Partial economic mobilization",
+    "properties":
+    [
+      {
+        "target":"natural_fuel_bonus",
+        "value":0.30,
+        "add": true
+      },
+      {
+        "target":"base_consumer_goods_ratio",
+        "value":0.30,
+        "add": false
+      },
+      {
+        "target":"civ_construction_speed_bonus",
+        "value":0.30,
+        "add": false
+      },
+      {
+        "target":"mil_construction_speed_bonus",
+        "value":0.40,
+        "add": false
+      }
+    ]
+  }],
+  "164": [{
+    "name": "Expanded access to Machine tools",
+    "properties":
+    [{
+      "target":"efficiency_cap",
+      "value":0.10,
+      "add": true
+    }]
+  }],
+  "175": [{
+    "name": "Central Region industrial strategy instituted",
+    "states":
+    [
+      {
+        "state" : 15,
+        "target":"Slot",
+        "number" :1
+      },
+      {
+        "state" : 5,
+        "target":"Slot",
+        "number" : 1
+      },
+      {
+        "state" : 8,
+        "target":"Slot",
+        "number" : 2
+      },
+      {
+        "state": 7,
+        "target":"Slot",
+        "number":2
+      },
+      {
+        "state": 15,
+        "target":"Civilian",
+        "number":1
+      },
+      {
+        "state": 5,
+        "target":"Civilian",
+        "number":1
+      }
+    ]
+  }],
+  "200": [{
+    "name": "Seize Nazi-owned industry",
+    "states":
+    [
+      {
+        "state": 2,
+        "target":"Military",
+        "number":1
+      }
+    ]
+  }],
+  "217": [{
+    "name": "Researched Construction technology 1",
+    "properties":
+    [{
+      "target":"construction_speed",
+      "value":0.10,
+      "add": true
+    }]
+  }],
+  "245": [
+    {"name": "New institute of mathematics opens in Warzawa"},
+    {"name": "Poland funds SPD election campaign in Free City of Danzig"}],
+  "315": [{
+    "name": "Citizens industry donates to national defence fund",
+    "properties":
+    [{
+      "target":"construction_speed",
+      "value":0.10,
+      "add": true
+    }]
+  }],
+  "350": [{
+    "name": "Nazi party defeated in Free city of Danzig, New SPD mayor cooperates with Poland",
+    "states":
+    [{
+      "state": 2,
+      "target":"Military",
+      "number":1
+    },
+    {
+      "state": 2,
+      "target":"noBuilding",
+      "number":0
+    },
+    {
+      "state": 2,
+      "target":"Civilian",
+      "number":1
+    }]
+  }],
+  "351": [{
+    "name": "Farmers protests break out, the government agrees to negotiate"
+  }],
+  "364": [{
+    "name": "Anti-Comintern pact signed (but not by Poland)"
+  }],
+  "366": [{
+    "name": "(Happy new year) Construction technology researched",
+    "properties": [
+      {
+        "target":"construction_speed",
+        "value":0.1,
+        "add": true
+      }
+    ]
+  }],
+  "378": [{
+    "name": "Initial concentrated industry reform",
+    "properties": [
+      {
+        "target":"base_factory_output",
+        "value":0.15,
+        "add": true
+      },
+      {
+        "target":"buildingSlotBonus",
+        "value":0.2,
+        "add": true
+      }
+    ]
+  }],
+  "420": [{
+    "name": "Government acquiesce to farmers, and institute agrarian reform, a strike is averted"
+  }],
+  "448": [{
+    "name": "Tank research produces either light recon Tankette PZInż 140 or heavy tank 27TP"
+  }],
+  "467": [{
+    "name": "Jastrząb prototype delivered"
+  }],
+  "473": [{
+    "name": "Concentrated industry improvements",
+    "properties": [
+      {
+        "target":"base_factory_output",
+        "value":0.15,
+        "add": true
+      },
+      {
+        "target":"buildingSlotBonus",
+        "value":0.2,
+        "add": true
+      }
+    ]
+  }],
+  "490": [{
+    "name": "the \"Free city of Danzig\" votes to join Poland, opening up Poland to world trade",
+    "states":
+    [{
+        "state": 2,
+        "target":"Slot",
+        "number":2
+      },
+      {
+      "state": 2,
+      "target":"Military",
+      "number":1
+      },
+      {
+        "state": 2,
+        "target":"Civilian",
+        "number":1
+      }
+    ],
+    "properties":
+    [
+      {
+        "target":"construction_speed",
+        "value":0.10,
+        "add": true
+      },
+      {
+        "target":"base_factory_output",
+        "value":0.10,
+        "add": true
+      },
+      {
+        "target":"base_consumer_goods_ratio",
+        "value":-0.05,
+        "add": true
+      },
+      {
+        "target":"resources_to_market",
+        "value":0.5,
+        "add": false
+      }
+    ]
+  }],
+  "494": [{
+    "name": "Jozef Zajac becomes chief of the air-force"
+  }],
+  "525": [{
+    "name": "\"New polish industry\" program in Poznan bears fruit",
+    "states":
+    [{
+      "state": 3,
+      "target":"Slot",
+      "number":1
+    },
+      {
+        "state": 3,
+        "target":"Military",
+        "number":1
+      },
+    {
+      "state": 13,
+      "target":"Slot",
+      "number":1
+    },
+      {
+        "state": 13,
+        "target":"Military",
+        "number":1
+      }
+    ]
+  }],
+  "532": [{
+    "name": "Improved machine tools improves productivity",
+    "properties":
+    [{
+      "target":"efficiency_cap",
+      "value":0.10,
+      "add": true
+    }]
+  }],
+  "535": [{
+    "name": "Jastrząb mk 1 enters serial production"
+  }],
+  "574": [{
+    "name": "Tankette PZInż 140 or heavy tank 27TP enters serial production"
+  }],
+  "595": [{
+    "name": "Power struggle between Sławek and Rydz-Śmigły, Kazimierz Sosnkowski becomes chief of the army",
+    "properties": [
+      {
+        "target":"autocracy_growth",
+        "value":-0.17,
+        "add": true
+      },
+      {
+        "target":"permanent_stability",
+        "value":-0.05,
+        "add": true
+      },
+      {
+        "target":"base_consumer_goods_multiplier",
+        "value":0.05,
+        "add": false
+      }
+    ]
+  }],
+  "630": [{
+    "name": "Militarization of society",
+    "properties": [
+      {
+        "target":"autocracy_growth",
+        "value":0.05,
+        "add": true
+      }
+    ]
+  }],
+  "637": [{
+    "name": "Light tank 10TP enters serial production"
+  }],
+  "665": [{
+    "name": "Mościcki re-asserts presidential authority",
+    "properties": [
+      {
+        "target":"autocracy_growth",
+        "value":0.05,
+        "add": true
+      }
+    ]
+  }],
+  "680": [{
+    "name": "+5% efficiancy gain speed for AA and artillery"
+  }],
+  "700": [{
+    "name": "Sławek regains prime-minister post and appoints Joséf Haller becomes economy minister",
+    "properties": [
+      {
+        "target":"mil_construction_speed_bonus",
+        "value":0.10,
+        "add": false
+      },
+      {
+        "target":"permanent_stability",
+        "value":0.15,
+        "add": true
+      },
+      {
+        "target":"base_consumer_goods_multiplier",
+        "value":0.0,
+        "add": false
+      },
+      {
+        "target":"autocracy_growth",
+        "value":0.02,
+        "add": true
+      }
+    ]
+  }],
+  "735": [{
+    "name": "Rydz-Śmigły is appointed Marshal of Poland, Sławek and Haller threatens resignation",
+    "properties": [
+      {
+        "target":"permanent_stability",
+        "value":-0.05,
+        "add": true
+      },
+      {
+        "target":"base_consumer_goods_multiplier",
+        "value":0.05,
+        "add": false
+      },
+      {
+        "target":"autocracy_growth",
+        "value":0.03,
+        "add": true
+      }
+    ]
+  }],
+  "749": [{
+    "name": "\"Hejnał\" project radar development",
+    "properties": [
+      {
+        "target":"special_steel",
+        "value":8,
+        "add": false
+      },
+      {
+        "target":"special_aluminium",
+        "value":8,
+        "add": false
+      }
+    ]
+  }],
+  "770": [{
+    "name": "Rydz-Śmigły integrates Falangist militias in the army, Sławek strongly protests",
+    "properties": [
+      {
+        "target":"permanent_stability",
+        "value":-0.15,
+        "add": true
+      },
+      {
+        "target":"base_consumer_goods_multiplier",
+        "value":0.20,
+        "add": false
+      },
+      {
+        "target":"autocracy_growth",
+        "value":-0.15,
+        "add": true
+      },
+      {
+        "target":"fascism_growth",
+        "value":0.02,
+        "add": true
+      }
+    ]
+  }],
+  "773": [{
+    "name": "New surveying techniques improve productivity of mines",
+    "properties":
+    [{
+      "target":"resource_gain_bonus",
+      "value":0.10,
+      "add": true
+    }]
+  }],
+  "795": [{
+    "name": "Jastrząb mk 2 enters serial production, with improved survivability +5% efficiency gain"
+  }],
+  "814": [{
+    "name": "Anschluss of Austria, the threat posed by Hitler is evident"
+  }],
+  "834": [{
+    "name": "Improved metallurgy increases productivity of resource sector",
+    "properties":
+    [{
+      "target":"resource_gain_bonus",
+      "value":0.10,
+      "add": true
+    }]
+  }],
+  "840": [{
+    "name": "FBL focuses on semiautomatic rifles, efficiency gain -5%"
+  },
+  {
+    "name": "Rydz-Śmigły and Sławek reconcile their differences to focus on the German threat",
+    "properties": [
+      {
+        "target":"permanent_stability",
+        "value":0.25,
+        "add": true
+      },
+      {
+        "target":"base_consumer_goods_multiplier",
+        "value":0.0,
+        "add": false
+      },
+      {
+        "target":"autocracy_growth",
+        "value":0.05,
+        "add": true
+      },
+      {
+        "target":"democracy_growth",
+        "value":0.1,
+        "add": true
+      }
+    ]
+  },
+  {
+    "name": "Funding for radio intelligence agency",
+    "properties": [
+      {
+        "target":"special_projects_civs",
+        "value":5,
+        "add": false
+      }
+    ]
+  }],
+  "870": [{
+    "name": "TEMP",
+    "properties": [
+      {
+        "target":"special_projects_civs",
+        "value":0,
+        "add": false
+      }
+    ]
+  }]
+}

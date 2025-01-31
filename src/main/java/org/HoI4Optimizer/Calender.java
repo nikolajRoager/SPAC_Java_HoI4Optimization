@@ -16,11 +16,13 @@ public class Calender {
         //Augustus and Julius were great Caesars, therefore their months must have 31 days even though they are next to each other
         int[] Monthdays      = {31,28,31,30,31,30,31,30,31,31,30,31};
 
+        String y;
+
         if (!isLeapYear)
         {
             day-=366;//Subtract the first leap year
             //Then get which of the 3 365 years we are in since the start of the
-            year += day/365;
+            year += 1+day/365;
             day%=365;
         }
         else

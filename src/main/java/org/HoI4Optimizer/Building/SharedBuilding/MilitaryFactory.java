@@ -1,6 +1,7 @@
-package org.HoI4Optimizer.Factory;
+package org.HoI4Optimizer.Building.SharedBuilding;
 
 import com.diogonunes.jcolor.Attribute;
+import org.HoI4Optimizer.Building.Building;
 import org.HoI4Optimizer.Nation.NationState;
 import org.HoI4Optimizer.Nation.State;
 import org.HoI4Optimizer.NationalConstants.Equipment;
@@ -61,7 +62,6 @@ public class MilitaryFactory extends Factory implements Cloneable{
         efficiency = 0.1;
         this.closed = false;
         this.MIC_produced = 0;
-        this.name = name;
         product=null;
         productName="null";
     }
@@ -72,7 +72,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// and each military factory contain a unique production line
     @Override
     public type getMyType() {
-        return type.Military;
+        return Building.type.Military;
     }
 
     @Override
@@ -171,7 +171,10 @@ public class MilitaryFactory extends Factory implements Cloneable{
         try {
             MilitaryFactory clone = (MilitaryFactory) super.clone();
             clone.CIC_invested=CIC_invested;
-            clone.location=null;//MUST BE SET LATER BY THE STATE OWNING US
+
+            //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
+            clone.location=location;
+
             clone.name=name;
             clone.underConstruction=underConstruction;
             clone.closed=closed;

@@ -1,18 +1,16 @@
 package org.HoI4Optimizer;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.List;
 
 //A frame containing our plots
 import com.diogonunes.jcolor.Attribute;
-import net.bytebuddy.asm.MemberSubstitution;
+import org.HoI4Optimizer.Nation.BuildingDecision;
 import org.HoI4Optimizer.Nation.Event;
+import org.HoI4Optimizer.Nation.PropertyEvent;
+import org.HoI4Optimizer.Nation.NationalProperties;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
-import org.HoI4Optimizer.MyPlotter.Plot;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 
@@ -24,13 +22,14 @@ public class Main
         NationalSetup Setup;
         //Load setup
         try {
-            Setup = new NationalSetup("Poland");
+            Setup = new NationalSetup("Poland","PlanE39");
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return;
         }
 
         var MyNation =Setup.buildNation();
+        MyNation.apply(new BuildingDecision(MyNation.getStates().getFirst(), BuildingDecision.buildingDecisionType.BuildInfrastructure));
         //A little class to store commands, arguments and their descriptions,
 
         //Create a list of commands to interact with the program
@@ -43,116 +42,254 @@ public class Main
                         new CommandlineCommand.Argument("showFactories", "Show detailed breakdown of all Factories: civilian, Military, and Chemical", CommandlineCommand.Argument.type.Flag, true, 0.0),
                         new CommandlineCommand.Argument("showStates", "Show detailed breakdown of all States in the nation", CommandlineCommand.Argument.type.Flag, true, 0.0),
                 })));
-        commands.put("quit",new CommandlineCommand("quit","stop program",
-                List.of(new CommandlineCommand.Argument[]{
-                })));
         commands.put("event",new CommandlineCommand("event","Create an event for the nation now, or some day in the future (launches event JSon editor)",
                 List.of(new CommandlineCommand.Argument[]{
                         new CommandlineCommand.Argument("day", "When will this event be executed? skip to execute now.", CommandlineCommand.Argument.type.Integer, true, 0.0),
                 })));
+        commands.put("step",new CommandlineCommand("step","simulate forward a specific number of days, or until a construction or production decision becomes available",
+                List.of(new CommandlineCommand.Argument[]{
+                        new CommandlineCommand.Argument("days", "how many days should we at most try to step forward, we will stop once a decision needs to be made", CommandlineCommand.Argument.type.Integer, true, 1),
+                })));
+        //Put these two last, so it appears at the bottom when we print
+        commands.put("help",new CommandlineCommand("help","Print this list of commands",
+                List.of(new CommandlineCommand.Argument[]{
+                })));
+        commands.put("quit",new CommandlineCommand("quit","stop program",
+                List.of(new CommandlineCommand.Argument[]{
+                })));
 
+        //I use a blue box (or ### without colours) before the text to make it clear where the commands are
+        System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize(" We have loaded the setup at the start of the game, you now have the following choices", Attribute.BOLD(), Attribute.BLUE_TEXT()));
 
+        boolean printHelp = true;
         do {
 
-            //I use a blue box (or ### without colours) before the text to make it clear where the commands are
-            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize(" We have loaded the setup at the start of the game, you now have the following choices", Attribute.BOLD(), Attribute.BLUE_TEXT()));
 
-            //Print commands, the index is used to color-code the different commands
-            int i = 0;
-            for (var C : commands.values())
-                C.print((i++) % CommandlineCommand.command_colors.length);
-            //NationStart.printReport(System.out,true,true,true,true,true);
-            System.out.print(colorize(">>>>", Attribute.BOLD()));
+            if (printHelp) {
+                //Print commands, the index is used to color-code the different commands
+                int i = 0;
+                for (var C : commands.values())
+                    C.print((i++) % CommandlineCommand.command_colors.length);
+                printHelp = false;
+            }
+            else
+                System.out.println(colorize("####", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize(" write \"help\" to see commands", Attribute.BOLD(), Attribute.BLUE_TEXT()));
+
+            System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()));
+            System.out.println(colorize(" ",Attribute.MAGENTA_BACK())+" "+colorize(MyNation.getDay()+" ("+Calender.getDate(MyNation.getDay())+")", Attribute.ITALIC(),Attribute.WHITE_TEXT()));
+            System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK())+colorize("$",Attribute.BLACK_TEXT(),Attribute.MAGENTA_BACK())+" ");
             String input = System.console().readLine();
 
             List<String> coms = List.of(input.split(" "));
             coms.forEach(s -> s = s.trim());
 
+            var PrintArgs=commands.get("print").match(coms);
+            var eventArgs=commands.get("event").match(coms);
+            var stepArgs=commands.get("step").match(coms);
             //Check which arguments we match
-            if (commands.get("quit").match(coms)!=null)
+            if (commands.get("help").match(coms)!=null)
+            {
+                printHelp = true;
+            }
+            else if (commands.get("quit").match(coms)!=null)
             {
                 return;
             }
-            var PrintArgs=commands.get("print").match(coms);
-            if ((PrintArgs)!=null)
+            else if ((PrintArgs)!=null)
             {
                 MyNation.printReport(System.out,PrintArgs[0]>0.5,PrintArgs[1]>0.5,PrintArgs[2]>0.5,PrintArgs[3]>0.5,PrintArgs[4]>0.5);
 
             }
-            var eventArgs=commands.get("event").match(coms);
-            if (eventArgs!=null)
+            else if ((stepArgs)!=null)
             {
+                MyNation.update(Math.max(1,(int)stepArgs[0]),System.out);
+            }
+            else if (eventArgs!=null)
+            {
+                Event thisEvent=null;
                 boolean instant =(eventArgs[0]==0);
-                //A little quick JSon editor
+                //A little quick event editor
                 System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize(" Started event editor for new event to be applied "+(instant?"now":"at "+Calender.getDate((int)eventArgs[0])), Attribute.BOLD(), Attribute.GREEN_TEXT()));
 
                 System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Enter data, finish with enter", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
                 System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     Name: ", Attribute.BOLD(), Attribute.RED_TEXT(),Attribute.RAPID_BLINK()));
                 String nameInput = System.console().readLine();
-                System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       The following targets exist: ", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
 
-                var targets = Event.Target.values();
-                for (int j = 0; j < targets.length; ++j)
-                {
-                    System.out.print(colorize("\t"+j+":",Attribute.ITALIC(),Attribute.BRIGHT_WHITE_TEXT())+colorize(targets[j]+(((j%5==0) || (j+1==targets.length))?"\n":""),Attribute.WHITE_TEXT(),Attribute.ITALIC()));
+                //Keep asking the user for a valid target until they acquiesce
+                PropertyEvent.Target target=null;
+                while (target==null) {
+                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       The following targets exist: ", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+
+                    var targets = PropertyEvent.Target.values();
+                    for (int j = 0; j < targets.length; ++j) {
+                        System.out.print(colorize("\t" + j + ":", Attribute.ITALIC(), Attribute.BRIGHT_WHITE_TEXT()) + colorize(targets[j] + (((j % 5 == 0) || (j + 1 == targets.length)) ? "\n" : ""), Attribute.WHITE_TEXT(), Attribute.ITALIC()));
+                    }
+
+
+                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Enter one of the names, or their number", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                    System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     Target: ", Attribute.BOLD(), Attribute.RED_TEXT(), Attribute.RAPID_BLINK()));
+                    String targetInput = System.console().readLine().trim();
+
+                    //At best the user inputted an int
+                    try {
+                        int id = Integer.parseInt(targetInput);
+                        target = targets[id];
+                    } catch (NumberFormatException e) {
+                        //At worst, we have to find it
+                        boolean noneFound = true;
+                        for (var t : targets) {
+                            if (t.toString().equalsIgnoreCase(targetInput)) {
+                                target = t;
+                                noneFound = false;
+                                break;
+                            }
+                        }
+                        if (noneFound)
+                        {
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Not a valid target!", Attribute.BOLD(), Attribute.BRIGHT_RED_TEXT()));
+                        }
+                    }
                 }
-                System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Enter one of the names, or their number", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
-                System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     Target: ", Attribute.BOLD(), Attribute.RED_TEXT(),Attribute.RAPID_BLINK()));
-                //System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     enter name, finish with enter: ", Attribute.BOLD(), Attribute.RED_TEXT(),Attribute.RAPID_BLINK()));
-                //String nameInput = System.console().readLine();
-                return;
 
+                //Is it one of the things which takes boolean, it can not be added to
+                if (target== PropertyEvent.Target.embargoed)
+                {
+
+                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Write either: true, false, 0 or 1", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                    boolean embargoed;
+                    while(true) {
+                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     value: ", Attribute.ITALIC(), Attribute.RED_TEXT()));
+                        String value = System.console().readLine().trim();
+                        if (value.equalsIgnoreCase("true")||value.equalsIgnoreCase("1"))
+                        {
+                            embargoed=true;
+                            break;
+                        }
+                        else if (value.equalsIgnoreCase("false")||value.equalsIgnoreCase("0"))
+                        {
+                            embargoed=false;
+                            break;
+                        }
+                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     not a valid boolean, must be true or false", Attribute.ITALIC(), Attribute.RED_TEXT()));
+                    }
+                    thisEvent=new Event(nameInput, target,embargoed);
+                }
+                //Ideology values can not be added to, everything else can be added to
+                else if (target!= PropertyEvent.Target.democraticCoalition && target!= PropertyEvent.Target.fascistCoalition && target!= PropertyEvent.Target.communistCoalition && target != PropertyEvent.Target.nonalignedCoalition && target != PropertyEvent.Target.RulingParty)
+                {
+                    //Add to existing value, or replace value
+                    boolean add;
+                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Set new value, or add to value? write add or set finish with enter", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                    System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     Operation: ", Attribute.BOLD(), Attribute.RED_TEXT()));
+
+                    while (true) {
+                        String operationInput = System.console().readLine().trim();
+                        if (operationInput.equalsIgnoreCase("add"))
+                        {
+                            add=true;
+                            break;
+                        } else if (operationInput.equalsIgnoreCase("set")) {
+                            add=false;
+                            break;
+                        }
+                        else
+                        {
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Write add or set!", Attribute.BOLD(), Attribute.BRIGHT_RED_TEXT()));
+                        }
+                    }
+
+                    //These are all the integers
+                    if (target== PropertyEvent.Target.special_steel || target== PropertyEvent.Target.special_aluminium || target== PropertyEvent.Target.special_chromium|| target== PropertyEvent.Target.special_rubber || target== PropertyEvent.Target.special_tungsten || target== PropertyEvent.Target.special_projects_civs)
+                    {
+                        System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       write new integer value? finish with enter", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     Value: ", Attribute.BOLD(), Attribute.RED_TEXT()));
+
+
+                        while (true) {
+                            String targetInput = System.console().readLine().trim();
+
+                            //At best the user inputted an int
+                            try {
+                                int integer = Integer.parseInt(targetInput);
+                                thisEvent=new Event(nameInput,target,integer,add);
+                                break;
+                            } catch (NumberFormatException e) {
+                                System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Not convertible to integer!, try again: ", Attribute.BOLD(), Attribute.BRIGHT_RED_TEXT()));
+                            }
+                        }
+                    }
+                    else
+                    {//This is some form of double
+                        System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       write new floating point value? finish with enter", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     Value: ", Attribute.BOLD(), Attribute.RED_TEXT()));
+
+
+                        while (true) {
+                            String targetInput = System.console().readLine().trim();
+
+                            //At best the user inputted an int
+                            try {
+                                double decimal= Double.parseDouble(targetInput);
+                                thisEvent=new Event(nameInput,target,decimal,add);
+                                break;
+                            } catch (NumberFormatException e) {
+                                System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Not convertible to integer!, try again: ", Attribute.BOLD(), Attribute.BRIGHT_RED_TEXT()));
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //These are the only cases where we expect an ideology
+                    NationalProperties.ideology id;
+                    switch (target)
+                    {
+                        case nonalignedCoalition->{
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       What ideology should join the non-aligned party (converting all their support to non-aligned)", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                        }
+                        case fascistCoalition->{
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       What ideology should join the fascists (converting all their support to fascism)", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                        }
+                        case democraticCoalition -> {
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       What ideology should join the democrats (converting all their support to democracy)", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                        }
+                        case communistCoalition -> {
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       What ideology should join the communists (converting all their support to communism)", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                        }
+                        case RulingParty -> {
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       What ideology should take power?", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
+                        }
+                    }
+                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Write either: ", Attribute.ITALIC(), Attribute.GREEN_TEXT())+colorize("democratic",Attribute.BLUE_TEXT())+colorize(", ",Attribute.GREEN_TEXT())+colorize("communist",Attribute.RED_TEXT())+colorize(", ",Attribute.GREEN_TEXT())+colorize("non-align")+colorize(", or ",Attribute.GREEN_TEXT())+colorize("fascist",Attribute.YELLOW_TEXT()));
+                    while(true)
+                    {
+                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     ideology: ", Attribute.ITALIC(), Attribute.RED_TEXT()));
+                        String targetInput = System.console().readLine().trim();
+                        if (targetInput.equalsIgnoreCase("democratic") || targetInput.equalsIgnoreCase("democracy") || targetInput.equalsIgnoreCase("d"))
+                        {
+                            id= NationalProperties.ideology.Democratic;
+                            break;
+                        } else if (targetInput.equalsIgnoreCase("communist") || targetInput.equalsIgnoreCase("communism") || targetInput.equalsIgnoreCase("c")) {
+                            id= NationalProperties.ideology.Communist;
+                            break;
+                        } else if (targetInput.equalsIgnoreCase("nonaligned") || targetInput.equalsIgnoreCase("authoritarian") || targetInput.equalsIgnoreCase("autocratic") || targetInput.equalsIgnoreCase("a") || targetInput.equalsIgnoreCase("n")) {
+                            id= NationalProperties.ideology.Nonaligned;
+                            break;
+                        } else if (targetInput.equalsIgnoreCase("fascist") || targetInput.equalsIgnoreCase("evil") || targetInput.equalsIgnoreCase("fascism") || targetInput.equalsIgnoreCase("f")) {
+                            id= NationalProperties.ideology.Fascist;
+                            break;
+                        }
+                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     not a valid ideology, must be: ", Attribute.ITALIC(), Attribute.RED_TEXT())+colorize("democratic",Attribute.BLUE_TEXT())+colorize(", ",Attribute.GREEN_TEXT())+colorize("communist",Attribute.RED_TEXT())+colorize(", ",Attribute.GREEN_TEXT())+colorize("non-align")+colorize(", or ",Attribute.GREEN_TEXT())+colorize("fascist",Attribute.YELLOW_TEXT()));
+                    }
+                    thisEvent=new Event(nameInput,target,id);
+                }
+
+                //Ok now either apply it now, or add it to the list of events
+                if (eventArgs[0]==0)
+                {
+                    MyNation.apply(thisEvent,System.out);
+                }
             }
         } while (true);
-
-        /*
-        //First show the unchanging national setup for our nation
-        //create an instance of JFrame class
-        JFrame constructionFrame = new JFrame();
-        JFrame productionFrame = new JFrame();
-        JFrame resourceFrame = new JFrame();
-
-        var RPlotter=new Plot(Calender.getDay(1938,7,1),0,60,new String[]{"0","10","20","30","40","50","60"});
-        RPlotter.addPlot(Setup.get_rubber(), Color.black,"Rubber");
-        RPlotter.addPlot(Setup.get_steel(), Color.blue,"Steel");
-        RPlotter.addPlot(Setup.get_tungsten(), Color.darkGray,"Tungsten");
-        RPlotter.addPlot(Setup.get_aluminium(), Color.lightGray,"Aluminium");
-        RPlotter.addPlot(Setup.get_chromium(), Color.lightGray,"Chromium");
-
-        var PPlotter=new Plot(Calender.getDay(1938,7,1),-0.5,1.0,new String[]{"-50%","-40%","-30%","-20%","-10%","  0%"," 10%"," 20%"," 30%"," 40%"," 50%"," 60%"," 70%"," 80%"," 90%","100%"});
-        PPlotter.addPlot(Setup.get_stability(), Color.PINK,"Stability");
-        //Related to production
-        PPlotter.addPlot(Setup.get_factory_output(), Color.BLUE,"Factory output bonus");
-        PPlotter.addPlot(Setup.get_efficiency_cap(), Color.magenta,"Factory efficiency cap");
-
-        var CPlotter=new Plot(Calender.getDay(1938,7,1),-0.5,1.0,new String[]{"-50%","-40%","-30%","-20%","-10%","  0%"," 10%"," 20%"," 30%"," 40%"," 50%"," 60%"," 70%"," 80%"," 90%","100%"});
-        //Related to construction
-        CPlotter.addPlot(Setup.get_mil_construction_speed(), Color.GREEN,"Military Factory Construction Speed bonus");
-        CPlotter.addPlot(Setup.get_civ_construction_speed(), Color.ORANGE,"Civilian Factory Construction Speed bonus");
-        CPlotter.addPlot(Setup.get_construction_speed(), Color.YELLOW,"Other Construction Speed bonus");
-        CPlotter.addPlot(Setup.get_true_consumer_goods_ratio(), Color.cyan,"Consumer goods ratio");
-
-        //MyPlotter.Plot extends JPanel, and creates a plot of some data, until the given date
-        constructionFrame.add(CPlotter);
-        productionFrame.add(PPlotter);
-        resourceFrame.add(RPlotter);
-
-        //set size, layout and location for frames.
-        productionFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        productionFrame.setSize(1800, 600);
-        productionFrame.setLocation(100, 200);
-        productionFrame.setTitle("Polish Production Bonuses, January 1936 to September 1938");
-        productionFrame.setVisible(true);
-        constructionFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        constructionFrame.setSize(1800, 600);
-        constructionFrame.setLocation(100, 200);
-        constructionFrame.setTitle("Polish Construction Bonuses, January 1936 to September 1938");
-        constructionFrame.setVisible(true);
-
-        resourceFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        resourceFrame.setSize(1800, 600);
-        resourceFrame.setLocation(100, 200);
-        resourceFrame.setTitle("Polish Resource availability, January 1936 to September 1938");
-        resourceFrame.setVisible(true);*/
     }
 }

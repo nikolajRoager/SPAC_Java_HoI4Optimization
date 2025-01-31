@@ -108,7 +108,7 @@ public class CommandlineCommand
         if (strings.isEmpty())
             return null;
 
-        if (strings.getFirst().equals(command))
+        if (strings.getFirst().equalsIgnoreCase(command))
         {
             //Check if any argument mis-matches
             double[] out = new double[args.size()];
@@ -118,7 +118,7 @@ public class CommandlineCommand
                 int j;
                 for (j = 0; j < strings.size();++j)
                 {
-                    if (strings.get(j).equals(args.get(i).command))
+                    if (strings.get(j).equalsIgnoreCase(args.get(i).command))
                     {
                         break;
                     }
