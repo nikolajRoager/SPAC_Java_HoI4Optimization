@@ -8,7 +8,7 @@ import org.HoI4Optimizer.Building.SharedBuilding.Factory;
 import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
 import org.HoI4Optimizer.Building.stateBuilding.Infrastructure;
-import org.HoI4Optimizer.Nation.Events.StateEvent;
+import org.HoI4Optimizer.Nation.Event.StateEvent;
 import org.HoI4Optimizer.NationalConstants.*;
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.Random;
 import static com.diogonunes.jcolor.Ansi.colorize;
 
 /// States are the building block of nations, they contain all industry, and slots for building industry
-/// In this simulation, all states are "core territory", non-cores are simulated (like Danzig) are simulated by adding factories by event, when they become available
+/// In this simulation, all stateEvents are "core territory", non-cores are simulated (like Danzig) are simulated by adding factories by event, when they become available
 public class State implements Cloneable {
     private int id;
     /// The type decides my base building slots, can not be changed (the Swedish focus tree is the ONLY way to increase slots, and only in Sweden, so I am going to ignore it)
@@ -53,7 +53,7 @@ public class State implements Cloneable {
     /// Rerineries in this state
     private List<Refinery> refineries;
 
-    ///Oil in state Rounded down (this causes some loss, if two states produce 1.5 oil, we get 2 oil in total just like in game)
+    ///Oil in state Rounded down (this causes some loss, if two stateEvents produce 1.5 oil, we get 2 oil in total just like in game)
     public int getOil()
     {
         //No refineries, they make fuel directly
@@ -126,13 +126,18 @@ public class State implements Cloneable {
     public boolean canUpgradeInfrastructure() {return infrastructure.getLevel()<Infrastructure.maxLevel && !infrastructure.getUnderConstruction();}
 
     /// Names used to auto-generating names of factories
-    private List<String> factoryNames;
+    private List<String> townNames;
     /// Get our factories as a list
-    public List<String> getFactoryNames() {
-        return factoryNames;
+    public List<String> getTownNames() {
+        return townNames;
     }
-    public void setFactoryNames(List<String> names) {
-        this.factoryNames= names;
+
+    public String getTownName(Random rand) {
+        return townNames.get(rand.nextInt(townNames.size()));
+    }
+
+    public void setTownNames(List<String> names) {
+        this.townNames = names;
     }
     /// Get our factories as a list
     public void setFactories(List<Factory> factories) {
@@ -195,7 +200,7 @@ public class State implements Cloneable {
         return Math.clamp(extraBuildingSlots + (int)(type.getBuildingSlots()*(1+building_slot_bonus)),0,25);
     }
 
-    ///load a list of states from json
+    ///load a list of stateEvents from json
     public static List<State> loadState(String filePath, NationalSetup setup) throws IOException {
         //For randomly generating names
         Random rand = new Random();
@@ -227,18 +232,14 @@ public class State implements Cloneable {
                         ((MilitaryFactory) f).setProduct(product);
                 }
                 f.setLocation(S);
-
-                f.generateName(S.factoryNames.get(rand.nextInt(0,S.factoryNames.size())));
             }
 
             for (var f : S.civilianFactories)
             {
-                f.generateName(S.factoryNames.get(rand.nextInt(0,S.factoryNames.size())));
                 f.setLocation(S);
             }
             for (var f : S.refineries)
             {
-                f.generateName(S.factoryNames.get(rand.nextInt(0,S.factoryNames.size())));
                 f.setLocation(S);
             }
         }
@@ -296,7 +297,7 @@ public class State implements Cloneable {
             throw new RuntimeException("Can not build civilian factory in "+name);
         //Create a new factory, with a randomly generated town name
         Random rand = new Random();
-        var New = new CivilianFactory(factoryNames.get(rand.nextInt(0,factoryNames.size())),this,true);
+        var New = new CivilianFactory(this,true);
         civilianFactories.add(New);
         return New;
     }
@@ -307,7 +308,7 @@ public class State implements Cloneable {
             throw new RuntimeException("Can not build military factory in "+name);
         //Create a new factory, with a randomly generated town name
         Random rand = new Random();
-        var New = new MilitaryFactory(factoryNames.get(rand.nextInt(0,factoryNames.size())),this,true);
+        var New = new MilitaryFactory(this,true);
         militaryFactories.add(New);
         return New;
     }
@@ -318,7 +319,7 @@ public class State implements Cloneable {
             throw new RuntimeException("Can not build refinery in "+name);
         //Create a new factory, with a randomly generated town name
         Random rand = new Random();
-        var New = new Refinery(factoryNames.get(rand.nextInt(0,factoryNames.size())),this,true);
+        var New = new Refinery(this,true);
         refineries.add(New);
         return New;
     }
@@ -475,17 +476,17 @@ public class State implements Cloneable {
             case Refinery -> {
                 if (out!=null)
                     out.println(colorize("    Add "+event.number()+" refineries in "+name+" total is now "+refineries.size(), outcomeColour));
-                refineries.add(new Refinery("event refinery",this,false/*Instantly construct*/));
+                refineries.add(new Refinery(this,false/*Instantly construct*/));
             }
             case Civilian -> {
                 if (out!=null)
                     out.println(colorize("    Add "+event.number()+" civilian factories in "+name+" total is now "+civilianFactories.size(), outcomeColour));
-                civilianFactories.add(new CivilianFactory("event civilian factory",this,false/*Instantly construct*/));
+                civilianFactories.add(new CivilianFactory(this,false/*Instantly construct*/));
             }
             case Military -> {
                 if (out!=null)
                     out.println(colorize("    Add "+event.number()+" military factories in "+name+" total is now "+militaryFactories.size(), outcomeColour));
-                militaryFactories.add(new MilitaryFactory("event military factory",this,false/*Instantly construct*/));
+                militaryFactories.add(new MilitaryFactory(this,false/*Instantly construct*/));
             }
             case Infrastructure -> {
                 if (infrastructure.getLevel()<Infrastructure.maxLevel)

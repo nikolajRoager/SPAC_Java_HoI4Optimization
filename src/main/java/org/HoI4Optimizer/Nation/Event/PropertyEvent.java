@@ -1,4 +1,4 @@
-package org.HoI4Optimizer.Nation.Events;
+package org.HoI4Optimizer.Nation.Event;
 
 import org.HoI4Optimizer.Nation.Ideology;
 
@@ -63,7 +63,7 @@ public record PropertyEvent
           basic_fuel_capacity,
         /// Fraction of resources forced to be exported to the market
           resources_to_market,
-        /// Percentage bonus to slots in states, applies only to slots from state type
+        /// Percentage bonus to slots in stateEvents, applies only to slots from state type
           buildingSlotBonus,
         /// Who's in charge? effects which party popularity gives positive stability
          RulingParty,

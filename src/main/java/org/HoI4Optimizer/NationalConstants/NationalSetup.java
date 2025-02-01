@@ -1,7 +1,6 @@
 package org.HoI4Optimizer.NationalConstants;
 
-import net.bytebuddy.utility.nullability.MaybeNull;
-import org.HoI4Optimizer.Nation.Event;
+import org.HoI4Optimizer.Nation.Event.Events;
 import org.HoI4Optimizer.Nation.NationState;
 
 import java.io.IOException;
@@ -18,10 +17,10 @@ public class NationalSetup {
     private final NationState nationStart;
 
     //Events which happens to the nation on particular days
-    private Map<Integer, List<Event>> events;
+    private Map<Integer, List<Events>> events;
 
     /// get all events happening this day
-    public List<Event> getEvent(int day)
+    public List<Events> getEvent(int day)
     {
         var list = events.get(day);
         if (list == null)
@@ -52,7 +51,7 @@ public class NationalSetup {
             throw new IOException("Error loading "+countryname+" files\n"+e.getMessage());
         }
         try {
-            events=Event.loadEvents(Paths.get(countryname,eventsname+".json").toString()) ;
+            events= Events.loadEvents(Paths.get(countryname,eventsname+".json").toString()) ;
         } catch (IOException e) {
             throw new IOException("Error loading "+countryname+" files\n"+e.getMessage());
         }

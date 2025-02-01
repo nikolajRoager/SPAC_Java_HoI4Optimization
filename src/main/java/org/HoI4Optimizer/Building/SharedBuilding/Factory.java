@@ -6,8 +6,6 @@ import org.HoI4Optimizer.Nation.State;
 
 import java.io.PrintStream;
 
-import static com.diogonunes.jcolor.Ansi.colorize;
-
 /// Base class for shared buildingsÆ military, civilian or Refineries (so all factories, hence the name), they take up the same slots and are constructed in the same way
 /// This class doesn't add anything to the building abstract class, I only define it so I can create something which is either a CivilianFactory, MilitaryFactory, or a Refinery but not infrastructure
 /// AI generated code to load different types of factories from Json
@@ -23,13 +21,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
 })
 public abstract class Factory extends Building {
     /// Factories created by event activate immediately
-    public Factory(String townName,State location,boolean underConstruction)
+    public Factory(State location,boolean underConstruction)
     {
         this.location=location;
-        this.generateName(townName);
+        this.generateName();
         this.underConstruction = underConstruction;
         if (underConstruction) CIC_invested = 0;
-        else CIC_invested = getCost(getMyType());;
+        else CIC_invested = getCost(getMyType());
     }
 
 
@@ -43,6 +41,12 @@ public abstract class Factory extends Building {
         }
     }
 
+    /// Send the building beyond the Urals (or wherever), Brick by Brick
+    @Override
+    public void setLocation(State location) {
+        this.location = location;
+        generateName();
+    }
     /// Generate the name of this factory, given a town name
-    public abstract void generateName(String townName);
+    public abstract void generateName();
 }

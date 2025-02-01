@@ -4,7 +4,7 @@
   }],
   "70": [{
     "name": "4-year Industrial plan passed",
-    "properties":
+    "propertyEvents":
     [{
         "modify":"construction_speed",
         "value":0.10,
@@ -13,7 +13,7 @@
   }],
   "140": [{
     "name": "Fill the railway gap completed",
-    "states":
+    "stateEvents":
     [
       {
         "stateID": 12,
@@ -29,7 +29,7 @@
   }],
   "142":[{
     "name": "Partial economic mobilization",
-    "properties":
+    "propertyEvents":
     [
       {
         "modify":"natural_fuel_bonus",
@@ -55,7 +55,7 @@
   }],
   "164": [{
     "name": "Expanded access to Machine tools",
-    "properties":
+    "propertyEvents":
     [{
       "modify":"efficiency_cap",
       "value":0.10,
@@ -64,7 +64,7 @@
   }],
   "175": [{
     "name": "Central Region industrial strategy instituted",
-    "states":
+    "stateEvents":
     [
       {
         "stateID" : 15,
@@ -100,7 +100,7 @@
   }],
   "200": [{
     "name": "Seize Nazi-owned industry",
-    "states":
+    "stateEvents":
     [
       {
         "stateID": 2,
@@ -111,7 +111,7 @@
   }],
   "217": [{
     "name": "Researched Construction technology 1",
-    "properties":
+    "propertyEvents":
     [{
       "modify":"construction_speed",
       "value":0.10,
@@ -123,7 +123,7 @@
     {"name": "Poland funds SPD election campaign in Free City of Danzig"}],
   "315": [{
     "name": "Citizens industry donates to national defence fund",
-    "properties":
+    "propertyEvents":
     [{
       "modify":"construction_speed",
       "value":0.10,
@@ -132,7 +132,7 @@
   }],
   "350": [{
     "name": "Nazi party defeated in Free city of Danzig, New SPD mayor cooperates with Poland",
-    "states":
+    "stateEvents":
     [{
       "stateID": 2,
       "modify":"Military",
@@ -157,7 +157,7 @@
   }],
   "366": [{
     "name": "(Happy new year) Construction technology researched",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"construction_speed",
         "value":0.1,
@@ -167,7 +167,7 @@
   }],
   "378": [{
     "name": "Initial concentrated industry reform",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"base_factory_output",
         "value":0.15,
@@ -191,7 +191,7 @@
   }],
   "473": [{
     "name": "Concentrated industry improvements",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"base_factory_output",
         "value":0.15,
@@ -206,7 +206,7 @@
   }],
   "490": [{
     "name": "the \"Free city of Danzig\" votes to join Poland, opening up Poland to world trade",
-    "states":
+    "stateEvents":
     [{
         "stateID": 2,
         "modify":"Slot",
@@ -223,7 +223,7 @@
         "number":1
       }
     ],
-    "properties":
+    "propertyEvents":
     [
       {
         "modify":"construction_speed",
@@ -252,7 +252,7 @@
   }],
   "525": [{
     "name": "\"New polish industry\" program in Poznan bears fruit",
-    "states":
+    "stateEvents":
     [{
       "stateID": 3,
       "modify":"Slot",
@@ -277,7 +277,7 @@
   }],
   "532": [{
     "name": "Improved machine tools improves productivity",
-    "properties":
+    "propertyEvents":
     [{
       "modify":"efficiency_cap",
       "value":0.10,
@@ -292,7 +292,7 @@
   }],
   "595": [{
     "name": "Power struggle between Sławek and Rydz-Śmigły, Kazimierz Sosnkowski becomes chief of the army",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"autocracy_growth",
         "value":-0.17,
@@ -312,7 +312,7 @@
   }],
   "630": [{
     "name": "Militarization of society",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"autocracy_growth",
         "value":0.05,
@@ -325,7 +325,7 @@
   }],
   "665": [{
     "name": "Mościcki re-asserts presidential authority",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"autocracy_growth",
         "value":0.05,
@@ -338,7 +338,7 @@
   }],
   "700": [{
     "name": "Sławek regains prime-minister post and appoints Joséf Haller becomes economy minister",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"mil_construction_speed_bonus",
         "value":0.10,
@@ -363,7 +363,7 @@
   }],
   "735": [{
     "name": "Rydz-Śmigły is appointed Marshal of Poland, Sławek and Haller threatens resignation",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"permanent_stability",
         "value":-0.05,
@@ -383,7 +383,7 @@
   }],
   "749": [{
     "name": "\"Hejnał\" project radar development",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"special_steel",
         "value":8,
@@ -398,7 +398,7 @@
   }],
   "770": [{
     "name": "Rydz-Śmigły integrates Falangist militias in the army, Sławek strongly protests",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"permanent_stability",
         "value":-0.15,
@@ -423,7 +423,7 @@
   }],
   "773": [{
     "name": "New surveying techniques improve productivity of mines",
-    "properties":
+    "propertyEvents":
     [{
       "modify":"resource_gain_bonus",
       "value":0.10,
@@ -438,7 +438,7 @@
   }],
   "834": [{
     "name": "Improved metallurgy increases productivity of resource sector",
-    "properties":
+    "propertyEvents":
     [{
       "modify":"resource_gain_bonus",
       "value":0.10,
@@ -450,7 +450,7 @@
   },
   {
     "name": "Rydz-Śmigły and Sławek reconcile their differences to focus on the German threat",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"permanent_stability",
         "value":0.25,
@@ -475,7 +475,7 @@
   },
   {
     "name": "Funding for radio intelligence agency",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"special_projects_civs",
         "value":5,
@@ -485,7 +485,7 @@
   }],
   "870": [{
     "name": "TEMP",
-    "properties": [
+    "propertyEvents": [
       {
         "modify":"special_projects_civs",
         "value":0,

@@ -3,7 +3,7 @@ package org.HoI4Optimizer.Nation;
 import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.HoI4Optimizer.Nation.Events.PropertyEvent;
+import org.HoI4Optimizer.Nation.Event.PropertyEvent;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.File;
@@ -12,7 +12,7 @@ import java.io.PrintStream;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 
-/// A class with properties, which we want to be able to load from a json file
+/// A class with propertyEvents, which we want to be able to load from a json file
 /// BTW this is not a record, since records are immutable, and these things very much do change all the time
 /*Intentionally package private*/ class NationalProperties implements Cloneable
 {
@@ -64,7 +64,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     private double basic_fuel_capacity=500;
     /// Fraction of resources forced to be exported to the market
     private double resources_to_market=0.25;
-    /// Percentage bonus to slots in states, applies only to slots from state type
+    /// Percentage bonus to slots in stateEvents, applies only to slots from state type
     private double buildingSlotBonus=0;
     /// Who's in charge? effects which party popularity gives positive stability
     private Ideology RulingParty;
@@ -449,7 +449,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
         }
     }
 
-    //Derived properties: calculated from the others in a predictable way
+    //Derived propertyEvents: calculated from the others in a predictable way
     /// Derived total stability, permanent stability effects, plus stability (clamped)
     public double getStability() {
         return Math.clamp(permanent_stability+Math.clamp(base_stability,0,1)+getRulingParty_support()*.15,0,1);
@@ -708,11 +708,11 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 throw new NotImplementedException();
                 /*if (event.add())
                 {
-                    setFascism_support(properties.getFascism_support()+event.value());
+                    setFascism_support(propertyEvents.getFascism_support()+event.value());
                     if (out!=null){
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+" % pt Fascism support, is now "+String.format("%.2f",properties.getFascism_support()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+" % pt Fascism support, is now "+String.format("%.2f",propertyEvents.getFascism_support()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
                 }
                 }
                 else
@@ -720,8 +720,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setFascism_support(event.value());
                     if (out!=null){
                         out.println(colorize("    Set Fascism support"+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
                 }
                 }
 
@@ -732,12 +732,12 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 /*
                 if (event.add())
                 {
-                    setDemocracy_support(properties.getDemocracy_support()+event.value());
+                    setDemocracy_support(propertyEvents.getDemocracy_support()+event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt democracy support, is now "+String.format("%.2f",properties.getDemocracy_support()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt democracy support, is now "+String.format("%.2f",propertyEvents.getDemocracy_support()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
                 }
                 }
                 else
@@ -746,8 +746,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     if (out!=null)
                     {
                         out.println(colorize("    Set democracy support"+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
                 }
                 }
 
@@ -757,11 +757,11 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 throw new NotImplementedException();
                 /*if (event.add())
                 {
-                    setAutocracy_support(properties.getAutocracy_support()+event.value());
+                    setAutocracy_support(propertyEvents.getAutocracy_support()+event.value());
                     if (out!=null){
                         out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt non-aligned support, is now "+String.format("%.2f",autocracy_growth*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
                 }
                 }
                 else
@@ -769,8 +769,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setAutocracy_support(event.value());
                     if (out!=null){
                         out.println(colorize("    Set non-aligned support "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
                 }
                 }
                  */
@@ -779,12 +779,12 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 throw new NotImplementedException();
                 /*if (event.add())
                 {
-                    setCommunism_support(properties.getCommunism_support()+event.value());
+                    setCommunism_support(propertyEvents.getCommunism_support()+event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt Communism support, is now "+String.format("%.2f",properties.getCommunism_support()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt Communism support, is now "+String.format("%.2f",propertyEvents.getCommunism_support()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
                 }
                 }
                 else
@@ -793,8 +793,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     if (out!=null)
                     {
                         out.println(colorize("    Set Communism support "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
-                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
-                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",propertyEvents.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",propertyEvents.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
                 }
                 }
                  */

@@ -30,6 +30,9 @@ public class MilitaryFactory extends Factory implements Cloneable{
     public String getProductName() {
         return productName;
     }
+    public Equipment getProduct() {
+        return product;
+    }
 
     /// For use by JSon deserializer, change the name of the product, will be loaded later
     public void setProductName(String productName) {
@@ -49,6 +52,8 @@ public class MilitaryFactory extends Factory implements Cloneable{
             throw new RuntimeException("Attempting to assign product "+product.getName()+" to factory expecting "+this.productName);
         else
             this.product=product;
+
+        generateName();
     }
 
     /// Military industrial capacity produced in the lifetime of the factory
@@ -56,9 +61,9 @@ public class MilitaryFactory extends Factory implements Cloneable{
 
 
     /// Create civilian factory with this name, which may or may not have been unlocked already
-    public MilitaryFactory(String name, State location, boolean underConstruction)
+    public MilitaryFactory(State location, boolean underConstruction)
     {
-        super(name,location,underConstruction);
+        super(location,underConstruction);
         efficiency = 0.1;
         this.closed = false;
         this.MIC_produced = 0;
@@ -100,8 +105,11 @@ public class MilitaryFactory extends Factory implements Cloneable{
 
     /// Generate the name of this factory, given a town name
     @Override
-    public void generateName(String townName) {
+    public void generateName() {
         Random rand = new Random();
+
+        String townName = location==null ? "offmap" : location.getTownName(rand);
+
         if (product==null)
         {
             name=townName+" factory (assignable Military Factory)";
@@ -121,14 +129,13 @@ public class MilitaryFactory extends Factory implements Cloneable{
         }
     }
 
-    /// Create civilian factory with this name, which may or may not have been unlocked already
-    public MilitaryFactory(String name,State location, boolean underConstruction,double efficiencyBase)
+    /// Create military factory , which may or may not have been unlocked already
+    public MilitaryFactory(State location, boolean underConstruction,double efficiencyBase)
     {
-        super(name,location,underConstruction);
+        super(location,underConstruction);
         efficiency = efficiencyBase;
         this.closed = false;
         this.MIC_produced = 0;
-        this.name = name;
         product=null;
         productName="null";
     }
@@ -136,11 +143,10 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// For use by JSon deserializer
     public MilitaryFactory()
     {
-        super("null",null,false);
+        super(null,false);
         efficiency = 0.1;
         this.closed = false;
         this.MIC_produced = 0;
-        this.name = name;
         product=null;
         productName="null";
     }

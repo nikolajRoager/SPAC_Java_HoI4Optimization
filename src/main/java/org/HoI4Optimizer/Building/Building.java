@@ -10,7 +10,7 @@ public abstract class Building {
         Refinery,
         Civilian,
         Infrastructure,
-    };
+    }
 
     protected State location;
     /// Name of this construction project
@@ -47,7 +47,7 @@ public abstract class Building {
         return underConstruction;
     }
 
-    /// Mark this thing as under construction or not
+    /// Mark this thing as under construction or not, used by json deserializer
     public void setUnderConstruction(boolean underConstruction) {
         this.underConstruction = underConstruction;
     }

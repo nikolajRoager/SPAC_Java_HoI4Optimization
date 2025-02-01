@@ -37,15 +37,15 @@ public class CivilianFactory extends Factory implements Cloneable{
     };
 
     /// Create civilian factory with this name, which may or may not have been unlocked already
-    public CivilianFactory(String townName, State location, boolean underConstruction)
+    public CivilianFactory(State location, boolean underConstruction)
     {
-        super(townName,location,underConstruction);
+        super(location,underConstruction);
     }
 
     /// For use by JSon deserializer, creates already constructed civilian factory
     public CivilianFactory()
     {
-        super("null",null,false);
+        super(null,false);
     }
 
 
@@ -73,8 +73,9 @@ public class CivilianFactory extends Factory implements Cloneable{
 
     /// Generate the name of this factory, given a town name
     @Override
-    public void generateName(String townName) {
+    public void generateName() {
         Random rand = new Random();
+        String townName = location==null ? "offmap" : location.getTownName(rand);
         name=townName+' '+ factoryNames[rand.nextInt(0,factoryNames.length)];
     }
 

@@ -66,7 +66,7 @@ public class CommandlineCommand
                 this.defaultArgument="false";
             }
             else if (defaultArgument==null && isOptional)
-                throw new IllegalArgumentException("Default argument is null or empty, while argument is optional");
+                throw new IllegalArgumentException("Default argument for "+argName+"is null or empty, while argument is optional");
             else if (!isOptional)//Ignore default argument, if the argument is not optional
                 this.defaultArgument="null";
             else//implicitly this is: if (isOptional && defaultArgument!=null)
@@ -75,7 +75,7 @@ public class CommandlineCommand
                     case Integer, Float -> {
                         //Verify that the defaultArgument is sane
                         if (!StringUtils.isNumeric(defaultArgument))
-                            throw new IllegalArgumentException("Default argument must be a number");
+                            throw new IllegalArgumentException("Default for "+argName+" argument must be a number");
                         //If this an integer, make sure to cast the default argument to an integer, it should not throw errors since we checked it is numeric
                         if (myType == Argument.type.Integer)
                             this.defaultArgument = Integer.toString((int)Double.parseDouble(defaultArgument));
@@ -89,7 +89,7 @@ public class CommandlineCommand
                         else if (defaultArgument.equalsIgnoreCase("false") || defaultArgument.equalsIgnoreCase("0"))
                             this.defaultArgument = Boolean.toString(false);
                         else
-                            throw new IllegalArgumentException("Default argument must be a boolean");
+                            throw new IllegalArgumentException("Default argument for "+argName+"must be a boolean");
                     }
                     case String -> this.defaultArgument = defaultArgument;
                 }
@@ -181,7 +181,7 @@ public class CommandlineCommand
                         out[i]=args.get(i).defaultArgument;
                     }
                     else
-                        return null;
+                        throw new IllegalArgumentException("Non optional argument "+args.get(i).argName+" missing");
                 }
                 else//Found
                 {
@@ -211,7 +211,7 @@ public class CommandlineCommand
 //                                    out[i]=Double.parseDouble(strings.get(j+1));
                                     //Verify that the argument is sane
                                     if (!StringUtils.isNumeric(strings.get(j+1)))
-                                        throw new IllegalArgumentException("Default argument must be a number");
+                                        throw new IllegalArgumentException("Argument "+args.get(i).argName+" ("+strings.get(j+1)+") is not numeric");
                                     //If this an integer, make sure to cast the default argument to an integer, it should not throw errors since we checked it is numeric
                                     if (args.get(i).myType == Argument.type.Integer)
                                         out[i] = Integer.toString((int)Double.parseDouble(strings.get(j+1)));
@@ -229,13 +229,8 @@ public class CommandlineCommand
                         }
                         else
                         {
-                            //Oh well, go with default value
-                            if (args.get(i).isOptional)
-                            {
-                                out[i]=args.get(i).defaultArgument;
-                            }
-                            else
-                                return null;
+                            //The user should know this
+                            throw new IllegalArgumentException("Value for argument "+args.get(i).argName+" missing");
                         }
                     }
                 }

@@ -26,9 +26,9 @@ public class Refinery extends Factory implements Cloneable{
 
 
     /// Create a refinery with this name, which may or may not have been unlocked already
-    public Refinery(String name, State location, boolean underConstruction)
+    public Refinery(State location, boolean underConstruction)
     {
-        super(name,location,underConstruction);
+        super(location,underConstruction);
     }
     /// What am I, the different types behave very differently:
     /// Refineries are a special type of factory, which doesn't produce industrial capacity, but increases rubber in the state, and add fuel to the national stockpile
@@ -47,8 +47,9 @@ public class Refinery extends Factory implements Cloneable{
 
     /// Generate the name of this factory, given a town name
     @Override
-    public void generateName(String townName) {
+    public void generateName() {
         Random rand = new Random();
+        String townName = location==null ? "offmap" : location.getTownName(rand);
         name=townName+ ' '+factoryNames[rand.nextInt(0, factoryNames.length)];
     }
 

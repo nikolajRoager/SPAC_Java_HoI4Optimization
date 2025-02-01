@@ -7,6 +7,8 @@ import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
 import org.HoI4Optimizer.Calender;
 import org.HoI4Optimizer.Building.*;
+import org.HoI4Optimizer.Nation.Event.Events;
+import org.HoI4Optimizer.Nation.decision.decision;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
 
 import java.io.*;
@@ -34,22 +36,22 @@ public class NationState  implements Cloneable
     /// A very long list of modifiers
     private NationalProperties properties;
 
-    /// Reference to the Setup for this nation, has effects to modify properties above on certain days
+    /// Reference to the Setup for this nation, has effects to modify propertyEvents above on certain days
     private NationalSetup setup;
 
     private String name;
     private List<State> states;
 
-    /// All states in this nation, including all factories
+    /// All stateEvents in this nation, including all factories
     public List<State> getStates() {return states;}
     //Refineries don't need to be references from the nation directly
-    /// References to all military factories in all core states
+    /// References to all military factories in all core stateEvents
     public List<MilitaryFactory> militaryFactories;
 
-    /// References to all civilian factories in all core states
+    /// References to all civilian factories in all core stateEvents
     public List<CivilianFactory> civilianFactories;
 
-    /// References to all civilian factories in all core states
+    /// References to all civilian factories in all core stateEvents
     public List<Refinery> refineries;
 
     public int getDay() {return day;}
@@ -61,10 +63,10 @@ public class NationState  implements Cloneable
     /// Load setup from a folder, assumed to be start of the simulation
     public NationState(String countryName,NationalSetup setup) throws IOException {
         try {states=State.loadState(Paths.get(countryName,"States.json").toString(),setup);}
-        catch (IOException e) {throw new IOException("Error loading states of "+countryName+":"+e.getMessage());}
+        catch (IOException e) {throw new IOException("Error loading stateEvents of "+countryName+":"+e.getMessage());}
 
         try {properties=NationalProperties.loadProperties(Paths.get(countryName,"Properties.json").toString());}
-        catch (IOException e) {throw new IOException("Error loading properties of "+countryName+":"+e.getMessage());}
+        catch (IOException e) {throw new IOException("Error loading propertyEvents of "+countryName+":"+e.getMessage());}
 
         // Set up references to all military and civilian factories loaded
         civilianFactories=new ArrayList<>();
@@ -118,8 +120,9 @@ public class NationState  implements Cloneable
             return colorize((modifier>-1?" ":"")+(modifier>-.1?" ":"")+(int)(100*modifier)+"%",Attribute.GREEN_TEXT());
     }
 
-    public void apply(BuildingDecision buildingDecision) throws RuntimeException
+    public void apply(decision decision) throws RuntimeException
     {
+        /*
         if (!states.contains(buildingDecision.getTarget()))
             throw new RuntimeException("Target state does not exist");
         switch (buildingDecision.getDecisionType())
@@ -145,7 +148,7 @@ public class NationState  implements Cloneable
                 var New = buildingDecision.getTarget().buildInfrastructure();
                 constructionLines.add(new constructionLine(New));
             }
-        }
+        }*/
     }
 
 
@@ -156,7 +159,7 @@ public class NationState  implements Cloneable
     /// @param showConstructionLines Show ongoing construction
     /// @param showFactories Also print all civilian and military factories and refineries
     /// @param showResources Show detailed breakdown of all resources
-    /// @param showStates Show detailed breakdown of all states
+    /// @param showStates Show detailed breakdown of all stateEvents
     public void printReport(PrintStream Output,boolean showResources, boolean showProductionLines,boolean showConstructionLines , boolean showFactories,boolean showStates)
     {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -263,7 +266,7 @@ public class NationState  implements Cloneable
 
 
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Production in states", oil, aluminium, rubber, tungsten, steel, chromium),Attribute.GREEN_TEXT()));
+            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Production in stateEvents", oil, aluminium, rubber, tungsten, steel, chromium),Attribute.GREEN_TEXT()));
         //THIS IS A ROUNDING MESS, but it is game accurate!
         rubber*= (int) (1+properties.getResource_gain_bonus());
         oil*=(int)(1+properties.getResource_gain_bonus());
@@ -402,9 +405,20 @@ public class NationState  implements Cloneable
         }
     }
 
-    /// Apply an event to my properties
-    public void apply(Event thisEvent,PrintStream out) {
-        thisEvent.apply(properties, states,day, out);
+    /// Apply an event to my propertyEvents, or my stateEvents
+    public void apply(Events theseEvents, PrintStream out) {
+        if (out!=null)
+        {
+            out.println(colorize("==An event has happened==", Attribute.BOLD(), Attribute.BLUE_TEXT()));
+            out.println(colorize(Calender.getDate(day)+" (day "+day+")",Attribute.WHITE_TEXT()));
+            out.println(colorize("    "+ theseEvents.name(),Attribute.ITALIC()));
+        }
+        if (theseEvents.propertyEvents()!=null)
+            for (var propertyEvent : theseEvents.propertyEvents())
+               properties.apply(propertyEvent,out);
+        if (theseEvents.stateEvents()!=null)
+            for (var stateEvent : theseEvents.stateEvents())
+                states.get(stateEvent.stateID()).apply(stateEvent,properties,out);
     }
 
     ///Step forward a number of days, or until a decision is required, only print if some important event happened
@@ -450,9 +464,9 @@ public class NationState  implements Cloneable
             }
 
             //Apply events at the end of the day (I believe it is similar to the game)
-            for (Event e : setup.getEvent(day))
+            for (Events e : setup.getEvent(day))
             {
-                e.apply(properties, states,day, out);
+                apply(e,out);
             }
 
             //Oh no, a decision has to be made of what to do with the free factories!

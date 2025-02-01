@@ -1,4 +1,4 @@
-package org.HoI4Optimizer.Nation.Events;
+package org.HoI4Optimizer.Nation.Event;
 
 /// An event which effects a single stay in a single way, always additive
 ///@param modify What thing in the state does this modify
