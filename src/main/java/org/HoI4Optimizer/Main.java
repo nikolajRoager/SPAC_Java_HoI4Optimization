@@ -6,19 +6,20 @@ import java.util.List;
 
 //A frame containing our plots
 import com.diogonunes.jcolor.Attribute;
-import org.HoI4Optimizer.Nation.BuildingDecision;
-import org.HoI4Optimizer.Nation.Event;
-import org.HoI4Optimizer.Nation.PropertyEvent;
-import org.HoI4Optimizer.Nation.NationalProperties;
+import org.HoI4Optimizer.Building.stateBuilding.stateBuilding;
+import org.HoI4Optimizer.Nation.*;
+import org.HoI4Optimizer.Nation.Events.PropertyEvent;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
+
 
 public class Main
 {
     //Main function, controls what commands get done from commandline
     public static void main(String[] args)
     {
+
         NationalSetup Setup;
         //Load setup
         try {
@@ -36,19 +37,19 @@ public class Main
         Map<String,CommandlineCommand> commands=new HashMap<>();
         commands.put("print",new CommandlineCommand("print","Print the current state of the nation, with all current stats",
                 List.of(new CommandlineCommand.Argument[]{
-                        new CommandlineCommand.Argument("showResources", "Show detailed breakdown of resources in nation", CommandlineCommand.Argument.type.Flag, true, 0.0),
-                        new CommandlineCommand.Argument("showProduction", "Show detailed breakdown of all Military factories and production lines", CommandlineCommand.Argument.type.Flag, true, 0.0),
-                        new CommandlineCommand.Argument("showConstruction", "Show detailed breakdown of all National construction projects", CommandlineCommand.Argument.type.Flag, true, 0.0),
-                        new CommandlineCommand.Argument("showFactories", "Show detailed breakdown of all Factories: civilian, Military, and Chemical", CommandlineCommand.Argument.type.Flag, true, 0.0),
-                        new CommandlineCommand.Argument("showStates", "Show detailed breakdown of all States in the nation", CommandlineCommand.Argument.type.Flag, true, 0.0),
+                        new CommandlineCommand.Argument("showResources", "Show detailed breakdown of resources in nation", CommandlineCommand.Argument.type.Flag, true, "false"),
+                        new CommandlineCommand.Argument("showProduction", "Show detailed breakdown of all Military factories and production lines", CommandlineCommand.Argument.type.Flag, true, "false"),
+                        new CommandlineCommand.Argument("showConstruction", "Show detailed breakdown of all National construction projects", CommandlineCommand.Argument.type.Flag, true, "false"),
+                        new CommandlineCommand.Argument("showFactories", "Show detailed breakdown of all Factories: civilian, Military, and Chemical", CommandlineCommand.Argument.type.Flag, true, "false"),
+                        new CommandlineCommand.Argument("showStates", "Show detailed breakdown of all States in the nation", CommandlineCommand.Argument.type.Flag, true, "false"),
                 })));
         commands.put("event",new CommandlineCommand("event","Create an event for the nation now, or some day in the future (launches event JSon editor)",
                 List.of(new CommandlineCommand.Argument[]{
-                        new CommandlineCommand.Argument("day", "When will this event be executed? skip to execute now.", CommandlineCommand.Argument.type.Integer, true, 0.0),
+                        new CommandlineCommand.Argument("day", "When will this event be executed? skip to execute now.", CommandlineCommand.Argument.type.Integer, true, "0"),
                 })));
         commands.put("step",new CommandlineCommand("step","simulate forward a specific number of days, or until a construction or production decision becomes available",
                 List.of(new CommandlineCommand.Argument[]{
-                        new CommandlineCommand.Argument("days", "how many days should we at most try to step forward, we will stop once a decision needs to be made", CommandlineCommand.Argument.type.Integer, true, 1),
+                        new CommandlineCommand.Argument("days", "how many days should we at most try to step forward, we will stop once a decision needs to be made", CommandlineCommand.Argument.type.Integer, true, "1"),
                 })));
         //Put these two last, so it appears at the bottom when we print
         commands.put("help",new CommandlineCommand("help","Print this list of commands",
@@ -81,8 +82,13 @@ public class Main
             String input = System.console().readLine();
 
             List<String> coms = List.of(input.split(" "));
-            coms.forEach(s -> s = s.trim());
 
+            for (var C : coms)
+            {
+                C=C.trim();
+            }
+
+            //Save some longer commands in lists, so we can read the arguments individually
             var PrintArgs=commands.get("print").match(coms);
             var eventArgs=commands.get("event").match(coms);
             var stepArgs=commands.get("step").match(coms);
@@ -97,25 +103,26 @@ public class Main
             }
             else if ((PrintArgs)!=null)
             {
-                MyNation.printReport(System.out,PrintArgs[0]>0.5,PrintArgs[1]>0.5,PrintArgs[2]>0.5,PrintArgs[3]>0.5,PrintArgs[4]>0.5);
-
+                MyNation.printReport(System.out,PrintArgs[0].equalsIgnoreCase("true"),PrintArgs[1].equalsIgnoreCase("true"),PrintArgs[2].equalsIgnoreCase("true"),PrintArgs[3].equalsIgnoreCase("true"),PrintArgs[4].equalsIgnoreCase("true"));
             }
             else if ((stepArgs)!=null)
             {
-                MyNation.update(Math.max(1,(int)stepArgs[0]),System.out);
+                MyNation.update(Math.max(1,Integer.parseInt(stepArgs[0])),System.out);
             }
             else if (eventArgs!=null)
             {
                 Event thisEvent=null;
-                boolean instant =(eventArgs[0]==0);
+                int day=Integer.parseInt(eventArgs[0]);
+                boolean instant = day==0;
+
                 //A little quick event editor
-                System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize(" Started event editor for new event to be applied "+(instant?"now":"at "+Calender.getDate((int)eventArgs[0])), Attribute.BOLD(), Attribute.GREEN_TEXT()));
+                System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize(" Started event editor for new event to be applied "+(instant?"now":"at "+Calender.getDate(day)), Attribute.BOLD(), Attribute.GREEN_TEXT()));
 
                 System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Enter data, finish with enter", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
                 System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     Name: ", Attribute.BOLD(), Attribute.RED_TEXT(),Attribute.RAPID_BLINK()));
                 String nameInput = System.console().readLine();
 
-                //Keep asking the user for a valid target until they acquiesce
+                //Keep asking the user for a valid modify until they acquiesce
                 PropertyEvent.Target target=null;
                 while (target==null) {
                     System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       The following targets exist: ", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
@@ -146,36 +153,13 @@ public class Main
                         }
                         if (noneFound)
                         {
-                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Not a valid target!", Attribute.BOLD(), Attribute.BRIGHT_RED_TEXT()));
+                            System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Not a valid modify!", Attribute.BOLD(), Attribute.BRIGHT_RED_TEXT()));
                         }
                     }
                 }
 
-                //Is it one of the things which takes boolean, it can not be added to
-                if (target== PropertyEvent.Target.embargoed)
-                {
-
-                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("       Write either: true, false, 0 or 1", Attribute.ITALIC(), Attribute.GREEN_TEXT()));
-                    boolean embargoed;
-                    while(true) {
-                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     value: ", Attribute.ITALIC(), Attribute.RED_TEXT()));
-                        String value = System.console().readLine().trim();
-                        if (value.equalsIgnoreCase("true")||value.equalsIgnoreCase("1"))
-                        {
-                            embargoed=true;
-                            break;
-                        }
-                        else if (value.equalsIgnoreCase("false")||value.equalsIgnoreCase("0"))
-                        {
-                            embargoed=false;
-                            break;
-                        }
-                        System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     not a valid boolean, must be true or false", Attribute.ITALIC(), Attribute.RED_TEXT()));
-                    }
-                    thisEvent=new Event(nameInput, target,embargoed);
-                }
                 //Ideology values can not be added to, everything else can be added to
-                else if (target!= PropertyEvent.Target.democraticCoalition && target!= PropertyEvent.Target.fascistCoalition && target!= PropertyEvent.Target.communistCoalition && target != PropertyEvent.Target.nonalignedCoalition && target != PropertyEvent.Target.RulingParty)
+                if (target!= PropertyEvent.Target.democraticCoalition && target!= PropertyEvent.Target.fascistCoalition && target!= PropertyEvent.Target.communistCoalition && target != PropertyEvent.Target.nonalignedCoalition && target != PropertyEvent.Target.RulingParty)
                 {
                     //Add to existing value, or replace value
                     boolean add;
@@ -241,7 +225,7 @@ public class Main
                 else
                 {
                     //These are the only cases where we expect an ideology
-                    NationalProperties.ideology id;
+                    Ideology id;
                     switch (target)
                     {
                         case nonalignedCoalition->{
@@ -267,16 +251,16 @@ public class Main
                         String targetInput = System.console().readLine().trim();
                         if (targetInput.equalsIgnoreCase("democratic") || targetInput.equalsIgnoreCase("democracy") || targetInput.equalsIgnoreCase("d"))
                         {
-                            id= NationalProperties.ideology.Democratic;
+                            id= Ideology.Democratic;
                             break;
                         } else if (targetInput.equalsIgnoreCase("communist") || targetInput.equalsIgnoreCase("communism") || targetInput.equalsIgnoreCase("c")) {
-                            id= NationalProperties.ideology.Communist;
+                            id= Ideology.Communist;
                             break;
                         } else if (targetInput.equalsIgnoreCase("nonaligned") || targetInput.equalsIgnoreCase("authoritarian") || targetInput.equalsIgnoreCase("autocratic") || targetInput.equalsIgnoreCase("a") || targetInput.equalsIgnoreCase("n")) {
-                            id= NationalProperties.ideology.Nonaligned;
+                            id= Ideology.Nonaligned;
                             break;
                         } else if (targetInput.equalsIgnoreCase("fascist") || targetInput.equalsIgnoreCase("evil") || targetInput.equalsIgnoreCase("fascism") || targetInput.equalsIgnoreCase("f")) {
-                            id= NationalProperties.ideology.Fascist;
+                            id= Ideology.Fascist;
                             break;
                         }
                         System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("     not a valid ideology, must be: ", Attribute.ITALIC(), Attribute.RED_TEXT())+colorize("democratic",Attribute.BLUE_TEXT())+colorize(", ",Attribute.GREEN_TEXT())+colorize("communist",Attribute.RED_TEXT())+colorize(", ",Attribute.GREEN_TEXT())+colorize("non-align")+colorize(", or ",Attribute.GREEN_TEXT())+colorize("fascist",Attribute.YELLOW_TEXT()));
@@ -285,7 +269,7 @@ public class Main
                 }
 
                 //Ok now either apply it now, or add it to the list of events
-                if (eventArgs[0]==0)
+                if (day==0)
                 {
                     MyNation.apply(thisEvent,System.out);
                 }

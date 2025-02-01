@@ -3,11 +3,12 @@ package org.HoI4Optimizer.Nation;
 import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.HoI4Optimizer.Building.*;
 import org.HoI4Optimizer.Building.SharedBuilding.CivilianFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Factory;
 import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
+import org.HoI4Optimizer.Building.stateBuilding.Infrastructure;
+import org.HoI4Optimizer.Nation.Events.StateEvent;
 import org.HoI4Optimizer.NationalConstants.*;
 import java.io.File;
 import java.io.IOException;
@@ -405,5 +406,103 @@ public class State implements Cloneable {
 
     void setNoBuilding(boolean noBuilding) {
         this.noBuilding = noBuilding;
+    }
+
+    /// Apply events, and optionally print what happens
+    /// @param out Where to print to, use null if you don't want anything printed
+    /// @param event event to apply
+    void apply(StateEvent event,NationalProperties properties, PrintStream out)
+    {
+
+        Attribute GoodOutcome= Attribute.GREEN_TEXT();
+        Attribute BadOutcome=Attribute.RED_TEXT();
+        Attribute MiddlingOutcome=Attribute.WHITE_TEXT();
+
+        final Attribute outcomeColour = event.number() > 0 ? GoodOutcome : BadOutcome;
+        switch (event.modify())
+        {
+            case null -> {
+                if (out!=null)
+                {
+                    out.println(colorize("    No effect",MiddlingOutcome));
+                }
+            }
+            case noBuilding -> {
+                noBuilding = event.number()>0;
+                if (out!=null)
+                {
+                    if (noBuilding)
+                        out.println(colorize("    New building projects in "+name+" is now allowed",GoodOutcome));
+                    else
+                        out.println(colorize("    New building projects in "+name+" is now blocked",BadOutcome));
+                }
+            }
+            case Oil -> {
+                base_oil=Math.max(base_oil+event.number(),0);
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" oil in "+name+" total is now "+base_oil, outcomeColour));
+            }
+            case Steel -> {
+                base_steel=Math.max(base_steel+event.number(),0);
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" steel in "+name+" total is now "+base_steel, outcomeColour));
+            }
+            case Rubber -> {
+                base_rubber=Math.max(base_rubber+event.number(),0);
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" rubber in "+name+" total is now "+base_rubber, outcomeColour));
+            }
+            case Chromium -> {
+                base_chromium=Math.max(base_chromium+event.number(),0);
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" chromium in "+name+" total is now "+base_chromium, outcomeColour));
+            }
+            case Tungsten -> {
+                base_tungsten=Math.max(base_tungsten+event.number(),0);
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" tungsten in "+name+" total is now "+base_tungsten, outcomeColour));
+            }
+            case Aluminium -> {
+                base_aluminium=Math.max(base_aluminium+event.number(),0);
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" aluminium in "+name+" total is now "+base_aluminium, outcomeColour));
+            }
+            case Slot -> {
+                extraBuildingSlots=Math.max(extraBuildingSlots+event.number(),0);
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" building slots in "+name+" total is now "+extraBuildingSlots, outcomeColour));
+            }
+            case Refinery -> {
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" refineries in "+name+" total is now "+refineries.size(), outcomeColour));
+                refineries.add(new Refinery("event refinery",this,false/*Instantly construct*/));
+            }
+            case Civilian -> {
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" civilian factories in "+name+" total is now "+civilianFactories.size(), outcomeColour));
+                civilianFactories.add(new CivilianFactory("event civilian factory",this,false/*Instantly construct*/));
+            }
+            case Military -> {
+                if (out!=null)
+                    out.println(colorize("    Add "+event.number()+" military factories in "+name+" total is now "+militaryFactories.size(), outcomeColour));
+                militaryFactories.add(new MilitaryFactory("event military factory",this,false/*Instantly construct*/));
+            }
+            case Infrastructure -> {
+                if (infrastructure.getLevel()<Infrastructure.maxLevel)
+                {
+                    infrastructure.setLevel(infrastructure.getLevel()+ event.number());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Build "+event.number()+" level of infrastructure in "+name+" total is now "+infrastructure.getLevel(), outcomeColour));
+                    }
+
+                }
+                else
+                {
+
+                }
+
+            }
+        }
     }
 }

@@ -1,28 +1,21 @@
 package org.HoI4Optimizer.Nation;
 
+import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.HoI4Optimizer.Nation.Events.PropertyEvent;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
+
+import static com.diogonunes.jcolor.Ansi.colorize;
 
 /// A class with properties, which we want to be able to load from a json file
-public class NationalProperties implements Cloneable
+/// BTW this is not a record, since records are immutable, and these things very much do change all the time
+/*Intentionally package private*/ class NationalProperties implements Cloneable
 {
-    /// Countries have 1 of 4 ideologies
-    /// Roughly in order of how good/bad they are
-    public enum ideology
-    {
-        /// Good ideology, keep
-        Democratic,
-        /// Misguided compassion
-        Communist,
-        /// Miscellaneous category, including monarchies, theocracies, dictatorships and Finland
-        Nonaligned,
-        /// Literally evil
-        Fascist,
-    };
-
     ///Stability, without party popularity and other effects
     private double base_stability=0;
     /// sum of all permanent effects on stability
@@ -50,7 +43,7 @@ public class NationalProperties implements Cloneable
     ///construction speed bonus for civilian factories,  added to construction speed
     private double civ_construction_speed_bonus;
     ///Efficiency cap
-    private double Efficiency_cap;
+    private double efficiency_cap;
     ///Factory output bonus, Not counting effects from stability
     private double base_factory_output;
     ///Fraction of all factories (civilian and military)  required for "consumer goods" (the non-military part of the economy) This is subtracted from CIVILIAN factories
@@ -74,7 +67,7 @@ public class NationalProperties implements Cloneable
     /// Percentage bonus to slots in states, applies only to slots from state type
     private double buildingSlotBonus=0;
     /// Who's in charge? effects which party popularity gives positive stability
-    private ideology RulingParty;
+    private Ideology RulingParty;
     ///How many civilian factories are earmarked for special projects (mainly intelligence and decryption) each month
     /// This is subtracted from available civs after calculating consumergoods, but before trade and construction
     private int special_projects_civs;
@@ -88,8 +81,6 @@ public class NationalProperties implements Cloneable
     private int special_chromium;
     /// Special project rubber consumption
     private int special_rubber;
-    /// No access to imports
-    private boolean embargoed=false;
 
     @Override
     public NationalProperties clone() {
@@ -107,8 +98,7 @@ public class NationalProperties implements Cloneable
             clone.communism_support=communism_support;
             clone.construction_speed=construction_speed;
             clone.democracy_support=democracy_support;
-            clone.Efficiency_cap=Efficiency_cap;
-            clone.embargoed=embargoed;
+            clone.efficiency_cap = efficiency_cap;
             clone.fascism_support=fascism_support;
             clone.fuel_capacity_per_infrastructure=fuel_capacity_per_infrastructure;
             clone.mil_construction_speed_bonus=mil_construction_speed_bonus;
@@ -133,6 +123,18 @@ public class NationalProperties implements Cloneable
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    public void setAutocracy_support(double autocracy_support) {
+        this.autocracy_support = autocracy_support;
+    }
+
+    public void setBasic_fuel_capacity(double basic_fuel_capacity) {
+        this.basic_fuel_capacity = basic_fuel_capacity;
+    }
+
+    public void setRubber_per_refineries(int rubber_per_refineries) {
+        this.rubber_per_refineries = rubber_per_refineries;
     }
 
     public double getAutocracy_growth() {
@@ -167,15 +169,6 @@ public class NationalProperties implements Cloneable
         this.fascism_growth = fascism_growth;
     }
 
-
-    public boolean getEmbargoed() {
-        return embargoed;
-    }
-
-    public void setEmbargoed(boolean embargoed) {
-        this.embargoed = embargoed;
-    }
-
     public double getBuildingSlotBonus() {
         return buildingSlotBonus;
     }
@@ -188,20 +181,12 @@ public class NationalProperties implements Cloneable
         return resources_to_market;
     }
 
-    public void setBasic_fuel_capacity(double basic_fuel_capacity) {
-        this.basic_fuel_capacity = basic_fuel_capacity;
-    }
-
     public void setFuel_capacity_per_infrastructure(double fuel_capacity_per_infrastructure) {
         this.fuel_capacity_per_infrastructure = fuel_capacity_per_infrastructure;
     }
 
     public void setResources_to_market(double resources_to_market) {
         this.resources_to_market = resources_to_market;
-    }
-
-    public double getBasic_fuel_capacity() {
-        return basic_fuel_capacity;
     }
 
     public double getFuel_capacity_per_infrastructure() {
@@ -238,11 +223,6 @@ public class NationalProperties implements Cloneable
     /// How much rubber do our chemical industry produce per plant
     public int getRubber_per_refineries() {
         return rubber_per_refineries;
-    }
-
-    /// How much rubber do our chemical industry produce per plant
-    public void setRubber_per_refineries(int rubber_per_refineries) {
-        this.rubber_per_refineries = rubber_per_refineries;
     }
 
     /// Who are just plain wrong? number from 0 to 1
@@ -287,7 +267,7 @@ public class NationalProperties implements Cloneable
     }
 
     public double getEfficiency_cap() {
-        return Efficiency_cap;
+        return efficiency_cap;
     }
 
     public double getFascism_support() {
@@ -305,7 +285,7 @@ public class NationalProperties implements Cloneable
         return permanent_stability;
     }
 
-    public ideology getRulingParty() {
+    public Ideology getRulingParty() {
         return RulingParty;
     }
 
@@ -336,11 +316,6 @@ public class NationalProperties implements Cloneable
     /// Clamped to above -1.0 (-100% = no production), has not upper limit
     public void setBase_factory_output(double base_factory_output) {
         this.base_factory_output = Math.max(-1.0,base_factory_output);
-    }
-
-    /// should only be used by json deserializer! this does not re-normalize other parties (necessary to make loading work)
-    public void setAutocracy_support(double autocracy_support) {
-        this.autocracy_support = autocracy_support;
     }
 
     /// Consumer goods multiplier, do not modify by adding!, instead multiply with (1+thingToAdd)
@@ -380,7 +355,7 @@ public class NationalProperties implements Cloneable
 
     /// Clamped to between 0.0 and 1.0
     public void setEfficiency_cap(double efficiency_cap) {
-        Efficiency_cap = Math.clamp(efficiency_cap,0.0,1.0);
+        this.efficiency_cap = Math.clamp(efficiency_cap,0.0,1.0);
     }
 
     /// should only be used by json deserializer! this does not re-normalize other parties (necessary to make loading work)
@@ -399,7 +374,7 @@ public class NationalProperties implements Cloneable
     }
 
     /// Set ruling party without changing supports
-    public void setRulingParty(ideology rulingParty) {
+    public void setRulingParty(Ideology rulingParty) {
         RulingParty = rulingParty;
     }
 
@@ -453,24 +428,24 @@ public class NationalProperties implements Cloneable
     }
 
     /// Convert all Partner ideology support to this ideology
-    public void formCoalition(ideology Ideology, ideology Partner)
+    public void formCoalition(Ideology Ideology, Ideology Partner)
     {
-        double NewSupport=0;
+        double NewSupport;
         switch(Partner)
         {
-            case Democratic -> {NewSupport= democracy_support;democracy_support=0;}//Oh no
+            case Democratic -> {NewSupport= democracy_support;democracy_support=0;}//Oh, no
             case Fascist -> {NewSupport= fascism_support;fascism_support=0;}//Good riddance
             case Nonaligned -> {NewSupport= autocracy_support;autocracy_support=0;}//history finally caught up with you
             case Communist -> {NewSupport= communism_support;communism_support=0;}//that was inevitable
-            default -> {NewSupport=0;}
+            default -> NewSupport=0;
         }
         switch(Ideology)
         {
-            case Democratic -> { democracy_support+=NewSupport;}//Liberty, Equality, and Solidarity!
-            case Fascist -> {fascism_support+=NewSupport;}//... oh no...
-            case Nonaligned -> {autocracy_support+=NewSupport;}//not good
-            case Communist -> {communism_support+=NewSupport;}//That is not going to work
-            default -> {communism_support+=NewSupport;}//Anarchism!
+            case Democratic -> democracy_support+=NewSupport;//Liberty, Equality, and Solidarity!
+            case Fascist -> fascism_support+=NewSupport;//... oh no...
+            case Nonaligned -> autocracy_support+=NewSupport;//not good
+            case Communist -> communism_support+=NewSupport;//That is not going to work
+            default -> communism_support+=NewSupport;//Anarchism!
         }
     }
 
@@ -507,6 +482,616 @@ public class NationalProperties implements Cloneable
     ///Properties from json
     public static NationalProperties loadProperties(String filePath) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(new File(filePath), new TypeReference<NationalProperties>() {});
+        return objectMapper.readValue(new File(filePath), new TypeReference<>() {
+        });
+    }
+
+    /// Apply events, and optionally print what happens
+    /// @param out Where to print to, use null if you don't want anything printed
+    /// @param event event to apply
+    public void apply(PropertyEvent event, PrintStream out)
+    {
+        Attribute GoodOutcome= Attribute.GREEN_TEXT();
+        Attribute BadOutcome=Attribute.RED_TEXT();
+        Attribute MiddlingOutcome=Attribute.WHITE_TEXT();
+
+        switch (event.modify())
+        {
+            case null ->
+            {
+                if (out!=null)
+                {
+                    out.println(colorize("    No effect",MiddlingOutcome));
+                }
+            }
+            //Start with fuel and oil related effects
+            case base_fuel -> {
+                if (event.add())
+                {
+                    setBase_fuel(base_fuel+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" base fuel gain, is now "+String.format("%.2f", base_fuel),event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setBase_fuel(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set base fuel gain "+String.format("%.2f",event.value()),event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            //Extra fuel bonus from oil
+            case natural_fuel_bonus -> {
+                if (event.add())
+                {
+                    setNatural_fuel_bonus(natural_fuel_bonus+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% fuel per oil bonus , is now "+String.format("%.2f",base_fuel*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setNatural_fuel_bonus(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set fuel per oil bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case fuel_capacity_per_infrastructure -> {
+
+                if (event.add())
+                {
+                    setFuel_capacity_per_infrastructure(fuel_capacity_per_infrastructure+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" fuel capacity per infrastructure, is now "+String.format("%.2f",fuel_capacity_per_infrastructure),event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setFuel_capacity_per_infrastructure(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set fuel capacity per infrastructure "+String.format("%.2f",event.value()),event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case basic_fuel_capacity -> {
+                if (event.add())
+                {
+                    setBase_fuel(base_fuel+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" base fuel capacity, is now "+String.format("%.2f",base_fuel),event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setBase_fuel(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set base fuel capacity "+String.format("%.2f",event.value()),event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case refinery_fuel_bonus -> {
+                if (event.add())
+                {
+                    setRefinery_fuel_bonus(refinery_fuel_bonus+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt refinery fuel bonus, is now "+String.format("%.2f",refinery_fuel_bonus*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setRefinery_fuel_bonus(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set refinery fuel bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case RulingParty -> {
+                setRulingParty(event.ideology());
+                if (out!=null)
+                {
+                    out.println(colorize("    Set ruling party...", Attribute.WHITE_TEXT()));
+                    switch (event.ideology())
+                    {
+                        case Nonaligned -> out.println(colorize("    Oh no! The non-aligned party has taken control of the government",Attribute.WHITE_TEXT()));
+                        case Communist  -> out.println(colorize("    Bad news! the communist revolution has overthrown the government",Attribute.RED_TEXT()));
+                        case Democratic -> out.println(colorize("    The nation is now a democracy!",Attribute.BLUE_TEXT()));
+                        case Fascist ->    out.println(colorize("    Catastrophe! a fascist dictator has taken control of the government",Attribute.YELLOW_TEXT()));
+                    }
+                }
+            }
+            case fascistCoalition -> {
+                formCoalition(Ideology.Fascist,event.ideology());
+                if (out!=null)
+                {
+                    out.println(colorize("    Form Fascist coalition...",Attribute.YELLOW_TEXT()));
+                    switch (event.ideology())
+                    {
+                        case Nonaligned -> out.println(colorize("    In an effort to hold onto power, the non-aligned party has merged with the fascist party",Attribute.YELLOW_TEXT()));
+                        case Communist  -> out.println(colorize("    The working class has been ensnared by a fascist demagogue: all communist are now Fascist",Attribute.RED_TEXT()));
+                        case Democratic -> out.println(colorize("    Oh Terror, all democratically leaning people are now fascist",Attribute.BLUE_TEXT()));
+                        case Fascist ->    out.println(colorize("    Breaking news The Fascist party is, in fact, Fascist",Attribute.YELLOW_TEXT()));
+                    }
+                }
+            }
+            case communistCoalition -> {
+                formCoalition(Ideology.Communist,event.ideology());
+                if (out!=null)
+                {
+                    out.println(colorize("    Form Communist coalition...",Attribute.YELLOW_TEXT()));
+                    switch (event.ideology())
+                    {
+                        case Nonaligned -> out.println(colorize("    The communists ate the rich, and took over all their autocratic support",Attribute.RED_TEXT()));
+                        case Communist  -> out.println(colorize("    The communist party has switched to a competing communist ideology",Attribute.RED_TEXT()));
+                        case Democratic -> out.println(colorize("    Oh no, the democratic party developed class consciousness and became communist",Attribute.RED_TEXT()));
+                        case Fascist ->    out.println(colorize("    The communists beat up the fascist so badly, that all their supporters switched sides",Attribute.RED_TEXT()));
+                    }
+                }
+            }
+            case democraticCoalition -> {
+                formCoalition(Ideology.Democratic,event.ideology());
+                if (out!=null)
+                {
+                    out.println(colorize("    Form democratic coalition...",Attribute.BLUE_TEXT()));
+                    switch (event.ideology())
+                    {
+                        case Nonaligned -> out.println(colorize("    The autocratic party has come to its senses and now supports democracy",Attribute.BLUE_TEXT()));
+                        case Communist  -> out.println(colorize("    The communist saw the errors of their ways and became social democrats",Attribute.BLUE_TEXT()));
+                        case Democratic -> out.println(colorize("    The people celebrates its liberty",Attribute.BLUE_TEXT()));
+                        case Fascist ->    out.println(colorize("    The fascists realised they were the bevent.add()ies, and now support democracy",Attribute.BLUE_TEXT()));
+                    }
+                }
+            }
+            case nonalignedCoalition -> {
+                formCoalition(Ideology.Nonaligned,event.ideology());
+                if (out!=null)
+                {
+                    out.println(colorize("    Form non-aligned coalition...",Attribute.WHITE_TEXT()));
+                    switch (event.ideology())
+                    {
+                        case Nonaligned -> out.println(colorize("    The autocratic party still doesn't really believe in anything",Attribute.WHITE_TEXT()));
+                        case Communist  -> out.println(colorize("    The communist party leaders have lost touch with the proletariat and has become autocrats",Attribute.WHITE_TEXT()));
+                        case Democratic -> out.println(colorize("    Democracy has declined into oligarchy and autocracy",Attribute.WHITE_TEXT()));
+                        case Fascist ->    out.println(colorize("    The fascists have lost their fanaticism and become normal authoritarians",Attribute.WHITE_TEXT()));
+                    }
+                }
+            }
+            case fascism_growth -> {
+                if (event.add())
+                {
+                    setFascism_growth(fascism_growth+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt fascist daily growth, is now "+String.format("%.2f",fascism_growth*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setFascism_growth(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set fascist daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                }
+            }
+            case communism_growth ->
+            {
+                if (event.add())
+                {
+                    setCommunism_growth(communism_growth+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt communist daily growth, is now "+String.format("%.2f",communism_growth)+"% pt per day",event.value()*100<0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setCommunism_growth(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set communist daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                }
+            }
+            case autocracy_growth -> {
+                if (event.add())
+                {
+                    setAutocracy_growth(autocracy_growth+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt non-aligned daily growth, is now "+String.format("%.2f",autocracy_growth*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setAutocracy_growth(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set non-aligned daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                }
+            }
+            case democracy_growth -> {
+                if (event.add())
+                {
+                    setDemocracy_growth(democracy_growth+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt democracy daily growth, is now "+String.format("%.2f",democracy_growth*100)+"% pt per day",event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setDemocracy_growth(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set democracy daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case fascism_support -> {
+                throw new NotImplementedException();
+                /*if (event.add())
+                {
+                    setFascism_support(properties.getFascism_support()+event.value());
+                    if (out!=null){
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+" % pt Fascism support, is now "+String.format("%.2f",properties.getFascism_support()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+                else
+                {
+                    setFascism_support(event.value());
+                    if (out!=null){
+                        out.println(colorize("    Set Fascism support"+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+
+                 */
+            }
+            case democracy_support -> {
+                throw new NotImplementedException();
+                /*
+                if (event.add())
+                {
+                    setDemocracy_support(properties.getDemocracy_support()+event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt democracy support, is now "+String.format("%.2f",properties.getDemocracy_support()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+                else
+                {
+                    setDemocracy_support(event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set democracy support"+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+
+                 */
+            }
+            case autocracy_support -> {
+                throw new NotImplementedException();
+                /*if (event.add())
+                {
+                    setAutocracy_support(properties.getAutocracy_support()+event.value());
+                    if (out!=null){
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt non-aligned support, is now "+String.format("%.2f",autocracy_growth*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+                else
+                {
+                    setAutocracy_support(event.value());
+                    if (out!=null){
+                        out.println(colorize("    Set non-aligned support "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+                 */
+            }
+            case communism_support -> {
+                throw new NotImplementedException();
+                /*if (event.add())
+                {
+                    setCommunism_support(properties.getCommunism_support()+event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt Communism support, is now "+String.format("%.2f",properties.getCommunism_support()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+                else
+                {
+                    setCommunism_support(event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set Communism support "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    out.println(colorize("    Total stability is now " + String.format("%.2f",properties.getStability()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",properties.getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+                }
+                 */
+            }
+            case efficiency_cap -> {
+                if (event.add())
+                {
+                    setEfficiency_cap(efficiency_cap+event.value());
+                    if (out!=null){
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% efficiency cap, is now "+String.format("%.2f",efficiency_cap*100),event.value()>0? GoodOutcome:BadOutcome));
+                    }
+                }
+                else
+                {
+                    setEfficiency_cap(event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set efficiency cap "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                    }
+                }
+            }
+            case base_stability -> {
+                if (event.add())
+                {
+                    setBase_stability(base_stability+event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt base stability, is now "+String.format("%.2f",base_stability*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    }
+
+                }
+                else
+                {
+                    setBase_stability(event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set base stability "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+            }
+            case permanent_stability -> {
+                if (event.add())
+                {
+                    setPermanent_stability(permanent_stability+event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+"% pt permanent stability bonus, is now "+String.format("%.2f",permanent_stability*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setPermanent_stability(event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set permanent stability "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+            }
+            case base_factory_output -> {
+                if (event.add())
+                {
+                    setBase_factory_output(base_factory_output+event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + String.format("%.2f", event.value() * 100) + "% pt base factory output, is now " + String.format("%.2f", base_factory_output * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setBase_stability(event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Set base factory output " + String.format("%.2f", event.value() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+            }
+            case construction_speed -> {
+                if (event.add())
+                {
+                    setConstruction_speed(construction_speed+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt construction speed, is now "+String.format("%.2f",construction_speed*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setConstruction_speed(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set construction bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case civ_construction_speed_bonus -> {
+                if (event.add())
+                {
+                    setCiv_construction_speed_bonus(civ_construction_speed_bonus+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt event.add()itional construction bonus for civilian factories, is now "+String.format("%.2f",civ_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setCiv_construction_speed_bonus(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set event.add()itional construction bonus for civilian factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case mil_construction_speed_bonus -> {
+                if (event.add())
+                {
+                    setMil_construction_speed_bonus(mil_construction_speed_bonus+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt event.add()itional construction bonus for military factories, is now "+String.format("%.2f",mil_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setMil_construction_speed_bonus(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set event.add()itional construction bonus for military factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case resource_gain_bonus -> {
+                if (event.add())
+                {
+                    setResource_gain_bonus(resource_gain_bonus+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt resource gain bonus, is now "+String.format("%.2f",resource_gain_bonus*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setResource_gain_bonus(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set resource gain bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                }
+            }
+            case resources_to_market -> {
+                if (event.add())
+                {
+                    setResources_to_market(resources_to_market+event.value());
+                    if (out!=null)
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt resources to market, is now "+String.format("%.2f",resources_to_market*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                }
+                else
+                {
+                    setResources_to_market(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set resources to market "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                }
+            }
+            case base_consumer_goods_ratio -> {
+                if (event.add())
+                {
+                    setBase_consumer_goods_ratio(base_consumer_goods_ratio+event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to base factories on consumer goods, is now " + String.format("%.2f", base_consumer_goods_ratio*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setBase_consumer_goods_ratio(event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set base % of factories on consumer goods ratio: "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+            }
+            case base_consumer_goods_multiplier -> {
+                if (event.add())
+                    throw new RuntimeException("event.add() modify for consumer goods multiplier is not, and can not be, supporter");
+                else
+                {
+                    setBase_consumer_goods_multiplier(1+event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set consumer goods multiplier: "+String.format("1+%.2f",event.value()*100),event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+            }
+            case buildingSlotBonus -> {
+                if (event.add())
+                {
+                    setBuildingSlotBonus(buildingSlotBonus*100+event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to building slots bonus, is now " + String.format("%.2f", base_consumer_goods_multiplier*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setBuildingSlotBonus(event.value());
+                    if (out!=null)
+                    {
+                        out.println(colorize("    Set building slots bonus: "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                    }
+                }
+            }
+            case special_steel -> {
+                if (event.add())
+                {
+                    setSpecial_steel(special_steel+(int)event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + event.value() + " steel per day for special projects, is now " + special_steel, event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setSpecial_steel((int)event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set steel per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+            }
+            case special_chromium -> {
+                if (event.add())
+                {
+                    setSpecial_chromium(special_chromium+(int)event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + event.value() + " chromium per day for special projects, is now " + special_chromium, event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setSpecial_chromium((int)event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set chromium per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+            }
+            case special_tungsten -> {
+                if (event.add())
+                {
+                    setSpecial_tungsten(special_tungsten+(int)event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + event.value() + " tungsten per day for special projects, is now " +special_tungsten, event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setSpecial_tungsten((int)event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set tungsten per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+            }
+            case special_aluminium -> {
+                if (event.add())
+                {
+                    setSpecial_aluminium(special_aluminium+(int)event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + event.value() + " aluminium per day for special projects, is now " + special_aluminium, event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setSpecial_aluminium((int)event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set aluminium per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+            }
+            case special_rubber -> {
+                if (event.add())
+                {
+                    setSpecial_rubber(special_rubber+(int)event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + event.value() + " rubber per day for special projects, is now " + special_rubber, event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setSpecial_rubber((int)event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set rubber per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+            }
+            case special_projects_civs -> {
+                if (event.add())
+                {
+                    setSpecial_projects_civs(special_projects_civs+(int)event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + event.value() + " civilian factories for special projects, is now " + special_projects_civs, event.value() < 0 ? GoodOutcome : BadOutcome));
+                    }
+                }
+                else
+                {
+                    setSpecial_projects_civs((int)event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set civilian factories for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                }
+            }
+        }
     }
 }

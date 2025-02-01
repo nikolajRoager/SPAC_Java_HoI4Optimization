@@ -1,16 +1,13 @@
-package org.HoI4Optimizer.Building;
+package org.HoI4Optimizer.Building.stateBuilding;
 
+import org.HoI4Optimizer.Building.Building;
 import org.HoI4Optimizer.Nation.State;
 
 import org.HoI4Optimizer.NationalConstants.stateType;
 /// A temporary class, used for infrastructure construction projects
 public class Infrastructure extends Building implements Cloneable {
     public static final int maxLevel=5;
-
-
     private int level=0;
-
-
 
     public Infrastructure(State location,int level,boolean underConstruction) {
         this.underConstruction = underConstruction;
@@ -82,6 +79,11 @@ public class Infrastructure extends Building implements Cloneable {
         level=Math.clamp(level+1, 0, maxLevel);
         //Use finished name
         name=location.getName()+" Infrastructure level "+level;
+    }
+
+    /// Set level to some level
+    public void setLevel(int level) {
+        this.level = Math.clamp(level,0,maxLevel);
     }
 
     @Override

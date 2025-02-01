@@ -18,6 +18,5 @@
   "natural_fuel_bonus":-0.6,
   "fuel_capacity_per_infrastructure":1500,
   "basic_fuel_capacity":50000,
-  "buildingSlotBonus":0,
-  "embargoed":true
+  "buildingSlotBonus":0
 }

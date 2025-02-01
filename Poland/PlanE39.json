@@ -6,7 +6,7 @@
     "name": "4-year Industrial plan passed",
     "properties":
     [{
-        "target":"construction_speed",
+        "modify":"construction_speed",
         "value":0.10,
         "add": true
       }]
@@ -16,13 +16,13 @@
     "states":
     [
       {
-        "state": 12,
-        "target":"Infrastructure",
+        "stateID": 12,
+        "modify":"Infrastructure",
         "number":1
       },
       {
-        "state": 16,
-        "target":"Infrastructure",
+        "stateID": 16,
+        "modify":"Infrastructure",
         "number":1
       }
     ]
@@ -32,22 +32,22 @@
     "properties":
     [
       {
-        "target":"natural_fuel_bonus",
+        "modify":"natural_fuel_bonus",
         "value":0.30,
         "add": true
       },
       {
-        "target":"base_consumer_goods_ratio",
+        "modify":"base_consumer_goods_ratio",
         "value":0.30,
         "add": false
       },
       {
-        "target":"civ_construction_speed_bonus",
+        "modify":"civ_construction_speed_bonus",
         "value":0.30,
         "add": false
       },
       {
-        "target":"mil_construction_speed_bonus",
+        "modify":"mil_construction_speed_bonus",
         "value":0.40,
         "add": false
       }
@@ -57,7 +57,7 @@
     "name": "Expanded access to Machine tools",
     "properties":
     [{
-      "target":"efficiency_cap",
+      "modify":"efficiency_cap",
       "value":0.10,
       "add": true
     }]
@@ -67,33 +67,33 @@
     "states":
     [
       {
-        "state" : 15,
-        "target":"Slot",
+        "stateID" : 15,
+        "modify":"Slot",
         "number" :1
       },
       {
-        "state" : 5,
-        "target":"Slot",
+        "stateID" : 5,
+        "modify":"Slot",
         "number" : 1
       },
       {
-        "state" : 8,
-        "target":"Slot",
+        "stateID" : 8,
+        "modify":"Slot",
         "number" : 2
       },
       {
-        "state": 7,
-        "target":"Slot",
+        "stateID": 7,
+        "modify":"Slot",
         "number":2
       },
       {
-        "state": 15,
-        "target":"Civilian",
+        "stateID": 15,
+        "modify":"Civilian",
         "number":1
       },
       {
-        "state": 5,
-        "target":"Civilian",
+        "stateID": 5,
+        "modify":"Civilian",
         "number":1
       }
     ]
@@ -103,8 +103,8 @@
     "states":
     [
       {
-        "state": 2,
-        "target":"Military",
+        "stateID": 2,
+        "modify":"Military",
         "number":1
       }
     ]
@@ -113,7 +113,7 @@
     "name": "Researched Construction technology 1",
     "properties":
     [{
-      "target":"construction_speed",
+      "modify":"construction_speed",
       "value":0.10,
       "add": true
     }]
@@ -125,7 +125,7 @@
     "name": "Citizens industry donates to national defence fund",
     "properties":
     [{
-      "target":"construction_speed",
+      "modify":"construction_speed",
       "value":0.10,
       "add": true
     }]
@@ -134,18 +134,18 @@
     "name": "Nazi party defeated in Free city of Danzig, New SPD mayor cooperates with Poland",
     "states":
     [{
-      "state": 2,
-      "target":"Military",
+      "stateID": 2,
+      "modify":"Military",
       "number":1
     },
     {
-      "state": 2,
-      "target":"noBuilding",
+      "stateID": 2,
+      "modify":"noBuilding",
       "number":0
     },
     {
-      "state": 2,
-      "target":"Civilian",
+      "stateID": 2,
+      "modify":"Civilian",
       "number":1
     }]
   }],
@@ -159,7 +159,7 @@
     "name": "(Happy new year) Construction technology researched",
     "properties": [
       {
-        "target":"construction_speed",
+        "modify":"construction_speed",
         "value":0.1,
         "add": true
       }
@@ -169,12 +169,12 @@
     "name": "Initial concentrated industry reform",
     "properties": [
       {
-        "target":"base_factory_output",
+        "modify":"base_factory_output",
         "value":0.15,
         "add": true
       },
       {
-        "target":"buildingSlotBonus",
+        "modify":"buildingSlotBonus",
         "value":0.2,
         "add": true
       }
@@ -193,12 +193,12 @@
     "name": "Concentrated industry improvements",
     "properties": [
       {
-        "target":"base_factory_output",
+        "modify":"base_factory_output",
         "value":0.15,
         "add": true
       },
       {
-        "target":"buildingSlotBonus",
+        "modify":"buildingSlotBonus",
         "value":0.2,
         "add": true
       }
@@ -208,40 +208,40 @@
     "name": "the \"Free city of Danzig\" votes to join Poland, opening up Poland to world trade",
     "states":
     [{
-        "state": 2,
-        "target":"Slot",
+        "stateID": 2,
+        "modify":"Slot",
         "number":2
       },
       {
-      "state": 2,
-      "target":"Military",
+      "stateID": 2,
+      "modify":"Military",
       "number":1
       },
       {
-        "state": 2,
-        "target":"Civilian",
+        "stateID": 2,
+        "modify":"Civilian",
         "number":1
       }
     ],
     "properties":
     [
       {
-        "target":"construction_speed",
+        "modify":"construction_speed",
         "value":0.10,
         "add": true
       },
       {
-        "target":"base_factory_output",
+        "modify":"base_factory_output",
         "value":0.10,
         "add": true
       },
       {
-        "target":"base_consumer_goods_ratio",
+        "modify":"base_consumer_goods_ratio",
         "value":-0.05,
         "add": true
       },
       {
-        "target":"resources_to_market",
+        "modify":"resources_to_market",
         "value":0.5,
         "add": false
       }
@@ -254,23 +254,23 @@
     "name": "\"New polish industry\" program in Poznan bears fruit",
     "states":
     [{
-      "state": 3,
-      "target":"Slot",
+      "stateID": 3,
+      "modify":"Slot",
       "number":1
     },
       {
-        "state": 3,
-        "target":"Military",
+        "stateID": 3,
+        "modify":"Military",
         "number":1
       },
     {
-      "state": 13,
-      "target":"Slot",
+      "stateID": 13,
+      "modify":"Slot",
       "number":1
     },
       {
-        "state": 13,
-        "target":"Military",
+        "stateID": 13,
+        "modify":"Military",
         "number":1
       }
     ]
@@ -279,7 +279,7 @@
     "name": "Improved machine tools improves productivity",
     "properties":
     [{
-      "target":"efficiency_cap",
+      "modify":"efficiency_cap",
       "value":0.10,
       "add": true
     }]
@@ -294,17 +294,17 @@
     "name": "Power struggle between Sławek and Rydz-Śmigły, Kazimierz Sosnkowski becomes chief of the army",
     "properties": [
       {
-        "target":"autocracy_growth",
+        "modify":"autocracy_growth",
         "value":-0.17,
         "add": true
       },
       {
-        "target":"permanent_stability",
+        "modify":"permanent_stability",
         "value":-0.05,
         "add": true
       },
       {
-        "target":"base_consumer_goods_multiplier",
+        "modify":"base_consumer_goods_multiplier",
         "value":0.05,
         "add": false
       }
@@ -314,7 +314,7 @@
     "name": "Militarization of society",
     "properties": [
       {
-        "target":"autocracy_growth",
+        "modify":"autocracy_growth",
         "value":0.05,
         "add": true
       }
@@ -327,7 +327,7 @@
     "name": "Mościcki re-asserts presidential authority",
     "properties": [
       {
-        "target":"autocracy_growth",
+        "modify":"autocracy_growth",
         "value":0.05,
         "add": true
       }
@@ -340,22 +340,22 @@
     "name": "Sławek regains prime-minister post and appoints Joséf Haller becomes economy minister",
     "properties": [
       {
-        "target":"mil_construction_speed_bonus",
+        "modify":"mil_construction_speed_bonus",
         "value":0.10,
         "add": false
       },
       {
-        "target":"permanent_stability",
+        "modify":"permanent_stability",
         "value":0.15,
         "add": true
       },
       {
-        "target":"base_consumer_goods_multiplier",
+        "modify":"base_consumer_goods_multiplier",
         "value":0.0,
         "add": false
       },
       {
-        "target":"autocracy_growth",
+        "modify":"autocracy_growth",
         "value":0.02,
         "add": true
       }
@@ -365,17 +365,17 @@
     "name": "Rydz-Śmigły is appointed Marshal of Poland, Sławek and Haller threatens resignation",
     "properties": [
       {
-        "target":"permanent_stability",
+        "modify":"permanent_stability",
         "value":-0.05,
         "add": true
       },
       {
-        "target":"base_consumer_goods_multiplier",
+        "modify":"base_consumer_goods_multiplier",
         "value":0.05,
         "add": false
       },
       {
-        "target":"autocracy_growth",
+        "modify":"autocracy_growth",
         "value":0.03,
         "add": true
       }
@@ -385,12 +385,12 @@
     "name": "\"Hejnał\" project radar development",
     "properties": [
       {
-        "target":"special_steel",
+        "modify":"special_steel",
         "value":8,
         "add": false
       },
       {
-        "target":"special_aluminium",
+        "modify":"special_aluminium",
         "value":8,
         "add": false
       }
@@ -400,22 +400,22 @@
     "name": "Rydz-Śmigły integrates Falangist militias in the army, Sławek strongly protests",
     "properties": [
       {
-        "target":"permanent_stability",
+        "modify":"permanent_stability",
         "value":-0.15,
         "add": true
       },
       {
-        "target":"base_consumer_goods_multiplier",
+        "modify":"base_consumer_goods_multiplier",
         "value":0.20,
         "add": false
       },
       {
-        "target":"autocracy_growth",
+        "modify":"autocracy_growth",
         "value":-0.15,
         "add": true
       },
       {
-        "target":"fascism_growth",
+        "modify":"fascism_growth",
         "value":0.02,
         "add": true
       }
@@ -425,7 +425,7 @@
     "name": "New surveying techniques improve productivity of mines",
     "properties":
     [{
-      "target":"resource_gain_bonus",
+      "modify":"resource_gain_bonus",
       "value":0.10,
       "add": true
     }]
@@ -440,7 +440,7 @@
     "name": "Improved metallurgy increases productivity of resource sector",
     "properties":
     [{
-      "target":"resource_gain_bonus",
+      "modify":"resource_gain_bonus",
       "value":0.10,
       "add": true
     }]
@@ -452,22 +452,22 @@
     "name": "Rydz-Śmigły and Sławek reconcile their differences to focus on the German threat",
     "properties": [
       {
-        "target":"permanent_stability",
+        "modify":"permanent_stability",
         "value":0.25,
         "add": true
       },
       {
-        "target":"base_consumer_goods_multiplier",
+        "modify":"base_consumer_goods_multiplier",
         "value":0.0,
         "add": false
       },
       {
-        "target":"autocracy_growth",
+        "modify":"autocracy_growth",
         "value":0.05,
         "add": true
       },
       {
-        "target":"democracy_growth",
+        "modify":"democracy_growth",
         "value":0.1,
         "add": true
       }
@@ -477,7 +477,7 @@
     "name": "Funding for radio intelligence agency",
     "properties": [
       {
-        "target":"special_projects_civs",
+        "modify":"special_projects_civs",
         "value":5,
         "add": false
       }
@@ -487,7 +487,7 @@
     "name": "TEMP",
     "properties": [
       {
-        "target":"special_projects_civs",
+        "modify":"special_projects_civs",
         "value":0,
         "add": false
       }
