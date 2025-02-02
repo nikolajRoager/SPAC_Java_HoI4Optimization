@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /// The setup of the nation including everything from  the national focus tree and decisions, this can not be modified by the simulation
 public class NationalSetup {
@@ -17,7 +18,7 @@ public class NationalSetup {
     private final NationState nationStart;
 
     //Events which happens to the nation on particular days
-    private Map<Integer, List<Events>> events;
+    private final Map<Integer, List<Events>> events;
 
     /// get all events happening this day
     public List<Events> getEvent(int day)
@@ -29,11 +30,29 @@ public class NationalSetup {
             return list;
     }
 
-    public Map<String,Equipment> getEquipmentList()
+    /// Get all equipment
+    public Map<String,Equipment> getEquipment()
     {
         return equipmentList;
     }
 
+    /// Get equipment which can be produced by this day, and which are not outdated
+    public Map<String,Equipment> getEquipment(int day){
+        return equipmentList.entrySet().stream().filter(
+                entry ->
+                {
+                    var eq =entry.getValue();
+                    //Is this thing researched before today?
+                    return eq.getResearchTime()<=day &&
+                            //And is it the final version?
+                            (eq.getNextGen()==null ||
+                                    //Or is the next-gen upgrade yet to enter service?
+                                    eq.getNextGen().getResearchTime()>day);
+                }
+                //Turn all the things which fit this back into a map and return this
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)
+                );
+    }
     /// Copy the starting setup of the nation
     public NationState buildNation()
     {

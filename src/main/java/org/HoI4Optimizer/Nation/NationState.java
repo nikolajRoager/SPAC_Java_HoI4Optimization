@@ -58,7 +58,7 @@ public class NationState  implements Cloneable
 
     public void setStates(List<State> states) {this.states = states;}
 
-    public List<constructionLine> constructionLines;
+    private List<constructionLine> constructionLines;
 
     /// Load setup from a folder, assumed to be start of the simulation
     public NationState(String countryName,NationalSetup setup) throws IOException {
@@ -422,45 +422,69 @@ public class NationState  implements Cloneable
     }
 
     ///Step forward a number of days, or until a decision is required, only print if some important event happened
-    public void update(int days,PrintStream out)
+    /// 
+    public List<decision> update(int days,PrintStream out)
     {
         for (int d = 0; d < days; d++) {
+            //BEFORE incrementing the day, and doing anything to anything, we check if there are available decisions, this also catches decisions which became available yesterday
+
+            //Check for idling civilian factories
+            //First get the number of civilian factories available for construction
+            int unassignedCivs = getUnassignedCivs();
+
+            if (unassignedCivs > constructionLines.size()*15)
+            {
+                out.println(colorize("Can not simulate forward, as we have unassigned civilian factories",Attribute.BRIGHT_RED_TEXT()));
+
+                var Out = new ArrayList<decision>();
+
+                //Find all new buildings we can build
+                for (State s : states)
+                {
+                    //Add either refineries or civilian factories
+                    if (s.canBuildCivilianFactory(properties.getBuildingSlotBonus()))
+                    {
+                        Out.add(new decision(s,new CivilianFactory(s,true)));
+                    }
+                    if (s.canBuildRefineryFactory(properties.getBuildingSlotBonus()))
+                    {
+                        Out.add(new decision(s,new Refinery(s,true)));
+                    }
+                    if (s.canBuildMilitaryFactory(properties.getBuildingSlotBonus()))
+                    {
+                        //We can build a factory for any legal type of equipment
+                        var Equipment=setup.getEquipment(day);
+                        for (var eq : Equipment.values())
+                        {
+                            Out.add(new decision(s,new MilitaryFactory(s,true),eq));
+                        }
+                    }
+                    if (s.canUpgradeInfrastructure())
+                    {
+                        Out.add(new decision(s.getInfrastructure()));
+                    }
+                }
+
+                return Out;
+            }
+
             ++day;
 
             // First step, update production
             // TBD
 
             // Now, update construction
-            //First get the number of civilian factories available for construction
-            int factories =0;
-            for (var f : militaryFactories)
-                if (!f.getUnderConstruction())
-                    factories++;
-            for (var f : civilianFactories)
-                if (!f.getUnderConstruction())
-                    factories++;
-
-            double cg = properties.getConsumer_goods_ratio();
-            int cg_factories = (int)(factories*cg);
-            int exportGoods=0;
-            int unassignedCivs = (civilianFactories.size()-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
-
-            boolean finished=false;
 
             for (int i = constructionLines.size()-1; i>=0; i--) {
                 var c = constructionLines.get(i);
                 //Add 5 daily CIC plus 20%,40%,60%,80% or 100% bonus per level infrastructure, plus construction speed bonus
-                if (c.building.construct(5*Math.min(unassignedCivs,15)*(1+0.2*c.building.getLocation().getInfrastructure())*(1+properties.getConstruction_speed()
+                if (c.building.construct(5*Math.min(unassignedCivs,15)*(1+0.2*c.building.getLocation().getInfrastructureLevel())*(1+properties.getConstruction_speed()
                         +(c.building instanceof MilitaryFactory ? properties.getMil_construction_speed_bonus() :0.0)
                         +(c.building instanceof CivilianFactory ? properties.getCiv_construction_speed_bonus() :0.0)
                 )))
                 {
-                    finished=true;
                     constructionLines.remove(i);
                 }
-
-                //We used up to 15 factories on this
-                unassignedCivs=Math.max(0,unassignedCivs-15);
             }
 
             //Apply events at the end of the day (I believe it is similar to the game)
@@ -468,14 +492,23 @@ public class NationState  implements Cloneable
             {
                 apply(e,out);
             }
-
-            //Oh no, a decision has to be made of what to do with the free factories!
-            //This will only trigger one day late, just like in game!
-            if (unassignedCivs>0)
-            {
-                out.println(colorize("Stopped due to unassigned civilian factories!",Attribute.BRIGHT_YELLOW_TEXT()));
-                return;
-            }
         }
+        //No decisions
+        return new ArrayList<>();
+    }
+
+    private int getUnassignedCivs() {
+        int factories =0;
+        for (var f : militaryFactories)
+            if (!f.getUnderConstruction())
+                factories++;
+        for (var f : civilianFactories)
+            if (!f.getUnderConstruction())
+                factories++;
+
+        double cg = properties.getConsumer_goods_ratio();
+        int cg_factories = (int)(factories*cg);
+        int exportGoods=0;
+        return (civilianFactories.size()-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
     }
 }

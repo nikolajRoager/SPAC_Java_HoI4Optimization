@@ -190,15 +190,16 @@ public class Equipment {
     ///load a list of equipment from json, identified by a unique name
     public static Map<String,Equipment> loadEquipment(String filePath) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+        //First simply load the list
         var EquipList= objectMapper.readValue(new File(filePath), new TypeReference<List<Equipment>>() {});
+        //The un-pack it so everything is both in the list, and reference to in its upgrades
         var Out = new HashMap<String,Equipment>();
-        for (var E : EquipList)
-        {
+        for (var E : EquipList) {
             Out.put(E.name,E);
             for (var Next = E.nextGen; Next!=null; Next=Next.nextGen)
-                Out.put(Next.name,Next);
+                if (!Out.containsKey(Next.name))
+                    Out.put(Next.name,Next);}
 
-        }
         return Out;
     }
 }

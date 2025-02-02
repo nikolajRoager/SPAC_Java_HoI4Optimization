@@ -44,6 +44,12 @@ public abstract class stateBuilding extends Building {
     /// Get the name of the upgrade to this level
     public abstract String getUpgradeName(int level);
 
+    /// Get the name of the upgrade to this level
+    public String getNextUpgradeName()
+    {
+        return getUpgradeName(level+1);
+    }
+
     /// Begin the process of upgrading this to next level
     public void upgrade()
     {

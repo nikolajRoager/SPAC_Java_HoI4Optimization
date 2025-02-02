@@ -381,21 +381,6 @@
       }
     ]
   }],
-  "749": [{
-    "name": "\"Hejnał\" project radar development",
-    "propertyEvents": [
-      {
-        "modify":"special_steel",
-        "value":8,
-        "add": false
-      },
-      {
-        "modify":"special_aluminium",
-        "value":8,
-        "add": false
-      }
-    ]
-  }],
   "770": [{
     "name": "Rydz-Śmigły integrates Falangist militias in the army, Sławek strongly protests",
     "propertyEvents": [
@@ -445,11 +430,130 @@
       "add": true
     }]
   }],
+  "805": [{
+    "name": "Sławek and Rydz-Śmigły reconcile their difference to focus on Germany, and to revive the Międzymorze concept"
+  },
+    {
+      "name": "Sławek passes Common Organization of Society, undermining the BBWR and Mościcki's power",
+      "propertyEvents": [
+        {
+          "modify":"base_factory_output",
+          "value":0.10,
+          "add": true
+        },
+        {
+          "modify":"civ_construction_speed_bonus",
+          "value":0.10,
+          "add": true
+        },
+        {
+          "modify":"democracy_growth",
+          "value":0.1,
+          "add": true
+        }
+      ],
+
+      "stateEvents":
+      [
+        {
+          "stateID": 1,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 2,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 3,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 4,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 5,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 6,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 7,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 8,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 9,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 10,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 11,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 12,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 13,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 14,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 15,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 16,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 17,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 18,
+          "modify":"Slot",
+          "number":2
+        }
+      ]
+
+    }
+  ],
   "840": [{
     "name": "FBL focuses on semiautomatic rifles, efficiency gain -5%"
   },
   {
-    "name": "Rydz-Śmigły and Sławek reconcile their differences to focus on the German threat",
+    "name": "With Rydz-Śmigły's support, Sławek passes new parliamentarian constitutions, free and fair elections scheduled for September 1938, effectively turning Mościcki into a figurehead",
     "propertyEvents": [
       {
         "modify":"permanent_stability",
@@ -472,9 +576,9 @@
         "add": true
       }
     ]
-  },
-  {
-    "name": "Funding for radio intelligence agency",
+  }],
+  "875": [{
+    "name": "",
     "propertyEvents": [
       {
         "modify":"special_projects_civs",
@@ -483,8 +587,68 @@
       }
     ]
   }],
-  "870": [{
-    "name": "TEMP",
+  "730": [{
+    "name": "Funding approved for Military Intelligence agency",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":5,
+        "add": false
+      }
+    ]
+  }],
+  "760": [{
+    "name": "Recruiting mathematicians for radio analysis",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":8,
+        "add": false
+      }
+    ]
+  }],
+  "790": [{
+    "name": "Continuous investment SIGINT",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":5,
+        "add": false
+      }
+    ]
+  }],
+  "850": [{
+    "name": "Vetting and recruiting German socialists and liberals as agents",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":10,
+        "add": false
+      }
+    ]
+  }],
+  "880": [{
+    "name": "Building the Cryptological bomb (Breaking Enigma!)",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":10,
+        "add": false
+      }
+    ]
+  }],
+  "940": [{
+    "name": "Expanding HUMINT department",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":5,
+        "add": false
+      }
+    ]
+  }],
+  "1030": [{
+    "name": "Intelligence expansion ends, department can now be sustained by existing budget",
     "propertyEvents": [
       {
         "modify":"special_projects_civs",
@@ -492,5 +656,25 @@
         "add": false
       }
     ]
-  }]
+  }],
+  "910": [
+    {
+      "name": "Poland signs peace treaty with Lithuania, commits to referendum in Vilnius, and signs mutual defence treaty"
+    }
+  ],
+  "920": [
+    {
+      "name": "Poland and Lithuania unilaterally guarantees independence of Lithuania and Estonia"
+    }
+  ],
+  "990": [
+    {
+      "name": "Poland, Estonia, Latvia, and Lithuania officially enter into a full military alliance: The Międzymorze"
+    }
+  ],
+  "1080": [
+    {
+      "name": "The Sudeten-crisis, Czechoslovakia appeals to the Międzymorze for aid "
+    }
+  ]
 }

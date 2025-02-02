@@ -114,7 +114,11 @@ public class State implements Cloneable {
         this.base_tungsten = base_tungsten;
     }
 
-    public int getInfrastructure() {
+    public Infrastructure getInfrastructure()
+    {
+        return infrastructure;
+    }
+    public int getInfrastructureLevel() {
         return infrastructure.getLevel();}
 
     public void setInfrastructure(int level)
@@ -225,7 +229,7 @@ public class State implements Cloneable {
                 if (!((MilitaryFactory) f).getProductName().equals("null"))
                 {
                     //What we should produce
-                    var product = setup.getEquipmentList().get(((MilitaryFactory) f).getProductName());
+                    var product = setup.getEquipment().get(((MilitaryFactory) f).getProductName());
                     if (product==null)
                         throw new RuntimeException("Loaded factory producing "+((MilitaryFactory) f).getProductName()+" but that does not exist!");
                     else
@@ -354,7 +358,7 @@ public class State implements Cloneable {
                 return false;
             }
         //If then, see if we have free slots
-        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0);
+        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0) &&refineries.size()<3/*At most 3 refineries per state, a hard limit in game*/;
     }
 
     @Override
