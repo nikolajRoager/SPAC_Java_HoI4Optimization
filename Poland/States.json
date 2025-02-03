@@ -1,5 +1,14 @@
 [
   {
+    "id": 0,
+    "type":"town",
+    "supplyhub": true,
+    "infrastructure": 3,
+    "extraBuildingSlots": 0,
+    "name": "Wołyn",
+    "townNames":["Kowel","Równe","Wołyn","Ukrainian","Eastern"]
+  },
+  {
     "id": 1,
     "type":"rural",
     "supplyhub": true,
@@ -37,12 +46,10 @@
     [
       {
         "type": "military",
-        "productName": "support equipment",
         "underConstruction":false
       },
       {
         "type": "military",
-        "productName": "Jastrząb mk 1",
         "underConstruction":false
       },
       {
@@ -93,7 +100,6 @@
     [
       {
         "type": "military",
-        "productName": "40mm wz. 36",
         "underConstruction":false
       },
       {
@@ -236,35 +242,29 @@
     [
       {
         "type": "military",
-        "productName": "40mm wz. 36",
         "underConstruction":false
       },
       {
         "type": "military",
-        "productName": "75mm wz. 31",
         "underConstruction":false
       },
       {
         "type": "military",
-        "productName": "75mm wz. 31",
-        "underConstruction":false
-      },
-      {
-        "type": "military",
-        "efficiency": 0.5,
-        "productName": "1936 infrantry equipment",
         "underConstruction":false
       },
       {
         "type": "military",
         "efficiency": 0.5,
-        "productName":"PZInż 140",
         "underConstruction":false
       },
       {
         "type": "military",
         "efficiency": 0.5,
-        "productName": "10TP",
+        "underConstruction":false
+      },
+      {
+        "type": "military",
+        "efficiency": 0.5,
         "underConstruction":false
       },
       {
@@ -300,14 +300,5 @@
         "underConstruction":false
       }
     ]
-  },
-  {
-    "id": 18,
-    "type":"town",
-    "supplyhub": true,
-    "infrastructure": 3,
-    "extraBuildingSlots": 0,
-    "name": "Wołyn",
-    "townNames":["Kowel","Równe","Wołyn","Ukrainian","Eastern"]
   }
 ]

@@ -2,19 +2,21 @@ package org.HoI4Optimizer.Nation;
 
 
 import com.diogonunes.jcolor.Attribute;
+import net.bytebuddy.utility.nullability.NeverNull;
 import org.HoI4Optimizer.Building.SharedBuilding.CivilianFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
+import org.HoI4Optimizer.Building.stateBuilding.StateBuilding;
 import org.HoI4Optimizer.Calender;
 import org.HoI4Optimizer.Building.*;
 import org.HoI4Optimizer.Nation.Event.Events;
-import org.HoI4Optimizer.Nation.decision.decision;
+import org.HoI4Optimizer.Nation.decision.BuildDecision;
+import org.HoI4Optimizer.NationalConstants.Equipment;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 
@@ -60,6 +62,13 @@ public class NationState  implements Cloneable
 
     private List<constructionLine> constructionLines;
 
+    /// The things we can build this day
+    @NeverNull
+    private List<BuildDecision> buildingDecisions;
+    /// The list of all the different ways we can re-assign un-assigned factories
+    @NeverNull
+    private List<Map<Equipment,Integer>> factoryReassignments;
+
     /// Load setup from a folder, assumed to be start of the simulation
     public NationState(String countryName,NationalSetup setup) throws IOException {
         try {states=State.loadState(Paths.get(countryName,"States.json").toString(),setup);}
@@ -84,6 +93,12 @@ public class NationState  implements Cloneable
 
         name=countryName;
         this.setup=setup;
+
+        //Check if we have decisions the first day (we most certainly have)
+        buildingDecisions = new ArrayList<>();
+        factoryReassignments = new ArrayList<>();
+        updateDecisions();
+
     }
 
     /// Print a bar-plot with a percentage
@@ -120,38 +135,32 @@ public class NationState  implements Cloneable
             return colorize((modifier>-1?" ":"")+(modifier>-.1?" ":"")+(int)(100*modifier)+"%",Attribute.GREEN_TEXT());
     }
 
-    public void apply(decision decision) throws RuntimeException
+    public void applyDecision(int decId) throws RuntimeException
     {
-        /*
-        if (!states.contains(buildingDecision.getTarget()))
-            throw new RuntimeException("Target state does not exist");
-        switch (buildingDecision.getDecisionType())
+        if (buildingDecisions.size()<decId)
+            throw new RuntimeException("Target decision does not exist");
+
+        var decision = buildingDecisions.get(decId);
+
+        //Build something new
+        if (decision.type()== BuildDecision.Type.build)
         {
-            case BuildRefinery -> {
-                var New = buildingDecision.getTarget().buildRefinery(properties.getBuildingSlotBonus());
-                refineries.add(New);
-                constructionLines.add(new constructionLine(New));
-            }
-            case BuildCivilianFactory ->
-            {
-                var New = buildingDecision.getTarget().buildCivilianFactory(properties.getBuildingSlotBonus());
-                civilianFactories.add(New);
-                constructionLines.add(new constructionLine(New));
-            }
-            case BuildMilitaryFactory ->
-            {
-                var New = buildingDecision.getTarget().buildMilitaryFactory(properties.getBuildingSlotBonus());
-                militaryFactories.add(New);
-                constructionLines.add(new constructionLine(New));
-            }
-            case BuildInfrastructure -> {
-                var New = buildingDecision.getTarget().buildInfrastructure();
-                constructionLines.add(new constructionLine(New));
-            }
-        }*/
+            decision.location().build(decision.building());
+            if (decision.building() instanceof Refinery)
+                refineries.add((Refinery) decision.building());
+            else if (decision.building() instanceof CivilianFactory)
+                civilianFactories.add((CivilianFactory) decision.building());
+            else if (decision.building() instanceof MilitaryFactory)
+                militaryFactories.add((MilitaryFactory) decision.building());
+            constructionLines.add(new constructionLine(decision.building()));
+        }
+        if (decision.type()== BuildDecision.Type.upgrade)
+        {
+            ((StateBuilding)decision.building()).upgrade();
+            constructionLines.add(new constructionLine(decision.building()));
+        }
+        updateDecisions();
     }
-
-
 
     /// Give a written report of the nation
     /// @param Output where we print to (for example System.out)
@@ -160,7 +169,7 @@ public class NationState  implements Cloneable
     /// @param showFactories Also print all civilian and military factories and refineries
     /// @param showResources Show detailed breakdown of all resources
     /// @param showStates Show detailed breakdown of all stateEvents
-    public void printReport(PrintStream Output,boolean showResources, boolean showProductionLines,boolean showConstructionLines , boolean showFactories,boolean showStates)
+    public void printReport(PrintStream Output,boolean showResources, boolean showProductionLines,boolean showConstructionLines , boolean showFactories,boolean showStates,boolean showDecisions)
     {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream out=new PrintStream(outputStream);
@@ -174,50 +183,58 @@ public class NationState  implements Cloneable
         {
             case Nonaligned ->
             {
-                out.println(colorize("\tNon-aligned Government support:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK()),Attribute.BOLD()       ,Attribute.WHITE_TEXT()     ));
-                out.println(colorize("\tDemocratic opposition support.:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                         ,Attribute.BLUE_TEXT()      ));
-                out.println(colorize("\tCommunist opposition support..:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())                   ,Attribute.RED_TEXT()));
-                out.println(colorize("\tFascist opposition support....:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                       ,Attribute.YELLOW_TEXT()    ));
+                out.println(colorize("\tNon-aligned Government support......:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK()),Attribute.BOLD()       ,Attribute.WHITE_TEXT()     ));
+                out.println(colorize("\tDemocratic opposition support.......:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                         ,Attribute.BLUE_TEXT()      ));
+                out.println(colorize("\tCommunist opposition support........:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())                   ,Attribute.RED_TEXT()));
+                out.println(colorize("\tFascist opposition support..........:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                       ,Attribute.YELLOW_TEXT()    ));
             }
             case Democratic->
             {
-                out.println(colorize("\tDemocratic Government support.:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK()),Attribute.BOLD()        ,Attribute.BLUE_TEXT()      ));
-                out.println(colorize("\tNon-aligned opposition support:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK())                        ,Attribute.WHITE_TEXT()     ));
-                out.println(colorize("\tCommunist opposition support..:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())                   ,Attribute.RED_TEXT()));
-                out.println(colorize("\tFascist opposition support....:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                       ,Attribute.YELLOW_TEXT()    ));
+                out.println(colorize("\tDemocratic Government support.......:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK()),Attribute.BOLD()        ,Attribute.BLUE_TEXT()      ));
+                out.println(colorize("\tNon-aligned opposition support......:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK())                        ,Attribute.WHITE_TEXT()     ));
+                out.println(colorize("\tCommunist opposition support........:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())                   ,Attribute.RED_TEXT()));
+                out.println(colorize("\tFascist opposition support..........:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                       ,Attribute.YELLOW_TEXT()    ));
             }
             case Communist ->
             {
-                out.println(colorize("\tCommunist Government support..:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK()),Attribute.BOLD() ,Attribute.RED_TEXT()));
-                out.println(colorize("\tDemocratic opposition support.:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                        ,Attribute.BLUE_TEXT()      ));
-                out.println(colorize("\tNon-aligned opposition support:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK())                       ,Attribute.WHITE_TEXT()     ));
-                out.println(colorize("\tFascist opposition support....:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                      ,Attribute.YELLOW_TEXT()    ));
+                out.println(colorize("\tCommunist Government support........:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK()),Attribute.BOLD() ,Attribute.RED_TEXT()));
+                out.println(colorize("\tDemocratic opposition support.......:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                        ,Attribute.BLUE_TEXT()      ));
+                out.println(colorize("\tNon-aligned opposition support......:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK())                       ,Attribute.WHITE_TEXT()     ));
+                out.println(colorize("\tFascist opposition support..........:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                      ,Attribute.YELLOW_TEXT()    ));
             }
             case Fascist->
             {
-                out.println(colorize("\tFascist Government support....:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK()),Attribute.BOLD(),Attribute.YELLOW_TEXT() ));
-                out.println(colorize("\tDemocratic opposition support.:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                ,Attribute.BLUE_TEXT()      ));
-                out.println(colorize("\tNon-aligned opposition support:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.RED_BACK())          ,Attribute.RED_TEXT()));
-                out.println(colorize("\tCommunist opposition support..:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())          ,Attribute.RED_TEXT()));
+                out.println(colorize("\tFascist Government support..........:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK()),Attribute.BOLD(),Attribute.YELLOW_TEXT() ));
+                out.println(colorize("\tDemocratic opposition support.......:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                ,Attribute.BLUE_TEXT()      ));
+                out.println(colorize("\tNon-aligned opposition support......:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.RED_BACK())          ,Attribute.RED_TEXT()));
+                out.println(colorize("\tCommunist opposition support........:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())          ,Attribute.RED_TEXT()));
             }
         }
 
-        int factories =0;
+        int civs=0;
+        int mils=0;
+        int refs=0;
         for (var f : militaryFactories)
             if (!f.getUnderConstruction())
-                factories++;
+                mils++;
         for (var f : civilianFactories)
             if (!f.getUnderConstruction())
-                factories++;
+                civs++;
+        for (var f : refineries)
+            if (!f.getUnderConstruction())
+                refs++;
+
+        int factories =civs+mils;
+
 
         double cg = properties.getConsumer_goods_ratio();
         int cg_factories = (int)(factories*cg);
 
         out.println(colorize("--Industrial report--"));
         out.println(colorize("\t...Military Sector...",Attribute.ITALIC(),Attribute.BRIGHT_GREEN_TEXT()));
-        out.println(colorize("\t\t Factory output bonus..............:",Attribute.BRIGHT_GREEN_TEXT())+ printGoodModifier(properties.getFactoryOutput()));
-        out.println(colorize("\t\t Efficiency cap....................:",Attribute.BRIGHT_GREEN_TEXT())+ printGoodModifier(properties.getEfficiency_cap()));
-        out.println(colorize("\t\t Military factories................: "+militaryFactories.size(),Attribute.BRIGHT_GREEN_TEXT()));
+        out.println(colorize("\t\t Factory output bonus....................:",Attribute.BRIGHT_GREEN_TEXT())+ printGoodModifier(properties.getFactoryOutput()));
+        out.println(colorize("\t\t Efficiency cap..........................:",Attribute.BRIGHT_GREEN_TEXT())+ printGoodModifier(properties.getEfficiency_cap()));
+        out.println(colorize("\t\t Operational Military factories..........: "+mils,Attribute.BRIGHT_GREEN_TEXT()));
         if (showFactories || showProductionLines)
             for (var f : militaryFactories)
             {
@@ -225,16 +242,16 @@ public class NationState  implements Cloneable
             }
 
         out.println(colorize("\t...Resource and Fuel sector...",Attribute.ITALIC(),Attribute.BLUE_TEXT()));
-        out.println(colorize("\t\tResource gain bonus................:",Attribute.BLUE_TEXT())+printGoodModifier(properties.getResource_gain_bonus()));
-        out.println(colorize("\t\tResources exported.................:",Attribute.BLUE_TEXT())+printBadModifier(properties.getResources_to_market()));
-        out.println(colorize("\t\tFuel gain per oil..................:",Attribute.BLUE_TEXT())+printGoodModifier(properties.getNatural_fuel_bonus()));
-        out.println(colorize("\t\tSynthetic Fuel per refinery........:",Attribute.BLUE_TEXT())+printGoodModifier(properties.getRefinery_fuel_bonus()));
-        out.println(colorize("\t\tSynthetic Rubber per refinery......: ",Attribute.BLUE_TEXT())+properties.getRubber_per_refineries());
+        out.println(colorize("\t\tResource gain bonus......................:",Attribute.BLUE_TEXT())+printGoodModifier(properties.getResource_gain_bonus()));
+        out.println(colorize("\t\tResources exported.......................:",Attribute.BLUE_TEXT())+printBadModifier(properties.getResources_to_market()));
+        out.println(colorize("\t\tFuel gain per oil........................:",Attribute.BLUE_TEXT())+printGoodModifier(properties.getNatural_fuel_bonus()));
+        out.println(colorize("\t\tSynthetic Fuel per refinery..............:",Attribute.BLUE_TEXT())+printGoodModifier(properties.getRefinery_fuel_bonus()));
+        out.println(colorize("\t\tSynthetic Rubber per refinery............: ",Attribute.BLUE_TEXT())+properties.getRubber_per_refineries());
 
         if (refineries.isEmpty())
             out.println(colorize("\t\tNo synthetic refineries owned!", Attribute.BLUE_TEXT()));
         else
-            out.println(colorize("\t\tRefineries.....................:"+refineries.size(),Attribute.BLUE_TEXT()));
+            out.println(colorize("\t\tOperational refineries...............:"+refs,Attribute.BLUE_TEXT()));
         if (showFactories)
             for (var f : refineries)
             {
@@ -304,21 +321,24 @@ public class NationState  implements Cloneable
         double naturalFuel =properties.getBase_fuel()*(1+properties.getNatural_fuel_bonus())*oil;
         double refineryFuel=properties.getBase_fuel()*(1+properties.getRefinery_fuel_bonus())*refineries.size();
 
-        out.println(colorize("\t\tFuel gain per day..................:",Attribute.BLUE_TEXT())+String.format("%.2f",baseFuel+naturalFuel+refineryFuel));
+        out.println(colorize("\t\tFuel gain per day........................:",Attribute.BLUE_TEXT())+String.format("%.2f",baseFuel+naturalFuel+refineryFuel));
 
         //Missing fuel capacity
 
         out.println(colorize("\t...Construction sector...",Attribute.ITALIC(),Attribute.BRIGHT_YELLOW_TEXT()));
-        out.println(colorize("\t\tConstruction speed bonus...........:",Attribute.BRIGHT_YELLOW_TEXT())+ printGoodModifier(properties.getConstruction_speed()));
-        out.println(colorize("\t\tCivilian factory construction bonus:",Attribute.BRIGHT_YELLOW_TEXT())+ printGoodModifier(properties.getCiv_construction_speed_bonus()));
-        out.println(colorize("\t\tMilitary factory construction bonus:",Attribute.BRIGHT_YELLOW_TEXT())+ printGoodModifier(properties.getMil_construction_speed_bonus()));
-        out.println(colorize("\t\tMilitary + Civilian factories......: "+civilianFactories.size(),Attribute.BRIGHT_YELLOW_TEXT())+" +"+colorize(" "+militaryFactories.size(),Attribute.BRIGHT_GREEN_TEXT())+" = "+factories);
-        out.println(colorize("\t\tRequired for consumer goods........:",Attribute.BRIGHT_YELLOW_TEXT())+ printBadModifier(cg)+" * "+factories+ " = "+colorize(cg_factories+"",Attribute.RED_TEXT()));
-        out.println(colorize("\t\tRequired for special projects......: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+properties.getSpecial_projects_civs(),Attribute.WHITE_TEXT()));
+        out.println(colorize("\t\tConstruction speed bonus.................:",Attribute.BRIGHT_YELLOW_TEXT())+ printGoodModifier(properties.getConstruction_speed()));
+        out.println(colorize("\t\tCivilian factory construction bonus......:",Attribute.BRIGHT_YELLOW_TEXT())+ printGoodModifier(properties.getCiv_construction_speed_bonus()));
+        out.println(colorize("\t\tMilitary factory construction bonus......:",Attribute.BRIGHT_YELLOW_TEXT())+ printGoodModifier(properties.getMil_construction_speed_bonus()));
+
+
+
+        out.println(colorize("\t\tOperational military + civilian factories:"+civs,Attribute.BRIGHT_YELLOW_TEXT())+" +"+colorize(" "+mils,Attribute.BRIGHT_GREEN_TEXT())+" = "+factories);
+        out.println(colorize("\t\tRequired for consumer goods..............:",Attribute.BRIGHT_YELLOW_TEXT())+ printBadModifier(cg)+" * "+factories+ " = "+colorize(cg_factories+"",Attribute.RED_TEXT()));
+        out.println(colorize("\t\tRequired for special projects............: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+properties.getSpecial_projects_civs(),Attribute.WHITE_TEXT()));
         int exportGoods=0;
-        out.println(colorize("\t\tProducing export goods.............: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+0,Attribute.WHITE_TEXT()));
-        int unassignedCivs = (civilianFactories.size()-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
-        out.println(colorize("\t\tRemains available for construction.: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize("+"+unassignedCivs,Attribute.BRIGHT_YELLOW_TEXT()));
+        out.println(colorize("\t\tProducing export goods...................: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+0,Attribute.WHITE_TEXT()));
+        int unassignedCivs = getUnassignedCivs();
+        out.println(colorize("\t\tRemains available for construction.......: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize("+"+unassignedCivs,Attribute.BRIGHT_YELLOW_TEXT()));
         if (showFactories) {
             out.println(colorize("\t\t Our " + civilianFactories.size() + " civilian factories:", Attribute.BRIGHT_YELLOW_TEXT()));
             for (var f : civilianFactories) {
@@ -340,7 +360,7 @@ public class NationState  implements Cloneable
         if (showConstructionLines) {
             for (var line : constructionLines) {
                 //Calculate assigned factories directly
-                out.println(colorize("\t\t\tBuilding " + line.building.getName() + " in " + line.building.getLocation().getName() + " production: " + line.building.getCIC_invested() + "/" + Building.getCost(line.building.getMyType()) + " CIC Assigned factories " + Math.min(15, unassignedCivs) + "/15", (line.building.getMyType() == Building.type.Civilian ? Attribute.YELLOW_TEXT() : (line.building.getMyType() == Building.type.Military ? Attribute.GREEN_TEXT() : Attribute.BLUE_TEXT()))));
+                out.println(colorize("\t\t\tBuilding " + line.building.getName() + " in " + line.building.getLocation().getName() + " production: " + String.format("%.2f",line.building.getCIC_invested())  + "/" + String.format("%.2f",Building.getCost(line.building.getMyType())) + " CIC Assigned factories " + Math.min(15, unassignedCivs) + "/15", (line.building.getMyType() == Building.type.Civilian ? Attribute.YELLOW_TEXT() : (line.building.getMyType() == Building.type.Military ? Attribute.GREEN_TEXT() : Attribute.BLUE_TEXT()))));
                 unassignedCivs = Math.max(0, unassignedCivs - 15);
             }
 
@@ -354,6 +374,25 @@ public class NationState  implements Cloneable
             out.println("--State report--");
             for (var S : states) {
                 S.printReport(out, properties.getBuildingSlotBonus(), properties.getRubber_per_refineries(), "\t");
+            }
+
+        }
+
+        if (showDecisions)
+        {
+            out.println("--Decision report--");
+            out.println(buildingDecisions.size()+" building projects can be launched");
+            for (int i = 0; i < buildingDecisions.size(); i++)
+                buildingDecisions.get(i).display(i,out);
+            out.println("More decisions may be available in-game, this list leaves out decisions which will have the same effect");
+
+            for (var r : factoryReassignments)
+            {
+                out.println("Factory assignment:");
+                r.forEach((E,f)->
+                {
+                    out.println("\t"+E.getName()+": "+f);
+                });
             }
         }
 
@@ -388,6 +427,7 @@ public class NationState  implements Cloneable
             clone.refineries=new ArrayList<>();
             clone.civilianFactories=new ArrayList<>();
             clone.militaryFactories=new ArrayList<>();
+            clone.buildingDecisions =new ArrayList<>();
 
             for (var s : states)
             {
@@ -397,6 +437,8 @@ public class NationState  implements Cloneable
                 clone.civilianFactories.addAll(newState.getCivilianFactories());
                 clone.militaryFactories.addAll(newState.getMilitaryFactories());
             }
+            //Auto-calculate decisions
+            clone.updateDecisions();
 
 
             return clone;
@@ -419,61 +461,135 @@ public class NationState  implements Cloneable
         if (theseEvents.stateEvents()!=null)
             for (var stateEvent : theseEvents.stateEvents())
                 states.get(stateEvent.stateID()).apply(stateEvent,properties,out);
+        updateDecisions();
+    }
+
+    ///Get currently available decisions
+    public int getBuildingDecisions()
+    {
+        return buildingDecisions.size()+factoryReassignments.size();
+    }
+
+    private void updateDecisions()
+    {
+        if (!buildingDecisions.isEmpty())
+            buildingDecisions = new ArrayList<>();
+        if (!factoryReassignments.isEmpty())
+            factoryReassignments = new ArrayList<>();
+        //Check for idling civilian factories
+        int unassignedCivs = getUnassignedCivs();
+        if (unassignedCivs > constructionLines.size()*15)
+        {
+            //Generate hash-maps of the different construction
+
+            Map<Object,Integer> constructionDecisions = new HashMap<>();
+
+            //Find all new buildings we can build
+            for (State s : states)
+            {
+                //Add either refineries or civilian factories
+                if (s.canBuildCivilianFactory(properties.getBuildingSlotBonus()))
+                {
+                    Object myHash= Objects.hash('c',s.getInfrastructureLevel());
+                    var dec =new BuildDecision(s,new CivilianFactory(s,true),"Add +"+String.format("%.2f",100*properties.getConsumer_goods_ratio())+"% Civilian factory after consumer goods");
+                    tryAddDecision(constructionDecisions, s, myHash, dec);
+                }
+                if (s.canBuildRefineryFactory(properties.getBuildingSlotBonus()))
+                {
+                    //Generate a unique hash with the effects I care about for refineries
+                    Object myHash= Objects.hash('r',s.getInfrastructureLevel());
+                    var dec = new BuildDecision(s,new Refinery(s,true),"Add +"+ (int)(properties.getRubber_per_refineries()*(1.0+properties.getResource_gain_bonus()))+" rubber on a national basis and "+String.format("%.2f",properties.getBase_fuel()*(1+properties.getRefinery_fuel_bonus()))+" fuel per day");
+                    tryAddDecision(constructionDecisions, s, myHash, dec);
+                }
+                if (s.canBuildMilitaryFactory(properties.getBuildingSlotBonus()))
+                {
+                    //We can build a factory for any legal type of equipment
+                    var Equipment=setup.getEquipment(day);
+                    for (var eq : Equipment.values())
+                    {
+                        //Generate a unique hash with the effects I care about for refineries
+                        Object myHash= Objects.hash(eq,s.getInfrastructureLevel());
+                        var dec = new BuildDecision(s,new MilitaryFactory(s,true),eq,"Add production-line of "+eq.getName()+" ("+eq.getShortname()+")");
+                        tryAddDecision(constructionDecisions, s, myHash, dec);
+
+                    }
+                }
+                if (s.canUpgradeInfrastructure())
+                {
+                    int dSteel    = (int)(s.getNextSteel()*(1+ properties.getResource_gain_bonus()))-(int)(s.getSteel()*(1+ properties.getResource_gain_bonus()));
+                    int dAluminium= (int)(s.getNextAluminium()*(1+ properties.getResource_gain_bonus()))- (int)(s.getAluminium()*(1+ properties.getResource_gain_bonus()));
+                    //Disregard from refineries, as infrastructure doesn't effect that
+                    int dRubber   = (int)(s.getNextRubber()*(1+ properties.getResource_gain_bonus()))-(int)(s.getRubber(0)*(1+ properties.getResource_gain_bonus()));
+                    int dTungsten = (int)(s.getNextTungsten()*(1+ properties.getResource_gain_bonus()))-(int)(s.getTungsten()*(1+ properties.getResource_gain_bonus()));
+                    int dChromium = (int)(s.getNextChromium()*(1+ properties.getResource_gain_bonus()))-(int)(s.getChromium()*(1+ properties.getResource_gain_bonus()));
+                    int dOil      = (int)(s.getNextOil()*(1+ properties.getResource_gain_bonus()))-(int)(s.getOil()*(1+ properties.getResource_gain_bonus()));
+
+                    //Generate a unique hash with the effects I care about, when it comes to building infrastructure
+                    Object myHash= Objects.hash(dSteel,dAluminium,dRubber,dTungsten,dChromium,dOil,s.getInfrastructureLevel());
+                    var dec =new BuildDecision(s.getInfrastructure(),"local construction speed bonus +"+(int)(s.getInfrastructureLevel()*20)+"% -> +"+(int)(s.getInfrastructureLevel()*20+20)+"% "+(dSteel>0?", +"+dSteel+" Steel":"")
+                            +(dTungsten>0?", +"+dTungsten+" Tungsten":"")
+                            +(dChromium>0?", +"+dChromium+" Chromium":"")
+                            +(dAluminium>0?", +"+dAluminium+" Aluminium":"")
+                            +(dRubber>0?", +"+dRubber+" Rubber":"")
+                            +(dOil>0?", +"+dOil+" Oil":"")+(dSteel+dOil+dChromium+dAluminium+dTungsten+dRubber>0?" (subject to rounding errors)":""));
+                    //We should NOT add decision if dSteel, dAluminium, dRubber, dTungsten, dChromium, and dOil is the same, the decision type is the same, the decision.building() is the same, decision.location().getInfrastructureLevel() is the same
+                    tryAddDecision(constructionDecisions, s, myHash, dec);
+                }
+            }
+        }
+
+        //Check for idling military factories, knowing the game mechanics, I ASSUME that they are fungible, (i.e. they all start with same efficiency)
+        int unassignedMils= getUnassignedMils();
+
+        //Then generate all the ways we can assign these mils to the equipment, that will be (Products+Mils-1)!/((Mils-1)!*Products!)
+        var availableEquipment = setup.getEquipment(day).values().stream().toList();
+        //Start with everything on the first equipment
+        Map<Equipment,Integer> Reassignments = new HashMap<>();
+        for (var eq : availableEquipment)
+            Reassignments.put(eq,0);
+        Reassignments.put(availableEquipment.getFirst(),unassignedMils);
+        factoryReassignments.add(Reassignments);
+
+        //Then step forward
+
+    }
+
+    private void tryAddDecision(Map<Object, Integer> constructionDecisions, State s, Object myHash, BuildDecision dec) {
+        if (!constructionDecisions.containsKey(myHash))
+        {
+            //Only add the decision if it is unique
+            constructionDecisions.put(myHash, buildingDecisions.size());
+            buildingDecisions.add(dec);
+        }
+        else
+        {
+            //Or if this decision would upgrade infrastructure in more empty slots
+            var ExistingVersionState = buildingDecisions.get(constructionDecisions.get(myHash)).location();
+            if (ExistingVersionState.getFreeSlots(properties.getBuildingSlotBonus())< s.getFreeSlots(properties.getBuildingSlotBonus()))
+            {
+                buildingDecisions.set(constructionDecisions.get(myHash),dec);
+            }
+        }
     }
 
     ///Step forward a number of days, or until a decision is required, only print if some important event happened
     /// 
-    public List<decision> update(int days,PrintStream out)
+    public void update(int days, PrintStream out)
     {
         for (int d = 0; d < days; d++) {
-            //BEFORE incrementing the day, and doing anything to anything, we check if there are available decisions, this also catches decisions which became available yesterday
 
-            //Check for idling civilian factories
-            //First get the number of civilian factories available for construction
-            int unassignedCivs = getUnassignedCivs();
-
-            if (unassignedCivs > constructionLines.size()*15)
-            {
-                out.println(colorize("Can not simulate forward, as we have unassigned civilian factories",Attribute.BRIGHT_RED_TEXT()));
-
-                var Out = new ArrayList<decision>();
-
-                //Find all new buildings we can build
-                for (State s : states)
-                {
-                    //Add either refineries or civilian factories
-                    if (s.canBuildCivilianFactory(properties.getBuildingSlotBonus()))
-                    {
-                        Out.add(new decision(s,new CivilianFactory(s,true)));
-                    }
-                    if (s.canBuildRefineryFactory(properties.getBuildingSlotBonus()))
-                    {
-                        Out.add(new decision(s,new Refinery(s,true)));
-                    }
-                    if (s.canBuildMilitaryFactory(properties.getBuildingSlotBonus()))
-                    {
-                        //We can build a factory for any legal type of equipment
-                        var Equipment=setup.getEquipment(day);
-                        for (var eq : Equipment.values())
-                        {
-                            Out.add(new decision(s,new MilitaryFactory(s,true),eq));
-                        }
-                    }
-                    if (s.canUpgradeInfrastructure())
-                    {
-                        Out.add(new decision(s.getInfrastructure()));
-                    }
-                }
-
-                return Out;
-            }
+            //Start by updating the list of decisions, if it is not empty today, stop!
+            if (!buildingDecisions.isEmpty())
+                return;
 
             ++day;
 
+            updateDecisions();
             // First step, update production
             // TBD
 
             // Now, update construction
+            int unassignedCivs = getUnassignedCivs();
 
             for (int i = constructionLines.size()-1; i>=0; i--) {
                 var c = constructionLines.get(i);
@@ -483,6 +599,8 @@ public class NationState  implements Cloneable
                         +(c.building instanceof CivilianFactory ? properties.getCiv_construction_speed_bonus() :0.0)
                 )))
                 {
+                    out.println(colorize("==Construction completed==",Attribute.BOLD(),Attribute.BRIGHT_YELLOW_TEXT()));
+                    out.println(colorize(c.building.getName()+" now operational in "+c.building.getLocation().getName()+" on "+Calender.getDate(day),Attribute.WHITE_TEXT()));
                     constructionLines.remove(i);
                 }
             }
@@ -493,22 +611,34 @@ public class NationState  implements Cloneable
                 apply(e,out);
             }
         }
-        //No decisions
-        return new ArrayList<>();
+        //No decisions, but we ended anyway
+        return;
+    }
+
+    private int getUnassignedMils() {
+        int mils=0;
+        for (var f : militaryFactories)
+            if (!f.getUnderConstruction() && f.getProduct()==null)
+                ++mils;
+        return mils;
     }
 
     private int getUnassignedCivs() {
         int factories =0;
+        int civs=0;
         for (var f : militaryFactories)
             if (!f.getUnderConstruction())
                 factories++;
         for (var f : civilianFactories)
             if (!f.getUnderConstruction())
+            {
                 factories++;
+                civs++;
+            }
 
         double cg = properties.getConsumer_goods_ratio();
         int cg_factories = (int)(factories*cg);
         int exportGoods=0;
-        return (civilianFactories.size()-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
+        return Math.max(0,civs-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
     }
 }

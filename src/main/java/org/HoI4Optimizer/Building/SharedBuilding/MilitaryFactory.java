@@ -48,7 +48,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
         {
             this.product=product;
         }
-        if (!Objects.equals(this.productName, product.getName()))
+        else if (!Objects.equals(this.productName, product.getName()))
             throw new RuntimeException("Attempting to assign product "+product.getName()+" to factory expecting "+this.productName);
         else
             this.product=product;
@@ -194,4 +194,6 @@ public class MilitaryFactory extends Factory implements Cloneable{
             throw new AssertionError();
         }
     }
+    @Override
+    public String getBuildingName(){return "Military factory";}
 }

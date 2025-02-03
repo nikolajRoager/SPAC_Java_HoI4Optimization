@@ -3,11 +3,14 @@ package org.HoI4Optimizer.Nation;
 import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.bytebuddy.utility.nullability.NeverNull;
+import org.HoI4Optimizer.Building.Building;
 import org.HoI4Optimizer.Building.SharedBuilding.CivilianFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Factory;
 import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
 import org.HoI4Optimizer.Building.stateBuilding.Infrastructure;
+import org.HoI4Optimizer.Building.stateBuilding.StateBuilding;
 import org.HoI4Optimizer.Nation.Event.StateEvent;
 import org.HoI4Optimizer.NationalConstants.*;
 import java.io.File;
@@ -44,14 +47,39 @@ public class State implements Cloneable {
 
     private boolean noBuilding=false;
 
+    @NeverNull
     private Infrastructure infrastructure;
 
     /// Military Factories in this state
+    @NeverNull
     private List<MilitaryFactory> militaryFactories;
     /// Civilian Factories in this state
+    @NeverNull
     private List<CivilianFactory> civilianFactories;
     /// Rerineries in this state
+    @NeverNull
     private List<Refinery> refineries;
+
+    public State() {
+        refineries = new ArrayList<>();
+        militaryFactories = new ArrayList<>();
+        civilianFactories = new ArrayList<>();
+        name="temp";
+        infrastructure=new Infrastructure(this,0,false);
+    }
+
+    public void build (Building building) throws IllegalArgumentException
+    {
+        if (building instanceof StateBuilding)
+            throw new IllegalArgumentException(" State buildings like "+building.getBuildingName()+" can not be build, upgrade instead!");
+        else if (building instanceof MilitaryFactory)
+            militaryFactories.add((MilitaryFactory)building);
+        else if (building instanceof CivilianFactory)
+            civilianFactories.add((CivilianFactory)building);
+        else if (building instanceof Refinery)
+            refineries.add((Refinery)building);
+
+    }
 
     ///Oil in state Rounded down (this causes some loss, if two stateEvents produce 1.5 oil, we get 2 oil in total just like in game)
     public int getOil()
@@ -84,6 +112,49 @@ public class State implements Cloneable {
     public int getChromium()
     {
         return (int)(base_chromium*(supplyhub?1.2:1.0)*(1+infrastructure.getLevel()*0.2));
+    }
+
+    /// Get steel if we upgrade infrastructure
+    public int getNextSteel()
+    {
+        return (int)(
+                base_steel*(supplyhub?1.2:1.0)*(1+(1+infrastructure.getLevel())*0.2)
+        );
+    }
+    /// Get rubber if we upgrade infrastructure
+    public int getNextRubber()
+    {
+        return (int)(
+                base_rubber*(supplyhub?1.2:1.0)*(1+(1+infrastructure.getLevel())*0.2)
+        );
+    }
+    /// Get chromium if we upgrade infrastructure
+    public int getNextChromium()
+    {
+        return (int)(
+                base_chromium*(supplyhub?1.2:1.0)*(1+(1+infrastructure.getLevel())*0.2)
+        );
+    }
+    /// Get tungsten if we upgrade infrastructure
+    public int getNextTungsten()
+    {
+        return (int)(
+                base_tungsten*(supplyhub?1.2:1.0)*(1+(1+infrastructure.getLevel())*0.2)
+        );
+    }
+    /// Get aluminium if we upgrade infrastructure
+    public int getNextAluminium()
+    {
+        return (int)(
+                base_aluminium*(supplyhub?1.2:1.0)*(1+(1+infrastructure.getLevel())*0.2)
+        );
+    }
+    /// Get oil if we upgrade infrastructure
+    public int getNextOil()
+    {
+        return (int)(
+                base_oil*(supplyhub?1.2:1.0)*(1+(1+infrastructure.getLevel())*0.2)
+        );
     }
 
     public void setBase_oil(int base_oil) {
@@ -123,11 +194,11 @@ public class State implements Cloneable {
 
     public void setInfrastructure(int level)
     {
-        infrastructure=new Infrastructure(this,level,false);
+        infrastructure.setLevel(level);
     }
 
     /// Is it possible to
-    public boolean canUpgradeInfrastructure() {return infrastructure.getLevel()<Infrastructure.maxLevel && !infrastructure.getUnderConstruction();}
+    public boolean canUpgradeInfrastructure() {return infrastructure.getLevel()<Infrastructure.maxLevel && !infrastructure.getUnderConstruction() && !noBuilding;}
 
     /// Names used to auto-generating names of factories
     private List<String> townNames;
@@ -161,12 +232,12 @@ public class State implements Cloneable {
     /// Get the civilian factories in this state directly from this state right now
     public List<CivilianFactory> getCivilianFactories()
     {
-        return civilianFactories==null?new ArrayList<>():civilianFactories;
+        return civilianFactories;
     }
 
     /// Get the military factories in this state directly
     public List<MilitaryFactory> getMilitaryFactories() {
-        return militaryFactories==null?new ArrayList<>():militaryFactories;
+        return militaryFactories;
     }
     /// Get the refineries in this state directly
     public List<Refinery> getRefineries() {
@@ -202,6 +273,12 @@ public class State implements Cloneable {
     {
         //Each level of industry technology gives +20% to base number from type, this does not affect event slots
         return Math.clamp(extraBuildingSlots + (int)(type.getBuildingSlots()*(1+building_slot_bonus)),0,25);
+    }
+
+    /// Get number of free slots
+    public int getFreeSlots(double building_slot_bonus)
+    {
+        return getBuildingSlots(building_slot_bonus)+extraBuildingSlots-militaryFactories.size()-civilianFactories.size()-refineries.size();
     }
 
     ///load a list of stateEvents from json
@@ -278,10 +355,13 @@ public class State implements Cloneable {
          //       F.printReport(out, prefix + '\t');
          //   }
         }
+
+        out.println(colorize(prefix+"\t"+infrastructure.getName()+" in "+infrastructure.getLocation().getName(),Attribute.BOLD()));
+
         out.print(colorize(String.format(prefix+"\t                     %4s %9s %6s %8s %5s %8s%n", "Oil", "Aluminium", "Rubber", "Tungsten","Steel","Chromium"),Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD()));
         //Resources available
         out.print(colorize(String.format(prefix+"\tBase resources......:%3s %6s %8s %7s %6s %7s%n",  base_oil, base_aluminium, base_rubber, base_tungsten, base_steel, base_chromium),Attribute.GREEN_TEXT()));
-        out.print(colorize(String.format(prefix+"\tWith Industry bonus.:%3s %6s %8s %7s %6s %7s%n", getOil() , getAluminium(), getRubber(rubber_per_refinery), getTungsten(), getSteel(), getChromium()),Attribute.GREEN_TEXT()));
+        out.print(colorize(String.format(prefix+"\tWith infrastructure.:%3s %6s %8s %7s %6s %7s%n", getOil() , getAluminium(), getRubber(rubber_per_refinery), getTungsten(), getSteel(), getChromium()),Attribute.GREEN_TEXT()));
     }
 
     /// Start construction of a new civilian factory
@@ -336,7 +416,7 @@ public class State implements Cloneable {
                 return false;
             }
         //If then, see if we have free slots
-        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0);
+        return getFreeSlots(building_slot_bonus)>0 &&!noBuilding;
     }
 
     public boolean canBuildMilitaryFactory(double building_slot_bonus) {
@@ -347,7 +427,7 @@ public class State implements Cloneable {
                 return false;
             }
         //If then, see if we have free slots
-        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0);
+        return getFreeSlots(building_slot_bonus)>0 &&!noBuilding;
     }
 
     public boolean canBuildRefineryFactory(double building_slot_bonus) {
@@ -358,7 +438,7 @@ public class State implements Cloneable {
                 return false;
             }
         //If then, see if we have free slots
-        return (getBuildingSlots(building_slot_bonus)-civilianFactories.size()-militaryFactories.size()-refineries.size()>0) &&refineries.size()<3/*At most 3 refineries per state, a hard limit in game*/;
+        return getFreeSlots(building_slot_bonus)>0 && !noBuilding && refineries.size()<3/*At most 3 refineries per state, a hard limit in game*/;
     }
 
     @Override
@@ -413,7 +493,7 @@ public class State implements Cloneable {
         this.noBuilding = noBuilding;
     }
 
-    /// Apply events, and optionally print what happens
+    /// Adepply events, and optionally print what happens
     /// @param out Where to print to, use null if you don't want anything printed
     /// @param event event to apply
     void apply(StateEvent event,NationalProperties properties, PrintStream out)
@@ -493,7 +573,7 @@ public class State implements Cloneable {
                 militaryFactories.add(new MilitaryFactory(this,false/*Instantly construct*/));
             }
             case Infrastructure -> {
-                if (infrastructure.getLevel()<Infrastructure.maxLevel)
+                if (infrastructure.canUpgrade())
                 {
                     infrastructure.setLevel(infrastructure.getLevel()+ event.number());
                     if (out!=null)
@@ -502,11 +582,6 @@ public class State implements Cloneable {
                     }
 
                 }
-                else
-                {
-
-                }
-
             }
         }
     }

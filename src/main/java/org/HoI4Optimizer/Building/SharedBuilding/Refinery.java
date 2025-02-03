@@ -69,4 +69,7 @@ public class Refinery extends Factory implements Cloneable{
             throw new AssertionError();
         }
     }
+
+    @Override
+    public String getBuildingName(){return "Chemical refinery";}
 }

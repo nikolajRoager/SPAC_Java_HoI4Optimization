@@ -3,7 +3,7 @@ package org.HoI4Optimizer.Building.stateBuilding;
 import org.HoI4Optimizer.Building.Building;
 
 /// A building in a state, which there is exactly one or 0 of, with a level between 0 and some max, each state building has its own slot
-public abstract class stateBuilding extends Building {
+public abstract class StateBuilding extends Building {
 
     protected int level = 0;
     ///actually we can not define a static max level, since we can not override static functions
@@ -20,25 +20,33 @@ public abstract class stateBuilding extends Building {
     /// Get the level of this building, under construction still functions at previous level (as in game), level 0 should never be registered as under construction
     public int getLevel(){return underConstruction && level>0?  level-1: level;}
 
-    /// Force a level, likely due to an event, like in-game this cancels ongoing construction
-    public void setLevel(int level)
-    {
-        this.level = Math.clamp(level,0,getMaxLevel());
+    /// Force a level, likely due to an event, like in-game ongoing construction is NOT canceled (except if max-level is reached)
+    public void setLevel(int level) {
+        this.level = Math.clamp(level, 0, getMaxLevel());
 
-        //If we were under construction, stop that
-        underConstruction = false;
-        CIC_invested=getCost(this.getMyType());
-        //And also call this function as we DID just gain a new level
-        onFinishConstruction();
+        //Only cancel construction if we hit max level, similar to how it works in game
+        if (level == getMaxLevel()) {
+            //If we were under construction, stop that
+            underConstruction = false;
+            CIC_invested = getCost(this.getMyType());
+            //And also call this function as we DID just gain a new level
+            onFinishConstruction();
+        }
     }
 
-    /// Force an instant upgrade, likely due to an event, cancels ongoing construction
+
+    /// Force an instant upgrade, likely due to an event, like in-game ongoing construction is NOT canceled (except if max-level is reached)
     public void addLevel(int level)
     {
         this.level = Math.clamp(this.level+level,0,getMaxLevel());
-        underConstruction = false;
-        CIC_invested=getCost(this.getMyType());
-        onFinishConstruction();
+        //Only cancel construction if we hit max level, similar to how it works in game
+        if (level == getMaxLevel()) {
+            //If we were under construction, stop that
+            underConstruction = false;
+            CIC_invested = getCost(this.getMyType());
+            //And also call this function as we DID just gain a new level
+            onFinishConstruction();
+        }
     }
 
     /// Get the name of the upgrade to this level

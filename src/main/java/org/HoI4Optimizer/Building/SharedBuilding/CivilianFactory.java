@@ -94,4 +94,7 @@ public class CivilianFactory extends Factory implements Cloneable{
             throw new AssertionError();
         }
     }
+
+    @Override
+    public String getBuildingName(){return "Civilian factory";}
 }

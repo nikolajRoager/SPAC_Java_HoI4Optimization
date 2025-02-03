@@ -525,7 +525,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setNatural_fuel_bonus(natural_fuel_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% fuel per oil bonus , is now "+String.format("%.2f",base_fuel*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt fuel per oil bonus , is now "+String.format("%.2f",natural_fuel_bonus*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
                 }
                 else
                 {
@@ -902,13 +902,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setCiv_construction_speed_bonus(civ_construction_speed_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt event.add()itional construction bonus for civilian factories, is now "+String.format("%.2f",civ_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt additional construction bonus for civilian factories, is now "+String.format("%.2f",civ_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
                 }
                 else
                 {
                     setCiv_construction_speed_bonus(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set event.add()itional construction bonus for civilian factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set additional construction bonus for civilian factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
                 }
             }
             case mil_construction_speed_bonus -> {
@@ -916,13 +916,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setMil_construction_speed_bonus(mil_construction_speed_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt event.add()itional construction bonus for military factories, is now "+String.format("%.2f",mil_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt additional construction bonus for military factories, is now "+String.format("%.2f",mil_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
                 }
                 else
                 {
                     setMil_construction_speed_bonus(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set event.add()itional construction bonus for military factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set additional construction bonus for military factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
                 }
             }
             case resource_gain_bonus -> {
@@ -964,11 +964,12 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 }
                 else
                 {
+                    boolean good = event.value()<base_consumer_goods_ratio;
                     setBase_consumer_goods_ratio(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set base % of factories on consumer goods ratio: "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set base % of factories on consumer goods ratio: "+String.format("%.2f",event.value()*100)+"%",good ? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", good ? GoodOutcome : BadOutcome));
                     }
                 }
             }
@@ -1080,9 +1081,11 @@ import static com.diogonunes.jcolor.Ansi.colorize;
             case special_projects_civs -> {
                 if (event.add())
                 {
+
+                    boolean good = event.value()<special_projects_civs;
                     setSpecial_projects_civs(special_projects_civs+(int)event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + event.value() + " civilian factories for special projects, is now " + special_projects_civs, event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + event.value() + " civilian factories for special projects, is now " + special_projects_civs, good ? GoodOutcome : BadOutcome));
                     }
                 }
                 else

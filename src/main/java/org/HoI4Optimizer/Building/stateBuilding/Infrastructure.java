@@ -1,21 +1,21 @@
 package org.HoI4Optimizer.Building.stateBuilding;
 
-import org.HoI4Optimizer.Building.Building;
 import org.HoI4Optimizer.Nation.State;
 
 import org.HoI4Optimizer.NationalConstants.stateType;
 /// A temporary class, used for infrastructure construction projects
-public class Infrastructure extends stateBuilding implements Cloneable {
+public class Infrastructure extends StateBuilding implements Cloneable {
     public static final int maxLevel=5;
 
     public Infrastructure(State location,int level,boolean underConstruction) {
         this.underConstruction = underConstruction;
 
+
+        this.location = location;
+
         this.level = level;
         if (underConstruction) {
             level = Math.clamp(level, 1, maxLevel);
-
-            this.location = location;
 
             name = getUpgradeName(level);
             CIC_invested = 0;
@@ -23,7 +23,7 @@ public class Infrastructure extends stateBuilding implements Cloneable {
         }
         else
         {
-            this.name=location.getName()+" Infrastructure level "+level;
+            this.name="Infrastructure level "+level;
             CIC_invested = getCost(this.getMyType());
         }
     }
@@ -39,22 +39,22 @@ public class Infrastructure extends stateBuilding implements Cloneable {
         //Some reasonable names for mid to late 1930s infrastructure expansion programs, depending on if it is mainly rural or urban
         if (location.getType().getBuildingSlots() < stateType.large_town.getBuildingSlots()) {
             return switch (level) {
-                case 1 -> location.getName() + " Rural rail service (infrastructure 0->1)";
-                case 2 -> location.getName() + " Paved roads (infrastructure 1->2)";
-                case 3 -> location.getName() + " Agrarian motorization programme (infrastructure 2->3)";
-                case 4 -> location.getName() + " Gas-stations and auto-shops (infrastructure 3->4)";
-                case 5 -> location.getName() + " Highway (infrastructure 4->5)";
-                default -> location.getName() + " Infrastructure Illegal level " + level;
+                case 1 ->  "Rural rail service (infrastructure 0->1)";
+                case 2 ->  "Paved roads (infrastructure 1->2)";
+                case 3 ->  "Agrarian motorization programme (infrastructure 2->3)";
+                case 4 ->  "Gas-stations and auto-shops (infrastructure 3->4)";
+                case 5 ->  "Highway (infrastructure 4->5)";
+                default -> "Infrastructure Illegal level " + level;
             };
         }
         else
             return switch (level) {
-                case 1 -> location.getName() + " Street lighting (infrastructure 0->1)";
-                case 2 -> location.getName() + " Tram network (infrastructure 1->2)";
-                case 3 -> location.getName() + " water and gas pipes (infrastructure 2->3)";
-                case 4 -> location.getName() + " Urban electrification (infrastructure 3->4)";
-                case 5 -> location.getName() + " Metro network (infrastructure 4->5)";
-                default -> location.getName() + " Infrastructure Illegal level " + level;
+                case 1 -> "Street lighting (infrastructure 0->1)";
+                case 2 -> "Tram network (infrastructure 1->2)";
+                case 3 -> "water and gas pipes (infrastructure 2->3)";
+                case 4 -> "Urban electrification (infrastructure 3->4)";
+                case 5 -> "Metro network (infrastructure 4->5)";
+                default ->"Infrastructure Illegal level " + level;
             };
 
     }
@@ -63,9 +63,10 @@ public class Infrastructure extends stateBuilding implements Cloneable {
     @Override
     protected void onFinishConstruction() {
         //Upgrade
-        level=Math.clamp(level+1, 0, maxLevel);
+        level=Math.clamp(level, 0, maxLevel);
+        underConstruction=false;
         //Use finished name
-        name=location.getName()+" Infrastructure level "+level;
+        name="Infrastructure level "+level;
     }
 
     @Override
@@ -87,4 +88,8 @@ public class Infrastructure extends stateBuilding implements Cloneable {
             throw new AssertionError();
         }
     }
+
+    @Override
+    public String getBuildingName(){return "Infrastructure";}
+
 }

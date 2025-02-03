@@ -77,6 +77,9 @@ public abstract class Building {
         else return false;
     }
 
+    /// Name of this type of building
+    public abstract String getBuildingName();
+
     /// Send the building beyond the Urals (or wherever), Brick by Brick
     public void setLocation(State location) {
         this.location = location;
