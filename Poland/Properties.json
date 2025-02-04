@@ -1,7 +1,7 @@
 {
   "rulingParty": "Nonaligned",
   "base_stability": 0.50,
-  "autocracy_growth": 0.12,
+  "autocracy_growth": 0.0012,
   "autocracy_support": 0.3804,
   "democracy_support": 0.3197,
   "fascism_support": 0.1099,

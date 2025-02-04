@@ -66,6 +66,9 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     private double resources_to_market=0.25;
     /// Percentage bonus to slots in stateEvents, applies only to slots from state type
     private double buildingSlotBonus=0;
+
+    /// Stability added each sunday
+    private double weekly_stability=0;
     /// Who's in charge? effects which party popularity gives positive stability
     private Ideology RulingParty;
     ///How many civilian factories are earmarked for special projects (mainly intelligence and decryption) each month
@@ -119,10 +122,19 @@ import static com.diogonunes.jcolor.Ansi.colorize;
             clone.democracy_growth=democracy_growth;
             clone.communism_growth=communism_growth;
             clone.fascism_growth=fascism_growth;
+            clone.weekly_stability=weekly_stability;
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    public void setWeekly_stability(double weekly_stability) {
+        this.weekly_stability=weekly_stability;
+    }
+
+    public double getWeekly_stability() {
+        return weekly_stability;
     }
 
     public void setAutocracy_support(double autocracy_support) {
@@ -495,6 +507,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
         Attribute BadOutcome=Attribute.RED_TEXT();
         Attribute MiddlingOutcome=Attribute.WHITE_TEXT();
 
+        final Attribute positiveGood = event.value() > 0 ? GoodOutcome : BadOutcome;
+        final Attribute negativeGood = event.value() < 0 ? GoodOutcome : BadOutcome;
         switch (event.modify())
         {
             case null ->
@@ -510,13 +524,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setBase_fuel(base_fuel+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" base fuel gain, is now "+String.format("%.2f", base_fuel),event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" base fuel gain, is now "+String.format("%.2f", base_fuel), positiveGood));
                 }
                 else
                 {
                     setBase_fuel(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set base fuel gain "+String.format("%.2f",event.value()),event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set base fuel gain "+String.format("%.2f",event.value()), positiveGood));
                 }
             }
             //Extra fuel bonus from oil
@@ -525,13 +539,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setNatural_fuel_bonus(natural_fuel_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt fuel per oil bonus , is now "+String.format("%.2f",natural_fuel_bonus*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% fuel per oil bonus , is now "+String.format("%.2f",natural_fuel_bonus*100)+"%", positiveGood));
                 }
                 else
                 {
                     setNatural_fuel_bonus(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set fuel per oil bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set fuel per oil bonus "+String.format("%.2f",event.value()*100)+"%", positiveGood));
                 }
             }
             case fuel_capacity_per_infrastructure -> {
@@ -540,13 +554,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setFuel_capacity_per_infrastructure(fuel_capacity_per_infrastructure+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" fuel capacity per infrastructure, is now "+String.format("%.2f",fuel_capacity_per_infrastructure),event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" fuel capacity per infrastructure, is now "+String.format("%.2f",fuel_capacity_per_infrastructure), positiveGood));
                 }
                 else
                 {
                     setFuel_capacity_per_infrastructure(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set fuel capacity per infrastructure "+String.format("%.2f",event.value()),event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set fuel capacity per infrastructure "+String.format("%.2f",event.value()), positiveGood));
                 }
             }
             case basic_fuel_capacity -> {
@@ -554,13 +568,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setBase_fuel(base_fuel+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" base fuel capacity, is now "+String.format("%.2f",base_fuel),event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+" base fuel capacity, is now "+String.format("%.2f",base_fuel), positiveGood));
                 }
                 else
                 {
                     setBase_fuel(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set base fuel capacity "+String.format("%.2f",event.value()),event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set base fuel capacity "+String.format("%.2f",event.value()), positiveGood));
                 }
             }
             case refinery_fuel_bonus -> {
@@ -568,13 +582,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setRefinery_fuel_bonus(refinery_fuel_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt refinery fuel bonus, is now "+String.format("%.2f",refinery_fuel_bonus*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt refinery fuel bonus, is now "+String.format("%.2f",refinery_fuel_bonus*100)+"%", positiveGood));
                 }
                 else
                 {
                     setRefinery_fuel_bonus(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set refinery fuel bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set refinery fuel bonus "+String.format("%.2f",event.value()*100)+"%", positiveGood));
                 }
             }
             case RulingParty -> {
@@ -629,7 +643,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                         case Nonaligned -> out.println(colorize("    The autocratic party has come to its senses and now supports democracy",Attribute.BLUE_TEXT()));
                         case Communist  -> out.println(colorize("    The communist saw the errors of their ways and became social democrats",Attribute.BLUE_TEXT()));
                         case Democratic -> out.println(colorize("    The people celebrates its liberty",Attribute.BLUE_TEXT()));
-                        case Fascist ->    out.println(colorize("    The fascists realised they were the bevent.add()ies, and now support democracy",Attribute.BLUE_TEXT()));
+                        case Fascist ->    out.println(colorize("    The fascists realised they were the baddies, and now support democracy",Attribute.BLUE_TEXT()));
                     }
                 }
             }
@@ -652,13 +666,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setFascism_growth(fascism_growth+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt fascist daily growth, is now "+String.format("%.2f",fascism_growth*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt fascist daily growth, is now "+String.format("%.2f",fascism_growth*100)+"% pt per day", negativeGood));
                 }
                 else
                 {
                     setFascism_growth(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set fascist daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set fascist daily growth "+String.format("%.2f",event.value()*100)+"% pt per day", negativeGood));
                 }
             }
             case communism_growth ->
@@ -673,7 +687,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setCommunism_growth(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set communist daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set communist daily growth "+String.format("%.2f",event.value()*100)+"% pt per day", negativeGood));
                 }
             }
             case autocracy_growth -> {
@@ -681,13 +695,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setAutocracy_growth(autocracy_growth+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt non-aligned daily growth, is now "+String.format("%.2f",autocracy_growth*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt non-aligned daily growth, is now "+String.format("%.2f",autocracy_growth*100)+"% pt per day", negativeGood));
                 }
                 else
                 {
                     setAutocracy_growth(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set non-aligned daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set non-aligned daily growth "+String.format("%.2f",event.value()*100)+"% pt per day", negativeGood));
                 }
             }
             case democracy_growth -> {
@@ -695,13 +709,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setDemocracy_growth(democracy_growth+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt democracy daily growth, is now "+String.format("%.2f",democracy_growth*100)+"% pt per day",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt democracy daily growth, is now "+String.format("%.2f",democracy_growth*100)+"% pt per day", positiveGood));
                 }
                 else
                 {
                     setDemocracy_growth(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set democracy daily growth "+String.format("%.2f",event.value()*100)+"% pt per day",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set democracy daily growth "+String.format("%.2f",event.value()*100)+"% pt per day", positiveGood));
                 }
             }
             case fascism_support -> {
@@ -804,7 +818,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setEfficiency_cap(efficiency_cap+event.value());
                     if (out!=null){
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% efficiency cap, is now "+String.format("%.2f",efficiency_cap*100),event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% efficiency cap, is now "+String.format("%.2f",efficiency_cap*100), positiveGood));
                     }
                 }
                 else
@@ -812,7 +826,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setEfficiency_cap(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set efficiency cap "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set efficiency cap "+String.format("%.2f",event.value()*100)+"%", positiveGood));
                     }
                 }
             }
@@ -822,10 +836,10 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setBase_stability(base_stability+event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt base stability, is now "+String.format("%.2f",base_stability*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
-                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt base stability, is now "+String.format("%.2f",base_stability*100)+"%", positiveGood));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", positiveGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", positiveGood));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", positiveGood));
                     }
 
                 }
@@ -834,10 +848,10 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setBase_stability(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set base stability "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
-                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set base stability "+String.format("%.2f",event.value()*100)+"%", positiveGood));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", positiveGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", positiveGood));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", positiveGood));
                     }
                 }
             }
@@ -847,10 +861,10 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setPermanent_stability(permanent_stability+event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Add "+String.format("%.2f",event.value())+"% pt permanent stability bonus, is now "+String.format("%.2f",permanent_stability*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
-                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value())+"% pt permanent stability bonus, is now "+String.format("%.2f",permanent_stability*100)+"% pt", positiveGood));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", positiveGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", positiveGood));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", positiveGood));
                     }
                 }
                 else
@@ -858,10 +872,10 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setPermanent_stability(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set permanent stability "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
-                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set permanent stability "+String.format("%.2f",event.value()*100)+"% pt", positiveGood));
+                        out.println(colorize("    Total stability is now " + String.format("%.2f",getStability()*100) + "%", positiveGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", positiveGood));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", positiveGood));
                     }
                 }
             }
@@ -870,16 +884,16 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setBase_factory_output(base_factory_output+event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + String.format("%.2f", event.value() * 100) + "% pt base factory output, is now " + String.format("%.2f", base_factory_output * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + String.format("%.2f", event.value() * 100) + "% pt base factory output, is now " + String.format("%.2f", base_factory_output * 100) + "%", positiveGood));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", positiveGood));
                     }
                 }
                 else
                 {
                     setBase_stability(event.value());
                     if (out!=null) {
-                        out.println(colorize("    Set base factory output " + String.format("%.2f", event.value() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", event.value() > 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set base factory output " + String.format("%.2f", event.value() * 100) + "%", positiveGood));
+                        out.println(colorize("    Total factory output is now " + String.format("%.2f", getFactoryOutput() * 100) + "%", positiveGood));
                     }
                 }
             }
@@ -888,13 +902,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setConstruction_speed(construction_speed+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt construction speed, is now "+String.format("%.2f",construction_speed*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt construction speed, is now "+String.format("%.2f",construction_speed*100)+"%", positiveGood));
                 }
                 else
                 {
                     setConstruction_speed(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set construction bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set construction bonus "+String.format("%.2f",event.value()*100)+"%", positiveGood));
                 }
             }
             case civ_construction_speed_bonus -> {
@@ -902,13 +916,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setCiv_construction_speed_bonus(civ_construction_speed_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt additional construction bonus for civilian factories, is now "+String.format("%.2f",civ_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt additional construction bonus for civilian factories, is now "+String.format("%.2f",civ_construction_speed_bonus*100)+"% pt", positiveGood));
                 }
                 else
                 {
                     setCiv_construction_speed_bonus(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set additional construction bonus for civilian factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set additional construction bonus for civilian factories "+String.format("%.2f",event.value()*100)+"% pt", positiveGood));
                 }
             }
             case mil_construction_speed_bonus -> {
@@ -916,13 +930,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setMil_construction_speed_bonus(mil_construction_speed_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt additional construction bonus for military factories, is now "+String.format("%.2f",mil_construction_speed_bonus*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt additional construction bonus for military factories, is now "+String.format("%.2f",mil_construction_speed_bonus*100)+"% pt", positiveGood));
                 }
                 else
                 {
                     setMil_construction_speed_bonus(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set additional construction bonus for military factories "+String.format("%.2f",event.value()*100)+"% pt",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set additional construction bonus for military factories "+String.format("%.2f",event.value()*100)+"% pt", positiveGood));
                 }
             }
             case resource_gain_bonus -> {
@@ -930,13 +944,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setResource_gain_bonus(resource_gain_bonus+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt resource gain bonus, is now "+String.format("%.2f",resource_gain_bonus*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt resource gain bonus, is now "+String.format("%.2f",resource_gain_bonus*100)+"%", positiveGood));
                 }
                 else
                 {
                     setResource_gain_bonus(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set resource gain bonus "+String.format("%.2f",event.value()*100)+"%",event.value()>0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set resource gain bonus "+String.format("%.2f",event.value()*100)+"%", positiveGood));
                 }
             }
             case resources_to_market -> {
@@ -944,13 +958,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setResources_to_market(resources_to_market+event.value());
                     if (out!=null)
-                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt resources to market, is now "+String.format("%.2f",resources_to_market*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Add "+String.format("%.2f",event.value()*100)+"% pt resources to market, is now "+String.format("%.2f",resources_to_market*100)+"%", negativeGood));
                 }
                 else
                 {
                     setResources_to_market(event.value());
                     if (out!=null)
-                        out.println(colorize("    Set resources to market "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set resources to market "+String.format("%.2f",event.value()*100)+"%", negativeGood));
                 }
             }
             case base_consumer_goods_ratio -> {
@@ -958,8 +972,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setBase_consumer_goods_ratio(base_consumer_goods_ratio+event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to base factories on consumer goods, is now " + String.format("%.2f", base_consumer_goods_ratio*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to base factories on consumer goods, is now " + String.format("%.2f", base_consumer_goods_ratio*100) + "%", negativeGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", negativeGood));
                     }
                 }
                 else
@@ -968,8 +982,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setBase_consumer_goods_ratio(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set base % of factories on consumer goods ratio: "+String.format("%.2f",event.value()*100)+"%",good ? GoodOutcome:BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", good ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set base % of factories on consumer goods ratio: "+String.format("%.2f",event.value()*100)+"%", negativeGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + "%", negativeGood));
                     }
                 }
             }
@@ -981,8 +995,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setBase_consumer_goods_multiplier(1+event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set consumer goods multiplier: "+String.format("1+%.2f",event.value()*100),event.value()<0? GoodOutcome:BadOutcome));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set consumer goods multiplier: "+String.format("1+%.2f",event.value()*100), negativeGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", negativeGood));
                     }
                 }
             }
@@ -991,7 +1005,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setBuildingSlotBonus(buildingSlotBonus*100+event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to building slots bonus, is now " + String.format("%.2f", base_consumer_goods_multiplier*100) + "%", event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to building slots bonus, is now " + String.format("%.2f", base_consumer_goods_multiplier*100) + "%", negativeGood));
                     }
                 }
                 else
@@ -999,7 +1013,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     setBuildingSlotBonus(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set building slots bonus: "+String.format("%.2f",event.value()*100)+"%",event.value()<0? GoodOutcome:BadOutcome));
+                        out.println(colorize("    Set building slots bonus: "+String.format("%.2f",event.value()*100)+"%", negativeGood));
                     }
                 }
             }
@@ -1008,14 +1022,14 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setSpecial_steel(special_steel+(int)event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + event.value() + " steel per day for special projects, is now " + special_steel, event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + event.value() + " steel per day for special projects, is now " + special_steel, negativeGood));
                     }
                 }
                 else
                 {
                     setSpecial_steel((int)event.value());
                     if (out!=null)
-                        out.println(colorize("    Set steel per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set steel per day for special projects to " + event.value(), negativeGood));
                 }
             }
             case special_chromium -> {
@@ -1023,14 +1037,14 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setSpecial_chromium(special_chromium+(int)event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + event.value() + " chromium per day for special projects, is now " + special_chromium, event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + event.value() + " chromium per day for special projects, is now " + special_chromium, negativeGood));
                     }
                 }
                 else
                 {
                     setSpecial_chromium((int)event.value());
                     if (out!=null)
-                        out.println(colorize("    Set chromium per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set chromium per day for special projects to " + event.value(), negativeGood));
                 }
             }
             case special_tungsten -> {
@@ -1038,14 +1052,14 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setSpecial_tungsten(special_tungsten+(int)event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + event.value() + " tungsten per day for special projects, is now " +special_tungsten, event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + event.value() + " tungsten per day for special projects, is now " +special_tungsten, negativeGood));
                     }
                 }
                 else
                 {
                     setSpecial_tungsten((int)event.value());
                     if (out!=null)
-                        out.println(colorize("    Set tungsten per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set tungsten per day for special projects to " + event.value(), negativeGood));
                 }
             }
             case special_aluminium -> {
@@ -1053,14 +1067,14 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setSpecial_aluminium(special_aluminium+(int)event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + event.value() + " aluminium per day for special projects, is now " + special_aluminium, event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + event.value() + " aluminium per day for special projects, is now " + special_aluminium, negativeGood));
                     }
                 }
                 else
                 {
                     setSpecial_aluminium((int)event.value());
                     if (out!=null)
-                        out.println(colorize("    Set aluminium per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set aluminium per day for special projects to " + event.value(), negativeGood));
                 }
             }
             case special_rubber -> {
@@ -1068,14 +1082,14 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 {
                     setSpecial_rubber(special_rubber+(int)event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + event.value() + " rubber per day for special projects, is now " + special_rubber, event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + event.value() + " rubber per day for special projects, is now " + special_rubber, negativeGood));
                     }
                 }
                 else
                 {
                     setSpecial_rubber((int)event.value());
                     if (out!=null)
-                        out.println(colorize("    Set rubber per day for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set rubber per day for special projects to " + event.value(), negativeGood));
                 }
             }
             case special_projects_civs -> {
@@ -1085,16 +1099,32 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                     boolean good = event.value()<special_projects_civs;
                     setSpecial_projects_civs(special_projects_civs+(int)event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + event.value() + " civilian factories for special projects, is now " + special_projects_civs, good ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Add " + event.value() + " civilian factories for special projects, is now " + special_projects_civs, negativeGood));
                     }
                 }
                 else
                 {
                     setSpecial_projects_civs((int)event.value());
                     if (out!=null)
-                        out.println(colorize("    Set civilian factories for special projects to " + event.value(), event.value() < 0 ? GoodOutcome : BadOutcome));
+                        out.println(colorize("    Set civilian factories for special projects to " + event.value(), negativeGood));
+                }
+            }
+            case weekly_stability -> {
+                if (event.add())
+                {
+                    setWeekly_stability(weekly_stability+event.value());
+                    if (out!=null) {
+                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to weekly stability, is now " + String.format("%.2f", weekly_stability*100) + "%", positiveGood));
+                    }
+                }
+                else
+                {
+                    setWeekly_stability(event.value());
+                    if (out!=null)
+                        out.println(colorize("    Set weekly stability gain to " + String.format("%.2f", event.value()*100) + "%", negativeGood));
                 }
             }
         }
+
     }
 }

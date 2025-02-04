@@ -13,6 +13,8 @@ public class Calender {
         boolean isLeapYear=(day%=1461)<366/*Within 366 first days, remember day starts at 0 not 1!*/;
 
         String[] Monthnames = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+        //1936 started on a wednesday
+        String[] Weekday = {"Wednesday","Thursday","Friday","Saturday","Sunday","Monday","Tuesday"};
         //Augustus and Julius were great Caesars, therefore their months must have 31 days even though they are next to each other
         int[] Monthdays      = {31,28,31,30,31,30,31,30,31,31,30,31};
 
@@ -39,19 +41,21 @@ public class Calender {
             {
                 //A bunch of if statements to deal with the weirdness of numbers in the English language
                 if (day==0)
-                    return "1st of "+Monthnames[month]+" "+year;
+                    return Weekday[day%7]+" the 1st of "+Monthnames[month]+" "+year;
                 else if (day==1)
-                    return "2nd of "+Monthnames[month]+" "+year;
+                    return Weekday[day%7]+" the "+"2nd of "+Monthnames[month]+" "+year;
                 else if (day==2)
-                    return "3rd of "+Monthnames[month]+" "+year;
+                    return Weekday[day%7]+" the "+"3rd of "+Monthnames[month]+" "+year;
                 else if (day==20)
-                    return "21st of "+Monthnames[month]+" "+year;
+                    return Weekday[day%7]+" the "+"21st of "+Monthnames[month]+" "+year;
                 else if (day==21)
-                    return "22nd of "+Monthnames[month]+" "+year;
+                    return Weekday[day%7]+" the "+"22nd of "+Monthnames[month]+" "+year;
                 else if (day==22)
-                    return "23rd of "+Monthnames[month]+" "+year;
+                    return Weekday[day%7]+" the "+"23rd of "+Monthnames[month]+" "+year;
+                else if (day==30)
+                    return Weekday[day%7]+" the "+"31st of "+Monthnames[month]+" "+year;
                 else
-                    return (day+1)+"th of "+Monthnames[month]+" "+year;
+                    return Weekday[day%7]+" the "+(day+1)+"th of "+Monthnames[month]+" "+year;
             }
             else
             {

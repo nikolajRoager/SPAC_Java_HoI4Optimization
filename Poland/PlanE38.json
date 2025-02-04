@@ -125,8 +125,8 @@
     "name": "Citizens industry donates to national defence fund",
     "propertyEvents":
     [{
-      "modify":"construction_speed",
-      "value":0.10,
+      "modify":"base_consumer_goods_multiplier",
+      "value":-0.35,
       "add": true
     }]
   }],
@@ -324,7 +324,7 @@
     "name": "Light tank 10TP enters serial production"
   }],
   "665": [{
-    "name": "Mościcki re-asserts presidential authority",
+    "name": "Mościcki re-asserts pial authority",
     "propertyEvents": [
       {
         "modify":"autocracy_growth",
@@ -546,7 +546,6 @@
           "number":2
         }
       ]
-
     }
   ],
   "840": [{

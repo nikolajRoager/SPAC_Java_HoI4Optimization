@@ -9,20 +9,28 @@ import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
 import org.HoI4Optimizer.Building.stateBuilding.StateBuilding;
 import org.HoI4Optimizer.Calender;
 import org.HoI4Optimizer.Building.*;
+import org.HoI4Optimizer.MyPlotter.DataLogger;
 import org.HoI4Optimizer.Nation.Event.Events;
 import org.HoI4Optimizer.Nation.decision.BuildDecision;
 import org.HoI4Optimizer.NationalConstants.Equipment;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 
 /// The state of a nation, at some point in time, it is essentially a "save" we can return to
 public class NationState  implements Cloneable
 {
+
+    /// The organ tasked with writing down every little detail of this nation
+    @NeverNull
+    private DataLogger instituteOfStatistics;
+
     /// A construction line for some building, with between 0 and 15 civilian factories assigned
     private static class constructionLine{
         /// The  thing we build
@@ -99,6 +107,64 @@ public class NationState  implements Cloneable
         factoryReassignments = new ArrayList<>();
         updateDecisions();
 
+        instituteOfStatistics = new DataLogger();
+        openInstituteOfStatistics();
+    }
+
+    /// Open the institute of statistics, so we can keep track of literally everything
+    private void openInstituteOfStatistics()
+    {
+        instituteOfStatistics.setLog("Political Stability",properties::getStability, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Factory Output",properties::getFactoryOutput, DataLogger.logDataType.Percent);
+        instituteOfStatistics.setLog("Efficiency Cap",properties::getFactoryOutput, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Resource gain bonus",properties::getResource_gain_bonus, DataLogger.logDataType.PositiveUnboundedPercent);
+        instituteOfStatistics.setLog("Construction speed",properties::getConstruction_speed, DataLogger.logDataType.Percent);
+        instituteOfStatistics.setLog("Military factory Construction speed",
+                ()->{return properties.getMil_construction_speed_bonus()+properties.getConstruction_speed();}
+                , DataLogger.logDataType.Percent);
+        instituteOfStatistics.setLog("Civilian factory Construction speed",
+                ()->{return properties.getCiv_construction_speed_bonus()+properties.getConstruction_speed();}
+                , DataLogger.logDataType.Percent);
+
+        instituteOfStatistics.setLog("percent factories on consumer goods",properties::getConsumer_goods_ratio, DataLogger.logDataType.PositivePercent);
+
+        instituteOfStatistics.setLog("percent of resources exported",properties::getResources_to_market, DataLogger.logDataType.PositivePercent);
+
+        instituteOfStatistics.setLog("Non-aligned popular support"  ,properties::getAutocracy_support, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Democracy popular support"    ,properties::getDemocracy_support, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Communism popular support"    ,properties::getCommunism_support, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Fascism popular support"      ,properties::getFascism_support  , DataLogger.logDataType.PositivePercent);
+
+        instituteOfStatistics.setLog("Civilian factories",
+                ()->
+                {
+                    int civs =0;
+                    for (var f : civilianFactories)
+                        if (!f.getUnderConstruction())
+                            civs++;
+                    return civs;
+                }
+                , DataLogger.logDataType.PositiveInteger);
+        instituteOfStatistics.setLog("Military factories",
+                ()->
+                {
+                    int mils=0;
+                    for (var f : militaryFactories)
+                        if (!f.getUnderConstruction())
+                            mils++;
+                    return mils;
+                }
+                , DataLogger.logDataType.PositiveInteger);
+        instituteOfStatistics.setLog("Chemical Refineries",
+                ()->
+                {
+                    int refs=0;
+                    for (var f : refineries)
+                        if (!f.getUnderConstruction())
+                            refs++;
+                    return refs;
+                }
+                , DataLogger.logDataType.PositiveInteger);
     }
 
     /// Print a bar-plot with a percentage
@@ -179,14 +245,21 @@ public class NationState  implements Cloneable
         double stab = properties.getStability();
         out.println(colorize("\tSocial stability..............:"+(int)(stab*100)+"%",(stab<0.3334?Attribute.BRIGHT_RED_TEXT():(stab>0.6667?Attribute.BRIGHT_GREEN_TEXT():Attribute.BRIGHT_YELLOW_TEXT()))));
 
+        char Agrowth = properties.getAutocracy_growth()>0.001?'^':(properties.getAutocracy_growth()<-0.001?'v':'=');
+        char Cgrowth = properties.getCommunism_growth()>0.001?'^':(properties.getAutocracy_growth()<-0.001?'v':'=');
+        char Dgrowth = properties.getDemocracy_growth()>0.001?'^':(properties.getAutocracy_growth()<-0.001?'v':'=');
+        char Fgrowth = properties.getFascism_growth()>0.001?'^':(properties.getAutocracy_growth()<-0.001?'v':'=');
+
         switch(properties.getRulingParty())
         {
             case Nonaligned ->
             {
-                out.println(colorize("\tNon-aligned Government support......:"+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK()),Attribute.BOLD()       ,Attribute.WHITE_TEXT()     ));
-                out.println(colorize("\tDemocratic opposition support.......:"+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                         ,Attribute.BLUE_TEXT()      ));
-                out.println(colorize("\tCommunist opposition support........:"+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())                   ,Attribute.RED_TEXT()));
-                out.println(colorize("\tFascist opposition support..........:"+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                       ,Attribute.YELLOW_TEXT()    ));
+
+
+                out.println(colorize("\tNon-aligned Government support......:"+Agrowth+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK()),Attribute.BOLD()       ,Attribute.WHITE_TEXT()     ));
+                out.println(colorize("\tDemocratic opposition support.......:"+Dgrowth+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                         ,Attribute.BLUE_TEXT()      ));
+                out.println(colorize("\tCommunist opposition support........:"+Cgrowth+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())                   ,Attribute.RED_TEXT()));
+                out.println(colorize("\tFascist opposition support..........:"+Fgrowth+ printBarPlot((int)(100*properties.getFascism_support())  ,Attribute.YELLOW_BACK())                       ,Attribute.YELLOW_TEXT()    ));
             }
             case Democratic->
             {
@@ -440,6 +513,10 @@ public class NationState  implements Cloneable
             //Auto-calculate decisions
             clone.updateDecisions();
 
+            //Hand over the institute of statistics
+            clone.instituteOfStatistics=instituteOfStatistics.clone();
+            //And make sure the new institute is looking at the right
+            clone.openInstituteOfStatistics();
 
             return clone;
         } catch (CloneNotSupportedException e) {
@@ -548,10 +625,7 @@ public class NationState  implements Cloneable
         for (var eq : availableEquipment)
             Reassignments.put(eq,0);
         Reassignments.put(availableEquipment.getFirst(),unassignedMils);
-        factoryReassignments.add(Reassignments);
-
-        //Then step forward
-
+   //     factoryReassignments.add(Reassignments);
     }
 
     private void tryAddDecision(Map<Object, Integer> constructionDecisions, State s, Object myHash, BuildDecision dec) {
@@ -573,7 +647,7 @@ public class NationState  implements Cloneable
     }
 
     ///Step forward a number of days, or until a decision is required, only print if some important event happened
-    /// 
+    ///
     public void update(int days, PrintStream out)
     {
         for (int d = 0; d < days; d++) {
@@ -610,9 +684,84 @@ public class NationState  implements Cloneable
             {
                 apply(e,out);
             }
+
+            //Weekly stability is applied the night between friday and saturday (as it is in game)
+            if (day%7==2)//The day starts on a wednesday, so the first friday is day 2
+                properties.setBase_stability(properties.getBase_stability()+ properties.getWeekly_stability());
+
+            //I have not reverse engineered politics perfectly, but this is what I roughly believe happens:
+            double newCommunism = properties.getCommunism_support()+getPartyGrowth(properties.getCommunism_support(),properties.getCommunism_growth());
+            double newDemocracy = properties.getDemocracy_support()+getPartyGrowth(properties.getDemocracy_support(),properties.getDemocracy_growth());
+            double newAutocracy = properties.getAutocracy_support()+getPartyGrowth(properties.getAutocracy_support(),properties.getAutocracy_growth());
+            double newFascism = properties.getFascism_support()+getPartyGrowth(properties.getFascism_support(),properties.getFascism_growth());
+
+            //What do we have too much of, after adding?
+            double sum = newAutocracy+newCommunism+newDemocracy+newFascism;
+            if (sum>1.0)
+            {//Remove proportional to existing support (NOT REALLY TRUE, the game FAVOURS FASCISM!, but I could not figure out algorithm)
+                //This is labeled (due to changes in other parties) in game
+                newCommunism-=(sum-1.0)*newCommunism/sum;
+                newDemocracy-=(sum-1.0)*newDemocracy/sum;
+                newAutocracy-=(sum-1.0)*newAutocracy/sum;
+                newFascism  -=(sum-1.0)*newFascism/sum;
+            }
+            else if (sum<=0)//If somehow, nobody believe in anything, everybody will believe in something, somehow
+            {
+                newDemocracy=0.25;
+                newCommunism=0.25;
+                newFascism=0.25;
+                newAutocracy=0.25;
+            }
+            else
+            {
+                //Add inversely proportional to how much we have (unless we have 0)
+                //Not really true, in reality the game favours fascism, but I could not reverse engineer the actual algorithm
+                double invC =newCommunism==0?0.0:1.0/newCommunism;
+                double invD =newDemocracy==0?0.0:1.0/newDemocracy;
+                double invA =newAutocracy==0?0.0:1.0/newAutocracy;
+                double invF =newFascism==0  ?0.0:1.0/newFascism;
+
+                double invSum = invC+invD+invA+invF;
+                newCommunism += (1.0 - sum) * invC / invSum;
+                newDemocracy += (1.0 - sum) * invD / invSum;
+                newAutocracy += (1.0 - sum) * invA / invSum;
+                newFascism += (1.0 - sum) * invF / invSum;
+            }
+
+            //Set everything
+            properties.setCommunism_support(newCommunism);
+            properties.setDemocracy_support(newDemocracy);
+            properties.setAutocracy_support(newAutocracy);
+            properties.setFascism_support(newFascism);
         }
+
+
         //No decisions, but we ended anyway
         return;
+    }
+
+    /// Get party popularity growth, scaled by existing support, I have not perfectly reverse engineered this
+    private double getPartyGrowth(double support, double growth)
+    {
+        if (growth<0)
+            return growth;
+        else
+        {
+            if (support>0.7)
+                return growth/7.0;
+            else if (support>0.6)
+                return growth/6.0;
+            else if (support>0.5)
+                return growth/5.0;
+            else if (support>0.4)
+                return growth/4.0;
+            else if (support>0.3)
+                return growth/3.0;
+            else if (support>0.2)
+                return  growth/2.0;
+            else
+                return growth;
+        }
     }
 
     private int getUnassignedMils() {

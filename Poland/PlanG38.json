@@ -1,0 +1,930 @@
+{
+  "0": [
+    {
+      "name": "Krakow technical university offers free training courses in basic modern machine and construction Tools"
+    },
+    {
+      "name": "The AVA radio company continue researching electromechanical computers"
+    }
+  ],
+  "35": [
+    {
+      "name": "The polish military raids German Nazi sympathisers in the \"Free\" city of Danzig"
+    }
+  ],
+  "70": [
+    {
+      "name": "The Sejm passes 4-year industrialization plan",
+      "propertyEvents": [
+        {
+          "modify": "construction_speed",
+          "value": 0.10,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "Hitler violates treaty of Versailles, re-militarizing the Rhineland. The threat of war is aparent"
+    }
+  ],
+  "110": [
+    {
+      "name": "The AVA company starts building a large demonstration electro-mechanical computer"
+    }
+  ],
+  "105": [
+    {
+      "name": "Civilian industry expansion have been funded under the \"Central Region industrial strategy\"",
+      "stateEvents": [
+        {
+          "stateID": 15,
+          "modify": "Slot",
+          "number": 1
+        },
+        {
+          "stateID": 5,
+          "modify": "Slot",
+          "number": 1
+        },
+        {
+          "stateID": 8,
+          "modify": "Slot",
+          "number": 2
+        },
+        {
+          "stateID": 7,
+          "modify": "Slot",
+          "number": 2
+        },
+        {
+          "stateID": 15,
+          "modify": "Civilian",
+          "number": 1
+        },
+        {
+          "stateID": 5,
+          "modify": "Civilian",
+          "number": 1
+        }
+      ]
+    }
+  ],
+  "137": [
+    {
+      "name": "Partial economic mobilization",
+      "propertyEvents": [
+        {
+          "modify": "natural_fuel_bonus",
+          "value": 0.30,
+          "add": true
+        },
+        {
+          "modify": "base_consumer_goods_ratio",
+          "value": -0.10,
+          "add": true
+        },
+        {
+          "modify": "civ_construction_speed_bonus",
+          "value": 0.30,
+          "add":true
+        },
+        {
+          "modify": "mil_construction_speed_bonus",
+          "value": 0.40,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "164": [
+    {
+      "name": "The machine tool training increases productivity",
+      "propertyEvents": [
+        {
+          "modify": "efficiency_cap",
+          "value": 0.10,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "The Sejm funds research into new industrial strategy for military production"
+    }
+  ],
+  "175": [
+    {
+      "name": "Eastern railway expansion completed",
+      "stateEvents": [
+        {
+          "stateID": 12,
+          "modify": "Infrastructure",
+          "number": 1
+        },
+        {
+          "stateID": 16,
+          "modify": "Infrastructure",
+          "number": 1
+        }
+      ]
+    }
+  ],
+  "200": [
+    {
+      "name": "Nazi-owned steelwork in Danzig seized by Polish industrialists",
+      "stateEvents": [
+        {
+          "stateID": 2,
+          "modify": "Military",
+          "number": 1
+        }
+      ]
+    }
+  ],
+  "217": [
+    {
+      "name": "The Construction training has significantly aided the construction sector",
+      "propertyEvents": [
+        {
+          "modify": "construction_speed",
+          "value": 0.10,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "Krakow Technical university expands scholarship program for construction workers"
+    }
+  ],
+  "245": [
+    {
+      "name": "In response to German Mefo bills, Polish industrialists and citizens contribute to National Defence fund",
+      "propertyEvents": [
+        {
+          "modify": "base_consumer_goods_multiplier",
+          "value": -0.35,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "Farmers protest over food-prizes, the authoritarian government, and lack of rural investment"
+    }
+  ],
+  "273": [
+    {
+      "name": "First stage of industrial strategy increase military production",
+      "propertyEvents": [
+        {
+          "modify": "base_factory_output",
+          "value": 0.15,
+          "add": true
+        },
+        {
+          "modify": "buildingSlotBonus",
+          "value": 0.2,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "279": [
+    {
+      "name": "Kazimir Sosnkowski appointed chief of the Polish army, tasked with drawing up 2 year rearmament program"
+    },
+    {
+      "name": "Funding approved for light tank prototype at PZinz institute"
+    }
+  ],
+  "300": [
+    {
+      "name": "After negotiations with protesters, former PM and April Constitution author Walery Sławek proposes Agrarian and constitutional reform"
+    }
+  ],
+  "307": [
+    {
+      "name": "Farmers protests intensify"
+    }
+  ],
+  "315": [
+    {
+      "name": "President Mościcki concedes to protesters, reforms are passed, strikes are called of"
+    }
+  ],
+  "364": [
+    {
+      "name": "Adolf Hitler invites Poland to sign Anti-Comintern pact, Mościcki rejects"
+    }
+  ],
+  "365": [
+    {
+      "name": "Improved Construction training, and the ongoing Agrarian reform has boosted the construction sector further",
+      "propertyEvents": [
+        {
+          "modify": "construction_speed",
+          "value": 0.10,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "376": [
+    {
+      "name": "The AVA company starts selling its mechanical computer to industry and university, significantly boosting all research efforts"
+    }],
+  "377": [
+    {
+      "name": "Ambitious 1937 stage of the industrial strategy starts, focusing on reorganized industry and use of new advanced machine tools in production"
+    }
+    ],
+  "385": [
+    {
+      "name": "Sławek's constitutional reform passed with the help of left-wing faction of the Sanation government",
+      "propertyEvents": [
+        {
+          "modify":"autocracy_growth",
+          "value":-0.0007,
+          "add": true
+        },
+        {
+          "modify":"permanent_stability",
+          "value":-0.05,
+          "add": true
+        },
+        {
+          "modify":"base_consumer_goods_multiplier",
+          "value":0.05,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "President Ignacy Mościcki attempts to undermine Sławek's growing power by allying with general, war-hero, and rival to Sławek: Edward Rydz-Śmigły ",
+      "propertyEvents": [
+        {
+          "modify":"autocracy_growth",
+          "value":-0.0010,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "In order to subvert Nazi control, the Sanation left covertly funds SPD campaign in Free city of Danzig"
+    }
+  ],
+  "420": [
+    {
+      "name": "President Ignacy Mościcki pushes for drastically increased army budget, officially to counter Hitler",
+      "propertyEvents": [
+        {
+          "modify":"autocracy_growth",
+          "value":0.0005,
+          "add": true
+        }
+      ]
+    }
+    ],
+  "430": [
+    {
+      "name": "Labour unions in the Free City of Danzig increasingly cooperate with the Polish Sanation left, rather than the NSDAP",
+      "stateEvents": [
+        {
+          "stateID": 2,
+          "modify": "Military",
+          "number": 1
+        },
+        {
+          "stateID": 2,
+          "modify": "Civilian",
+          "number": 1
+        }
+      ]
+    }
+  ],
+  "455": [
+    {
+      "name": "President Mościcki announces initiative to centralize power further",
+      "propertyEvents": [
+        {
+          "modify":"autocracy_growth",
+          "value":0.0005,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "The Sejm votes in Sławek ally Joséf Haller as re-armaments minister",
+      "propertyEvents": [
+        {
+          "modify":"mil_construction_speed_bonus",
+          "value":0.10,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "474": [
+    {
+      "name": "The PZInż 140 Recon tankette enters serial production, work on a proper light tank continues"
+    }
+  ],
+  "490": [
+    {
+      "name": "SPD defeats NSDAP in mayoral election in Free city of Danizg, announces plan to unify with Poland"
+    }
+  ],
+  "560": [
+    {
+      "name": "The Free City of Danizg is officially dissolved, in major win for Sanation Left",
+      "stateEvents":
+      [{
+        "stateID": 2,
+        "modify":"Slot",
+        "number":2
+      },
+        {
+          "stateID": 2,
+          "modify":"Military",
+          "number":1
+        },
+        {
+          "stateID": 2,
+          "modify":"Civilian",
+          "number":1
+        }
+      ],
+      "propertyEvents":
+      [
+        {
+          "modify":"construction_speed",
+          "value":0.10,
+          "add": true
+        },
+        {
+          "modify":"base_factory_output",
+          "value":0.10,
+          "add": true
+        },
+        {
+          "modify":"base_consumer_goods_ratio",
+          "value":-0.05,
+          "add": true
+        },
+        {
+          "modify":"resources_to_market",
+          "value":0.5,
+          "add": false
+        }
+      ]
+    },
+    {
+      "name": "Power struggle between Sławek, Mościcki and Rydz-Śmigły intensify",
+      "propertyEvents": [
+        {
+          "modify":"autocracy_growth",
+          "value":-0.0010,
+          "add": true
+        },
+        {
+          "modify":"permanent_stability",
+          "value":-0.1,
+          "add": true
+        },
+        {
+          "modify":"base_consumer_goods_multiplier",
+          "value":0.05,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "564": [
+    {
+     "name": "Japan invades China,  Rydz-Śmigły delivers a speak warning about imminent war, Sławek applaud his rival"
+    }
+  ],
+  "575": [
+    {
+      "name": "Rydz-Śmigły and Sławek  agree to set asside their difference to prepare for war"
+    }
+  ],
+  "574": [{
+    "name": "Second stage of industrial strategy has significantly boosted production capacity, attention is now focused on the resource sector",
+      "propertyEvents": [
+        {
+          "modify": "base_factory_output",
+          "value": 0.15,
+          "add": true
+        },
+        {
+          "modify": "buildingSlotBonus",
+          "value": 0.2,
+          "add": true
+        }
+      ]
+  }],
+  "497":
+  [
+    {
+      "name": "Under reform program, the Sanation left and unions start improving manufacturing workers' conditions",
+      "propertyEvents":
+      [
+        {
+          "modify":"weekly_stability",
+          "value":0.005,
+          "add": true
+        },
+        {
+          "modify": "base_factory_output",
+          "value": -0.1,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "700": [
+    {
+      "name": "Rydz-Śmigły backs Sławek as prime minister (in a move weakening Mościcki's power and strengthening the Sejm), in a speech Sławek calls for the need for reconciliation and alliance with the Baltic states",
+      "propertyEvents":
+      [
+        {
+          "modify":"permanent_stability",
+          "value":0.30,
+          "add": true
+        },
+        {
+          "modify":"base_consumer_goods_multiplier",
+          "value":-0.20,
+          "add": true
+        },
+        {
+          "modify":"autocracy_growth",
+          "value":0.0025,
+          "add": true
+        },
+        {
+          "modify":"democracy_growth",
+          "value":0.001,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "Falangists strongly oppose Sławek's reform, government cracks down on fascist opposition, while Rydz-Śmigły tries to negotiate with them",
+      "propertyEvents":
+      [
+        {
+          "modify":"autocracy_support",
+          "value":-0.05,
+          "add": true
+        },
+        {
+          "modify":"weekly_stability",
+          "value":0.07,
+          "add": true
+        },
+        {
+          "modify":"fascism_growth",
+          "value":-0.0005,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "Leftist and veteran soldier Kazimierz Switalski appointed commander of special forces"
+    }
+  ],
+  "812": [
+    {
+      "name": "Anti-Fascist crackdowns end, and falangist leaders supports the armament and recruitment effor",
+      "propertyEvents":
+      [
+        {
+          "modify":"weekly_stability",
+          "value":-0.07,
+          "add": true
+        },
+        {
+          "modify":"fascism_growth",
+          "value":0.0005,
+          "add": true
+        }
+      ]
+    }
+    ],
+  "595": [
+    {
+      "name": "President Mościcki appoints Rydz-Śmigły as Marshall of Poland, Sławek attends the ceremony despite protestation from the left and the other Pilsudski's Colonels",
+      "propertyEvents":
+      [
+        {
+          "modify":"permanent_stability",
+          "value":-0.05,
+          "add": true
+        },
+        {
+          "modify":"base_consumer_goods_multiplier",
+          "value":0.1,
+          "add": true
+        },
+        {
+          "modify":"autocracy_growth",
+          "value":-0.0005,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "Rydz-Śmigły and Sławek talk with President Mościcki about the need to work together, and for the minor Eastern European nations to ally."
+    }
+  ],
+  "630": [
+    {
+      "name": "Rydz-Śmigły ally with Falangist paramilitaries to bolster military recruitment",
+      "propertyEvents":
+      [
+        {
+          "modify":"permanent_stability",
+          "value":-0.05,
+          "add": true
+        },
+        {
+          "modify":"base_consumer_goods_multiplier",
+          "value":0.1,
+          "add": true
+        },
+        {
+          "modify":"autocracy_growth",
+          "value":-0.0005,
+          "add": true
+        },
+        {
+          "modify":"fascism_growth",
+          "value":0.0002,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "Rydz-Śmigły and Sławek talk with President Mościcki about the need to work together, and for the minor Eastern European nations to ally."
+    }
+  ],
+  "634": [
+    {
+      "name": "The PZInż 10TP multi-role light tank (anti-air and anti-infantry) enters serial production, and research improves artillery techniques"
+    },
+    {
+      "name": "Sosnkowski and Rydz-Śmigły start program to widely implement Anti-Tank riffles and radio training in the army"
+    }
+  ],
+  "677":
+  [
+    {
+      "name": "factory reform program finishes",
+      "propertyEvents":
+      [
+        {
+          "modify":"weekly_stability",
+          "value":-0.005,
+          "add": true
+        },
+        {
+          "modify": "base_factory_output",
+          "value": 0.1,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "601": [{
+    "name": "Investment in improved machine tools improves productivity",
+    "propertyEvents":
+    [{
+      "modify":"efficiency_cap",
+      "value":0.10,
+      "add": true
+    }]
+    },
+    {
+    "name": "Artillery research funded through tank program"
+    }
+  ],
+  "705": [{
+    "name": "Funding approved for Military Intelligence agency",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":5,
+        "add": false
+      }
+    ]
+  }],
+  "734": [{
+    "name": "Industrial reform and investment improves yield of mines and smelters",
+    "propertyEvents":
+    [{
+      "modify":"resource_gain_bonus",
+      "value":0.10,
+      "add": true
+    }]
+  },
+    {
+      "name": "Military engineering training intensifies"
+    }
+  ],
+  "735": [
+    {
+      "name": "Recruiting mathematicians for radio analysis",
+      "propertyEvents": [
+        {
+          "modify":"special_projects_civs",
+          "value":8,
+          "add": false
+        }
+      ]
+    },
+    {
+      "name": "Sławek passes Common Organization of Society, undermining the BBWR",
+      "propertyEvents": [
+        {
+          "modify":"base_factory_output",
+          "value":0.10,
+          "add": true
+        },
+        {
+          "modify":"civ_construction_speed_bonus",
+          "value":0.10,
+          "add": true
+        },
+        {
+          "modify":"democracy_growth",
+          "value":0.001,
+          "add": true
+        }
+      ],
+
+      "stateEvents":
+      [
+        {
+          "stateID": 1,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 2,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 3,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 4,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 5,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 6,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 7,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 8,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 9,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 10,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 11,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 12,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 13,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 14,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 15,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 16,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 17,
+          "modify":"Slot",
+          "number":2
+        },
+        {
+          "stateID": 18,
+          "modify":"Slot",
+          "number":2
+        }
+      ]
+    }
+
+
+  ],
+  "765": [{
+    "name": "Continuous investment in SIGINT",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":5,
+        "add": false
+      }
+    ]
+  }],
+  "825": [{
+    "name": "Vetting and recruiting German socialists and liberals as agents",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":10,
+        "add": false
+      }
+    ]
+  }],
+  "855": [{
+    "name": "Building the Cryptological bomb (Breaking Enigma!)",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":10,
+        "add": false
+      }
+    ]
+  }],
+  "905": [{
+    "name": "Expanding HUMINT department",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":5,
+        "add": false
+      }
+    ]
+  }],
+  "1005": [{
+    "name": "Intelligence expansion ends, department can now be sustained by existing budget",
+    "propertyEvents": [
+      {
+        "modify":"special_projects_civs",
+        "value":0,
+        "add": false
+      }
+    ]
+  }],
+  "770": [
+    {
+      "name": "PM Sławek's new parliamentarian constitutions, free and fair elections scheduled for September 1938",
+      "propertyEvents": [
+        {
+          "modify":"permanent_stability",
+          "value":0.10,
+          "add": true
+        },
+        {
+          "modify":"autocracy_growth",
+          "value":0.0005,
+          "add": true
+        },
+        {
+          "modify":"democracy_growth",
+          "value":0.001,
+          "add": true
+        },
+        {
+          "modify":"democraticCoalition",
+          "value":2,
+          "add": false
+        }
+      ]
+    },
+    {
+      "name": "With a German invasion of Austria imminent, Benes, Smetona, Ulmanis, and Päts attend conference with Rydz-Śmigły, Sławek, and Mościcki in Vilnius"
+    },
+    {
+      "name": "Expanded training in machine-gun and motors start"
+    }
+  ],
+  "779":
+          [
+            {
+              "name": "During conference, Austria is annexed by Hitler, Benes ask for security guarantees against Germany, Poland immediately accepts"
+            }
+          ],
+  "828":
+          [
+            {"name": "Radio operators are integrated at the battalion level, the process of lower-level integration accelerates"}
+          ],
+  "840": [
+    {
+      "name": "Poland agrees on referendum on return of Vilnius to Lithuania within 2 years, the Polish, Czechoslovak, Lithuanian, Latvian, and Estonian delegations draft mutual defence agreement against Bolshevik and Nazi aggression, diplomatic feelers are extended to Romania"
+    }
+    ],
+  "870": [
+    {
+      "name": "The Polish army signs contract for new semiautomatic riffles and submachine guns"
+    }
+  ],
+  "906": [
+    {
+      "name": "Design work on new field-howitzer/self-propelled gun enters prototype stage"
+    }
+  ],
+  "910": [
+    {
+      "name": "The Vilnius pact is signed, Hitler is furious, the 4 countries agree to merge their intelligence agencies"
+    }
+  ],
+  "920": [
+    {
+      "name": "The sudeten crisis intensifies, Britain and France backs down"
+    }
+  ],
+  "930": [
+    {
+      "name": "The national defence fund has been completely spent, the Polish economy starts to buckle under the pressure of rearmament",
+      "propertyEvents": [
+        {
+          "modify": "base_consumer_goods_multiplier",
+          "value": 0.35,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "935": [
+    {
+      "name": "Sławek's social-democratic block wins comfortable majority in election, though the pacifist-socialist coalition comes in second",
+      "propertyEvents": [
+        {
+          "modify": "base_stability",
+          "value": -0.05,
+          "add": true
+        }
+      ]
+    },
+    {
+      "name": "The polish ambassador to France lobbies against Deladier and Chamberlain's appeasement"
+    }
+  ],
+  "980": [
+    {
+      "name": "Romania joins the Vilnius pact fulfilling the initial Miedzymorze ideals"
+    }
+  ],
+  "982": [
+    {
+      "name": "The treacherous westerners meet with Hitler and Musolini in München, and back Hitlers claims to the Suddetenland"
+    },
+    {
+      "name": "The Czech, Polish, Estonian, Romanian, Latvian and Lithuanian armies mobilize, Rydz-Śmigły appointed supreme commander by all governments"
+    }
+  ],
+  "984": [
+    {
+      "name": "The Vilnius pact issues warning to Hitler not to invade Czechoslovakia"
+    }
+  ],
+  "988": [
+    {
+      "name": "Hitler invades Czechoslovakia, Benes calls to arms, Poland answers"
+    }
+  ]
+}

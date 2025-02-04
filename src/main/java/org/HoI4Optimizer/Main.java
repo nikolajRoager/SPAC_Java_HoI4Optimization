@@ -21,7 +21,7 @@ public class Main
         NationalSetup Setup;
         //Load setup
         try {
-            Setup = new NationalSetup("Poland","PlanE38");
+            Setup = new NationalSetup("Poland","PlanG38");
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return;

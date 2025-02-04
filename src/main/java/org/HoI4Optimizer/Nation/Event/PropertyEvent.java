@@ -88,6 +88,8 @@ public record PropertyEvent
         nonalignedCoalition,
         /// This modify merges Democratic, Communist, Non-aligned, or Fascist into fascist (if value is 0,1,2, or 3 respectively)
         fascistCoalition,
+        /// Change in stability every sunday
+        weekly_stability
     }
 
     //Faux variable: cast value to an ideology
