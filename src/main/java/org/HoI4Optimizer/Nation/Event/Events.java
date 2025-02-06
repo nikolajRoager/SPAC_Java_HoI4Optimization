@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 
@@ -20,7 +21,7 @@ public record Events (
     List<StateEvent> stateEvents)
 {
     /// Only to be used by json deserializer
-    public static Map<Integer,List<Events>> loadEvents(String filePath) throws IOException {
+    public static TreeMap<Integer,List<Events>> loadEvents(String filePath) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(new File(filePath), new TypeReference<>() {});
     }

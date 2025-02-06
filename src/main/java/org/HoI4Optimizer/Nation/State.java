@@ -13,6 +13,8 @@ import org.HoI4Optimizer.Building.stateBuilding.Infrastructure;
 import org.HoI4Optimizer.Building.stateBuilding.StateBuilding;
 import org.HoI4Optimizer.Nation.Event.StateEvent;
 import org.HoI4Optimizer.NationalConstants.*;
+
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -192,6 +194,7 @@ public class State implements Cloneable {
     public int getInfrastructureLevel() {
         return infrastructure.getLevel();}
 
+    /// Used by json deserializer
     public void setInfrastructure(int level)
     {
         infrastructure.setLevel(level);
@@ -331,32 +334,20 @@ public class State implements Cloneable {
     {
         out.println(colorize(prefix+"~~State of "+name+"~~", Attribute.BOLD()) );
         out.println(colorize(prefix+"\tinfrastructure "+infrastructure.getLevel()+"/5",Attribute.YELLOW_TEXT()));
-        out.println(colorize(prefix+"\tBuilding slots unlocked "+getBuildingSlots(building_slot_bonus),Attribute.GREEN_TEXT()));
+        out.println(colorize(prefix+"\tBuilding slots unlocked "+getBuildingSlots(building_slot_bonus) +" ("+type.getBuildingSlots()+" from "+type.toString()+(extraBuildingSlots==0?"":" "+extraBuildingSlots+" from events")+(building_slot_bonus==0?"":String.format("+%.2f from tech",building_slot_bonus*100))+")",Attribute.GREEN_TEXT()));
         out.println(colorize(prefix+"\tCan build civilian factories: "+(canBuildCivilianFactory(building_slot_bonus)?"yes":"no"),Attribute.BRIGHT_YELLOW_TEXT()));
         out.println(colorize(prefix+"\tCan build military factories: "+(canBuildMilitaryFactory(building_slot_bonus)?"yes":"no"),Attribute.BRIGHT_GREEN_TEXT()));
         out.println(colorize(prefix+"\tCan build refinery factories: "+(canBuildRefineryFactory(building_slot_bonus)?"yes":"no"),Attribute.BLUE_TEXT()));
         if (!civilianFactories.isEmpty())
         {
             out.println(colorize(prefix+"\t"+civilianFactories.size()+" Civilian Factories:",Attribute.BRIGHT_YELLOW_TEXT()));
-         //   for (var F : civilianFactories)
-         //   {
-         //       F.printReport(out,prefix+'\t');
-         //   }
         }
         if (!refineries.isEmpty()) {
             out.println(colorize(prefix +"\t"+ refineries.size() + " Refineries:",Attribute.BLUE_TEXT()));
-         //   for (var F : refineries) {
-         //       F.printReport(out, prefix + '\t');
-         //   }
         }
         if (!militaryFactories.isEmpty()) {
             out.println(colorize(prefix +"\t"+ militaryFactories.size() + " Military Factories:",Attribute.BRIGHT_GREEN_TEXT()));
-         //   for (var F : militaryFactories) {
-         //       F.printReport(out, prefix + '\t');
-         //   }
         }
-
-        out.println(colorize(prefix+"\t"+infrastructure.getName()+" in "+infrastructure.getLocation().getName(),Attribute.BOLD()));
 
         out.print(colorize(String.format(prefix+"\t                     %4s %9s %6s %8s %5s %8s%n", "Oil", "Aluminium", "Rubber", "Tungsten","Steel","Chromium"),Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD()));
         //Resources available
@@ -558,19 +549,46 @@ public class State implements Cloneable {
                     out.println(colorize("    Add "+event.number()+" building slots in "+name+" total is now "+extraBuildingSlots, outcomeColour));
             }
             case Refinery -> {
-                if (out!=null)
-                    out.println(colorize("    Add "+event.number()+" refineries in "+name+" total is now "+refineries.size(), outcomeColour));
-                refineries.add(new Refinery(this,false/*Instantly construct*/));
+                if (getFreeSlots(properties.getBuildingSlotBonus())>0) {
+                    int n = Math.min(getFreeSlots(properties.getBuildingSlotBonus()),event.number());
+                    for (int i = 0; i < n; ++i)
+                        refineries.add(new Refinery(this, false/*Instantly construct*/));
+                    if (out != null)
+                        if (n==event.number())
+                            out.println(colorize("    Add " + event.number() + " refineries in " + name + " total is now " + refineries.size(), outcomeColour));
+                        else
+                            out.println(colorize("    Added "+ n +"/"+ event.number() + " refineries in " + name + " (due to lack of slots) total is now " + refineries.size(), outcomeColour));
+                }
+                else if (out != null)
+                    out.println(colorize("    Event to add " + event.number() + " refineries in " + name + " failed due to lack of building slots!", Attribute.BRIGHT_RED_TEXT(),Attribute.BOLD()));
             }
             case Civilian -> {
-                if (out!=null)
-                    out.println(colorize("    Add "+event.number()+" civilian factories in "+name+" total is now "+civilianFactories.size(), outcomeColour));
-                civilianFactories.add(new CivilianFactory(this,false/*Instantly construct*/));
+                if (getFreeSlots(properties.getBuildingSlotBonus())>0) {
+                    int n = Math.min(getFreeSlots(properties.getBuildingSlotBonus()),event.number());
+                    for (int i = 0; i < n; ++i)
+                        civilianFactories.add(new CivilianFactory(this, false/*Instantly construct*/));
+                    if (out != null)
+                        if (n==event.number())
+                            out.println(colorize("    Add " + event.number() + " civilian factories in " + name + " total is now " + civilianFactories.size(), outcomeColour));
+                        else
+                            out.println(colorize("    Added "+ n +"/"+ event.number() + " civilian factories in " + name + " (due to lack of slots) total is now " + civilianFactories.size(), outcomeColour));
+                }
+                else if (out != null)
+                    out.println(colorize("    Event to add " + event.number() + " civilian factories in " + name + " failed due to lack of building slots!", Attribute.BRIGHT_RED_TEXT(),Attribute.BOLD()));
             }
             case Military -> {
-                if (out!=null)
-                    out.println(colorize("    Add "+event.number()+" military factories in "+name+" total is now "+militaryFactories.size(), outcomeColour));
-                militaryFactories.add(new MilitaryFactory(this,false/*Instantly construct*/));
+                if (getFreeSlots(properties.getBuildingSlotBonus())>0) {
+                    int n = Math.min(getFreeSlots(properties.getBuildingSlotBonus()),event.number());
+                    for (int i = 0; i < n; ++i)
+                        militaryFactories.add(new MilitaryFactory(this, false/*Instantly construct*/));
+                    if (out != null)
+                        if (n==event.number())
+                            out.println(colorize("    Add " + event.number() + " military factories in " + name + " total is now " + militaryFactories.size(), outcomeColour));
+                        else
+                            out.println(colorize("    Added "+ n +"/"+ event.number() + " military factories in " + name + " (due to lack of slots) total is now " + militaryFactories.size(), outcomeColour));
+                }
+                else if (out != null)
+                    out.println(colorize("    Event to add " + event.number() + " military factories in " + name + " failed due to lack of building slots!", Attribute.BRIGHT_RED_TEXT(),Attribute.BOLD()));
             }
             case Infrastructure -> {
                 if (infrastructure.canUpgrade())

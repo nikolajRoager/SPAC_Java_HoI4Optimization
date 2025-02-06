@@ -52,6 +52,10 @@ public class Main
         commands.put("help",new CommandlineCommand("help","Print this list of commands",
                 List.of(new CommandlineCommand.Argument[]{
                 })));
+        //Put these two last, so it appears at the bottom when we print
+        commands.put("show",new CommandlineCommand("show","show all data collected by the national institute of statistics during the simulation",
+                List.of(new CommandlineCommand.Argument[]{
+                })));
         commands.put("quit",new CommandlineCommand("quit","stop program",
                 List.of(new CommandlineCommand.Argument[]{
                 })));
@@ -59,12 +63,11 @@ public class Main
         //I use a blue box (or ### without colours) before the text to make it clear where the commands are
         System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize(" We have loaded the setup at the start of the game, you now have the following choices", Attribute.BOLD(), Attribute.BLUE_TEXT()));
 
-
         boolean printHelp = true;
         do {
 
             //Load decisions the player can make
-            int decisions = MyNation.getBuildingDecisions();
+            int decisions = MyNation.getDecisions();
 
             if (printHelp) {
                 //Print commands, the index is used to color-code the different commands
@@ -86,6 +89,8 @@ public class Main
 
             String input = System.console().readLine();
 
+
+
             List<String> command_inputs = new ArrayList<>(List.of(input.split(" ")));
             command_inputs.replaceAll(String::trim);
 
@@ -93,36 +98,41 @@ public class Main
             String[] printArgs=null;
             String[] stepArgs=null;
             String[] decisionArgs=null;
-            try {
+            try
+            {
                 printArgs = commands.get("print").match(command_inputs);
                 stepArgs = commands.get("step").match(command_inputs);
                 decisionArgs=commands.get("decide").match(command_inputs);
-            //Check which arguments we match, these will not throw errors as they don't have arguments which can be wrong
-            if (commands.get("help").match(command_inputs)!=null)
-            {
-                printHelp = true;
-            }
-            else if (commands.get("quit").match(command_inputs)!=null)
-            {
-                return;
-            }
-            else if ((printArgs)!=null)
-            {
-                MyNation.printReport(System.out,printArgs[0].equalsIgnoreCase("true"),printArgs[1].equalsIgnoreCase("true"),printArgs[2].equalsIgnoreCase("true"),printArgs[3].equalsIgnoreCase("true"),printArgs[4].equalsIgnoreCase("true"),printArgs[5].equalsIgnoreCase("true"));
-            }
-            else if (decisionArgs!=null)
-            {
-                MyNation.applyDecision(Integer.parseInt(decisionArgs[0]));
-            }
-            else if ((stepArgs)!=null)
-            {
-                if (decisions>0)
-                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("You have available decisions!", Attribute.BOLD(), Attribute.RED_TEXT()));
+                //Check which arguments we match, these will not throw errors as they don't have arguments which can be wrong
+                if (commands.get("help").match(command_inputs)!=null)
+                {
+                    printHelp = true;
+                }
+                else if (commands.get("show").match(command_inputs)!=null)
+                {
+                    MyNation.displayPlots();
+                }
+                else if (commands.get("quit").match(command_inputs)!=null)
+                {
+                    return;
+                }
+                else if ((printArgs)!=null)
+                {
+                    MyNation.printReport(System.out,printArgs[0].equalsIgnoreCase("true"),printArgs[1].equalsIgnoreCase("true"),printArgs[2].equalsIgnoreCase("true"),printArgs[3].equalsIgnoreCase("true"),printArgs[4].equalsIgnoreCase("true"),printArgs[5].equalsIgnoreCase("true"));
+                }
+                else if (decisionArgs!=null)
+                {
+                    MyNation.applyDecision(Integer.parseInt(decisionArgs[0]),System.out);
+                }
+                else if ((stepArgs)!=null)
+                {
+                    if (decisions>0)
+                        System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("You have available decisions!", Attribute.BOLD(), Attribute.RED_TEXT()));
+                    else
+                        MyNation.update(Math.max(1,Integer.parseInt(stepArgs[0])),System.out);
+                }
                 else
-                    MyNation.update(Math.max(1,Integer.parseInt(stepArgs[0])),System.out);
-            }
-            else
-                System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("Write \"help\" to see all valid commands and arguments!", Attribute.BOLD(), Attribute.RED_TEXT()));
+                    System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("Write \"help\" to see all valid commands and arguments!", Attribute.BOLD(), Attribute.RED_TEXT()));
             }
             catch (Exception e) {
                 System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("There was an error parsing the command: "+e.getMessage(), Attribute.BOLD(), Attribute.RED_TEXT()));

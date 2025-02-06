@@ -29,9 +29,9 @@ public abstract class StateBuilding extends Building {
             //If we were under construction, stop that
             underConstruction = false;
             CIC_invested = getCost(this.getMyType());
-            //And also call this function as we DID just gain a new level
-            onFinishConstruction();
         }
+        //And also call this function as we DID just gain a new level
+        onFinishConstruction();
     }
 
 

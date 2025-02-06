@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /// The setup of the nation including everything from  the national focus tree and decisions, this can not be modified by the simulation
@@ -17,8 +18,13 @@ public class NationalSetup {
 
     private final NationState nationStart;
 
-    //Events which happens to the nation on particular days
-    private final Map<Integer, List<Events>> events;
+    //The day the simulation end, will be the latest event (A dedicated "war was beginning" event is assumed to exist)
+    private final int lastDay;
+
+    //Events which happens to the nation on particular days, sorted with a treeMap
+    private final TreeMap<Integer, List<Events>> events;
+
+    public int getLastDay() {return lastDay;}
 
     /// get all events happening this day
     public List<Events> getEvent(int day)
@@ -58,7 +64,7 @@ public class NationalSetup {
     {
         return nationStart.clone();
     }
-    public NationalSetup(String countryname,String eventsname) throws IOException {
+    public NationalSetup(String countryname, String eventsname) throws IOException {
         try {
             equipmentList = Equipment.loadEquipment(Paths.get(countryname,"Equipment.json").toString());
         } catch (IOException e) {
@@ -71,6 +77,7 @@ public class NationalSetup {
         }
         try {
             events= Events.loadEvents(Paths.get(countryname,eventsname+".json").toString()) ;
+            lastDay=events.lastKey();
         } catch (IOException e) {
             throw new IOException("Error loading "+countryname+" files\n"+e.getMessage());
         }

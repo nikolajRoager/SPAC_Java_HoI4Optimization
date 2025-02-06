@@ -17,41 +17,41 @@ import static com.diogonunes.jcolor.Ansi.colorize;
 /*Intentionally package private*/ class NationalProperties implements Cloneable
 {
     ///Stability, without party popularity and other effects
-    private double base_stability=0;
+    private double base_stability=0.5;
     /// sum of all permanent effects on stability
-    private double permanent_stability;
+    private double permanent_stability=0;
     /// What fraction of the population is just plain wrong?
-    private double autocracy_support;
+    private double autocracy_support=0;
     /// What fraction of the population is good?
-    private double democracy_support;
+    private double democracy_support=1.0;
     /// What fraction of the population is literally evil?
-    private double fascism_support;
+    private double fascism_support=0;
     /// What fraction of the population is misguided?
-    private double communism_support;
+    private double communism_support=0;
     /// How quickly is stupidity spreading?
-    private double autocracy_growth;
+    private double autocracy_growth=0;
     /// How quickly is the people being enlightened?
-    private double democracy_growth;
+    private double democracy_growth=0;
     /// How quickly is the terrible darkness growing?
-    private double fascism_growth;
+    private double fascism_growth=0;
     /// How quickly is confusion spreading?
-    private double communism_growth;
+    private double communism_growth=0;
     ///General construction speed bonus from technology and events
-    private double construction_speed;
+    private double construction_speed=0;
     ///construction speed bonus for military factories, added to construction speed
-    private double mil_construction_speed_bonus;
+    private double mil_construction_speed_bonus=-.3;
     ///construction speed bonus for civilian factories,  added to construction speed
-    private double civ_construction_speed_bonus;
+    private double civ_construction_speed_bonus=-.3;
     ///Efficiency cap
-    private double efficiency_cap;
+    private double efficiency_cap=0.5;
     ///Factory output bonus, Not counting effects from stability
-    private double base_factory_output;
+    private double base_factory_output=0;
     ///Fraction of all factories (civilian and military)  required for "consumer goods" (the non-military part of the economy) This is subtracted from CIVILIAN factories
-    private double base_consumer_goods_ratio;
+    private double base_consumer_goods_ratio=.35;
     /// A multiplier, effecting consumer goods, will be further modified by current stability
-    private double base_consumer_goods_multiplier;
+    private double base_consumer_goods_multiplier_percent=0.0;
     ///Excavation technology bonus to resource gain on a national level
-    private double resource_gain_bonus;
+    private double resource_gain_bonus=0.0;
     /// Base oil income, national basis, unupgraded fuel per oil, and unupgraded income from 1 refinery
     private double base_fuel =48;
     /// Additive bonuses to refinery fuel production
@@ -65,25 +65,25 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     /// Fraction of resources forced to be exported to the market
     private double resources_to_market=0.25;
     /// Percentage bonus to slots in stateEvents, applies only to slots from state type
-    private double buildingSlotBonus=0;
+    private double buildingSlotBonus=0.0;
 
     /// Stability added each sunday
     private double weekly_stability=0;
     /// Who's in charge? effects which party popularity gives positive stability
-    private Ideology RulingParty;
+    private Ideology RulingParty=Ideology.Democratic;
     ///How many civilian factories are earmarked for special projects (mainly intelligence and decryption) each month
     /// This is subtracted from available civs after calculating consumergoods, but before trade and construction
-    private int special_projects_civs;
+    private int special_projects_civs=0;
     /// Special project steel consumption
-    private int special_steel;
+    private int special_steel=0;
     /// Special project aluminium consumption
-    private int special_aluminium;
+    private int special_aluminium=0;
     /// Special project tungsten consumption
-    private int special_tungsten;
+    private int special_tungsten=0;
     /// Special project chromium consumption
-    private int special_chromium;
+    private int special_chromium=0;
     /// Special project rubber consumption
-    private int special_rubber;
+    private int special_rubber=0;
 
     @Override
     public NationalProperties clone() {
@@ -94,7 +94,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
             clone.autocracy_support =autocracy_support;
             clone.base_consumer_goods_ratio=base_consumer_goods_ratio;
             clone.base_fuel=base_fuel;
-            clone.base_consumer_goods_multiplier=base_consumer_goods_multiplier;
+            clone.base_consumer_goods_multiplier_percent=base_consumer_goods_multiplier_percent;
             clone.base_stability=base_stability;
             clone.basic_fuel_capacity=basic_fuel_capacity;
             clone.civ_construction_speed_bonus=civ_construction_speed_bonus;
@@ -244,7 +244,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
 
     /// Does not include stability effect
     public double getBase_consumer_goods_multiplier() {
-        return base_consumer_goods_multiplier;
+        return (1+base_consumer_goods_multiplier_percent);
     }
 
     /// Does not include multipliers
@@ -331,8 +331,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     }
 
     /// Consumer goods multiplier, do not modify by adding!, instead multiply with (1+thingToAdd)
-    public void setBase_consumer_goods_multiplier(double base_consumer_goods_multiplier) {
-        this.base_consumer_goods_multiplier = Math.max(base_consumer_goods_multiplier,0.0);
+    public void setBase_consumer_goods_multiplier_percent(double base_consumer_goods_multiplier) {
+        this.base_consumer_goods_multiplier_percent = Math.max(base_consumer_goods_multiplier,-1.0);
     }
 
     /// Base consumer goods ratio, between 0.0 and 1.0
@@ -471,7 +471,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     public double getConsumer_goods_ratio() {
         double stab = getStability();
         //Up to 20% multiplicative reduction from stability
-        return Math.clamp(base_consumer_goods_ratio*base_consumer_goods_multiplier*(1+(stab>0.5? (stab-0.5)*2*.2 : 0 )),0.1/*There is a minimum ratio*/,1.0);
+        return Math.clamp(base_consumer_goods_ratio*(getBase_consumer_goods_multiplier())*(1+(stab>0.5? (stab-0.5)*2*.2 : 0 )),0.1/*There is a minimum ratio*/,1.0);
     }
 
     /// Actual factory output, includig stability effects
@@ -988,14 +988,19 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 }
             }
             case base_consumer_goods_multiplier -> {
-                if (event.add())
-                    throw new RuntimeException("event.add() modify for consumer goods multiplier is not, and can not be, supporter");
+                if (event.add()) {
+                    setBase_consumer_goods_multiplier_percent(base_consumer_goods_multiplier_percent + event.value());
+                    if (out != null) {
+                        out.println(colorize("    Add " + String.format("%.2f", event.value() * 100) + "% pt to consumer goods multiplier, is now " + String.format("%.2f", base_consumer_goods_multiplier_percent * 100) + "%", negativeGood));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", negativeGood));
+                    }
+                }
                 else
                 {
-                    setBase_consumer_goods_multiplier(1+event.value());
+                    setBase_consumer_goods_multiplier_percent(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set consumer goods multiplier: "+String.format("1+%.2f",event.value()*100), negativeGood));
+                        out.println(colorize("    Set consumer goods multiplier: "+String.format("%.2f",event.value()*100), negativeGood));
                         out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", negativeGood));
                     }
                 }
@@ -1003,9 +1008,9 @@ import static com.diogonunes.jcolor.Ansi.colorize;
             case buildingSlotBonus -> {
                 if (event.add())
                 {
-                    setBuildingSlotBonus(buildingSlotBonus*100+event.value());
+                    setBuildingSlotBonus(buildingSlotBonus+event.value());
                     if (out!=null) {
-                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to building slots bonus, is now " + String.format("%.2f", base_consumer_goods_multiplier*100) + "%", negativeGood));
+                        out.println(colorize("    Add " + String.format("%.2f", event.value()*100) + "% pt to building slots bonus, is now " + String.format("%.2f", buildingSlotBonus*100) + "%", positiveGood));
                     }
                 }
                 else

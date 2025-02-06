@@ -23,7 +23,7 @@ public class Infrastructure extends StateBuilding implements Cloneable {
         }
         else
         {
-            this.name="Infrastructure level "+level;
+            this.name="Infrastructure level: "+level;
             CIC_invested = getCost(this.getMyType());
         }
     }

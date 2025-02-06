@@ -14,12 +14,12 @@ import org.HoI4Optimizer.Nation.Event.Events;
 import org.HoI4Optimizer.Nation.decision.BuildDecision;
 import org.HoI4Optimizer.NationalConstants.Equipment;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
-import org.apache.commons.lang3.tuple.Pair;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Function;
+import java.util.List;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 
@@ -31,20 +31,27 @@ public class NationState  implements Cloneable
     @NeverNull
     private DataLogger instituteOfStatistics;
 
-    /// A construction line for some building, with between 0 and 15 civilian factories assigned
-    private static class constructionLine{
-        /// The  thing we build
-        public Building building;
-        constructionLine(Building building){
-            this.building = building;
-        }
-    }
-
     /// What time are we looking at now?
     private int day=0;
 
     /// A very long list of modifiers
     private NationalProperties properties;
+
+    /// A construction line for some building, with between 0 and 15 civilian factories assigned
+    private record constructionLine
+            (
+                    Building building
+            )
+    {
+        public int daysRemaining(int civs, NationalProperties properties)
+        {
+            double CIC_per_day = 5*Math.min(civs,15)*(1+0.2*building.getLocation().getInfrastructureLevel())*(1+properties.getConstruction_speed()
+                    +(building instanceof MilitaryFactory ? properties.getMil_construction_speed_bonus() :0.0)
+                    +(building instanceof CivilianFactory ? properties.getCiv_construction_speed_bonus() :0.0));
+            double remainingCost = Building.getCost(building.getMyType())-building.getCIC_invested();
+            return (int)(remainingCost/CIC_per_day+1.0/*Round up*/);
+        }
+    }
 
     /// Reference to the Setup for this nation, has effects to modify propertyEvents above on certain days
     private NationalSetup setup;
@@ -99,6 +106,10 @@ public class NationState  implements Cloneable
             refineries.addAll(s.getRefineries());
         }
 
+        Collections.shuffle(civilianFactories);
+        Collections.shuffle(militaryFactories);
+        Collections.shuffle(refineries);
+
         name=countryName;
         this.setup=setup;
 
@@ -109,6 +120,13 @@ public class NationState  implements Cloneable
 
         instituteOfStatistics = new DataLogger();
         openInstituteOfStatistics();
+
+        //This is where I think it makes the most sense to tell the logger what to plot together, since this is the class which knows what the things mean
+        //Stability, Consumer goods, and Factory Output
+        instituteOfStatistics.addPlot("Stability, and related effects",Map.of("Political Stability",Color.GRAY,"Factory Output",Color.GREEN,"Consumer goods ratio",Color.ORANGE),"%",false);
+
+
+        //Party popularity over time
     }
 
     /// Open the institute of statistics, so we can keep track of literally everything
@@ -126,7 +144,7 @@ public class NationState  implements Cloneable
                 ()->{return properties.getCiv_construction_speed_bonus()+properties.getConstruction_speed();}
                 , DataLogger.logDataType.Percent);
 
-        instituteOfStatistics.setLog("percent factories on consumer goods",properties::getConsumer_goods_ratio, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Consumer goods ratio",properties::getConsumer_goods_ratio, DataLogger.logDataType.PositivePercent);
 
         instituteOfStatistics.setLog("percent of resources exported",properties::getResources_to_market, DataLogger.logDataType.PositivePercent);
 
@@ -134,6 +152,7 @@ public class NationState  implements Cloneable
         instituteOfStatistics.setLog("Democracy popular support"    ,properties::getDemocracy_support, DataLogger.logDataType.PositivePercent);
         instituteOfStatistics.setLog("Communism popular support"    ,properties::getCommunism_support, DataLogger.logDataType.PositivePercent);
         instituteOfStatistics.setLog("Fascism popular support"      ,properties::getFascism_support  , DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Government support"           ,properties::getRulingParty_support, DataLogger.logDataType.PositivePercent);
 
         instituteOfStatistics.setLog("Civilian factories",
                 ()->
@@ -165,6 +184,11 @@ public class NationState  implements Cloneable
                     return refs;
                 }
                 , DataLogger.logDataType.PositiveInteger);
+    }
+
+    public void displayPlots()
+    {
+        instituteOfStatistics.show();
     }
 
     /// Print a bar-plot with a percentage
@@ -201,29 +225,59 @@ public class NationState  implements Cloneable
             return colorize((modifier>-1?" ":"")+(modifier>-.1?" ":"")+(int)(100*modifier)+"%",Attribute.GREEN_TEXT());
     }
 
-    public void applyDecision(int decId) throws RuntimeException
+    public void applyDecision(int decId, PrintStream out) throws RuntimeException
     {
-        if (buildingDecisions.size()<decId)
+        if (buildingDecisions.size()+factoryReassignments.size()<decId)
             throw new RuntimeException("Target decision does not exist");
 
-        var decision = buildingDecisions.get(decId);
+        if (buildingDecisions.size()>decId) {
 
-        //Build something new
-        if (decision.type()== BuildDecision.Type.build)
-        {
-            decision.location().build(decision.building());
-            if (decision.building() instanceof Refinery)
-                refineries.add((Refinery) decision.building());
-            else if (decision.building() instanceof CivilianFactory)
-                civilianFactories.add((CivilianFactory) decision.building());
-            else if (decision.building() instanceof MilitaryFactory)
-                militaryFactories.add((MilitaryFactory) decision.building());
-            constructionLines.add(new constructionLine(decision.building()));
+            var decision = buildingDecisions.get(decId);
+
+            //Build something new
+            if (decision.type() == BuildDecision.Type.build) {
+                decision.location().build(decision.building());
+                if (decision.building() instanceof Refinery)
+                    refineries.add((Refinery) decision.building());
+                else if (decision.building() instanceof CivilianFactory)
+                    civilianFactories.add((CivilianFactory) decision.building());
+                else if (decision.building() instanceof MilitaryFactory)
+                    militaryFactories.add((MilitaryFactory) decision.building());
+                constructionLines.add(new constructionLine(decision.building()));
+                out.println(colorize("==Started building "+constructionLines.getLast().building.getBuildingName()+"==",Attribute.YELLOW_TEXT()));
+                int finish = constructionLines.getLast().daysRemaining(getUnassignedCivs(),properties);
+                out.println(colorize(constructionLines.getLast().building.getName()+" in "+constructionLines.getLast().building.getLocation().getName()+" approximate days remaining: "+finish,Attribute.BRIGHT_YELLOW_TEXT())+colorize("("+Calender.getDate(finish+day)+")",Attribute.WHITE_TEXT()));
+
+            }
+            if (decision.type() == BuildDecision.Type.upgrade) {
+                ((StateBuilding) decision.building()).upgrade();
+                constructionLines.add(new constructionLine(decision.building()));
+                out.println(colorize("==Started upgrading==",Attribute.YELLOW_TEXT()));
+                int finish = constructionLines.getLast().daysRemaining(getUnassignedCivs(),properties);
+                out.println(colorize(constructionLines.getLast().building.getName()+" in "+constructionLines.getLast().building.getLocation().getName()+" approximate days remaining: "+finish,Attribute.BRIGHT_YELLOW_TEXT())+colorize("("+Calender.getDate(finish+day)+")",Attribute.WHITE_TEXT()));
+            }
         }
-        if (decision.type()== BuildDecision.Type.upgrade)
+        else
         {
-            ((StateBuilding)decision.building()).upgrade();
-            constructionLines.add(new constructionLine(decision.building()));
+            var assignmentDecision = factoryReassignments.get(decId-buildingDecisions.size());
+
+            out.println(colorize("==Set up production lines==",Attribute.GREEN_TEXT()));
+            int factoryI=0;
+            for (var EqNumber : assignmentDecision.entrySet())
+            {
+                while (EqNumber.getValue()>0)
+                {
+                    //Loop through the list and add to the unassigned factories
+                    var f = militaryFactories.get(factoryI);
+                    if (f.getProduct()==null) {
+                        f.setProduct(EqNumber.getKey());
+                        EqNumber.setValue(EqNumber.getValue()-1);
+                        out.println(colorize(EqNumber.getKey().getName()+" at "+f.getName()+" in "+f.getLocation().getName(),Attribute.BRIGHT_WHITE_TEXT()));
+                    }else {
+                        factoryI++;
+                    }
+                }
+            }
         }
         updateDecisions();
     }
@@ -433,7 +487,9 @@ public class NationState  implements Cloneable
         if (showConstructionLines) {
             for (var line : constructionLines) {
                 //Calculate assigned factories directly
-                out.println(colorize("\t\t\tBuilding " + line.building.getName() + " in " + line.building.getLocation().getName() + " production: " + String.format("%.2f",line.building.getCIC_invested())  + "/" + String.format("%.2f",Building.getCost(line.building.getMyType())) + " CIC Assigned factories " + Math.min(15, unassignedCivs) + "/15", (line.building.getMyType() == Building.type.Civilian ? Attribute.YELLOW_TEXT() : (line.building.getMyType() == Building.type.Military ? Attribute.GREEN_TEXT() : Attribute.BLUE_TEXT()))));
+
+                int finish = line.daysRemaining(unassignedCivs,properties);
+                out.println(colorize("\t\t\tBuilding " + line.building.getName() + " in " + line.building.getLocation().getName() + " production: " + String.format("%.2f",line.building.getCIC_invested())  + "/" + String.format("%.2f",Building.getCost(line.building.getMyType())) + " CIC ~"+finish+" days remaining Assigned factories " + Math.min(15, unassignedCivs) + "/15", (line.building.getMyType() == Building.type.Civilian ? Attribute.YELLOW_TEXT() : (line.building.getMyType() == Building.type.Military ? Attribute.GREEN_TEXT() : Attribute.BLUE_TEXT()))));
                 unassignedCivs = Math.max(0, unassignedCivs - 15);
             }
 
@@ -454,17 +510,18 @@ public class NationState  implements Cloneable
         if (showDecisions)
         {
             out.println("--Decision report--");
-            out.println(buildingDecisions.size()+" building projects can be launched");
+            out.println(colorize( buildingDecisions.size()+" building projects can be launched",Attribute.BRIGHT_YELLOW_TEXT()));
             for (int i = 0; i < buildingDecisions.size(); i++)
                 buildingDecisions.get(i).display(i,out);
             out.println("More decisions may be available in-game, this list leaves out decisions which will have the same effect");
 
-            for (var r : factoryReassignments)
+            for (int i = 0; i < factoryReassignments.size(); i++)
             {
-                out.println("Factory assignment:");
-                r.forEach((E,f)->
+                out.println(colorize("Decision: "+(i+buildingDecisions.size()),Attribute.GREEN_TEXT()));
+                out.println(colorize("  assign our "+getUnassignedMils()+" unassigned military factories to: ",Attribute.BRIGHT_GREEN_TEXT()));
+                factoryReassignments.get(i).forEach((E,f)->
                 {
-                    out.println("\t"+E.getName()+": "+f);
+                    out.println(colorize("\t"+E.getName()+": "+f+" factories",Attribute.BRIGHT_GREEN_TEXT()));
                 });
             }
         }
@@ -541,8 +598,10 @@ public class NationState  implements Cloneable
         updateDecisions();
     }
 
+
+
     ///Get currently available decisions
-    public int getBuildingDecisions()
+    public int getDecisions()
     {
         return buildingDecisions.size()+factoryReassignments.size();
     }
@@ -618,14 +677,41 @@ public class NationState  implements Cloneable
         //Check for idling military factories, knowing the game mechanics, I ASSUME that they are fungible, (i.e. they all start with same efficiency)
         int unassignedMils= getUnassignedMils();
 
-        //Then generate all the ways we can assign these mils to the equipment, that will be (Products+Mils-1)!/((Mils-1)!*Products!)
-        var availableEquipment = setup.getEquipment(day).values().stream().toList();
-        //Start with everything on the first equipment
-        Map<Equipment,Integer> Reassignments = new HashMap<>();
-        for (var eq : availableEquipment)
-            Reassignments.put(eq,0);
-        Reassignments.put(availableEquipment.getFirst(),unassignedMils);
-   //     factoryReassignments.add(Reassignments);
+        if (unassignedMils>0) {
+
+            //Then generate all the ways we can assign these mils to the equipment, that will be (Products+Mils-1)!/((Mils-1)!*Products!)
+            var availableEquipment = setup.getEquipment(day).values().stream().toList();
+
+
+            List<Integer> EquipmentPermutations = new ArrayList<>();
+            generateList(new ArrayList<>(), EquipmentPermutations, availableEquipment.size(), unassignedMils, 0, unassignedMils);
+
+            //Loop through all permutations
+            for (int i = 0; i < EquipmentPermutations.size(); i += availableEquipment.size()) {
+                Map<Equipment, Integer> Reassignments = new HashMap<>();
+                for (int j = 0; j < availableEquipment.size(); j++) {
+                    Reassignments.put(availableEquipment.get(j), EquipmentPermutations.get(j + i));
+                }
+                factoryReassignments.add(Reassignments);
+            }
+        }
+    }
+
+    /// AI generated code, to generate all possible Lists of positive integers, with length N and sum M, for distributing equipment between factories
+    public static void generateList(List<Integer> current, List<Integer> Out, int N, int M, int sumSoFar, int maxValue) {
+        if (current.size() == N) {
+            if (sumSoFar == M) {
+                Out.addAll(current);
+            }
+            return;
+        }
+        for (int i = 0; i <= maxValue; ++i) {
+            if (sumSoFar + i <= M) {  // Pruning condition
+                current.add(i);
+                generateList(current, Out, N, M, sumSoFar + i, maxValue);
+                current.removeLast();
+            }
+        }
     }
 
     private void tryAddDecision(Map<Object, Integer> constructionDecisions, State s, Object myHash, BuildDecision dec) {
@@ -733,9 +819,10 @@ public class NationState  implements Cloneable
             properties.setDemocracy_support(newDemocracy);
             properties.setAutocracy_support(newAutocracy);
             properties.setFascism_support(newFascism);
+
+            //Tell the institute to do its thing
+            instituteOfStatistics.log();
         }
-
-
         //No decisions, but we ended anyway
         return;
     }
@@ -784,7 +871,6 @@ public class NationState  implements Cloneable
                 factories++;
                 civs++;
             }
-
         double cg = properties.getConsumer_goods_ratio();
         int cg_factories = (int)(factories*cg);
         int exportGoods=0;
