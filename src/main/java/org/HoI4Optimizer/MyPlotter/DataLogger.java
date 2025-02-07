@@ -211,7 +211,7 @@ public class DataLogger implements Cloneable{
                         entry.getDay0(),
                         line.getValue()));
             }
-            var frame= new LinePlotFrame(plot.title(), plot.yaxis_title(),lines, type);
+            var frame= new LinePlotFrame(plot.title(), plot.yaxis_title(),lines, type==null?logDataType.Real:type,plot.stacked_areas());
             frame.setVisible(true);
         }
     }

@@ -192,39 +192,32 @@ public class CommandlineCommand
                     {
                         if (j+1< strings.size())
                         {
-                            try
-                            {
-                                //Look for true or false
-                                if (args.get(i).myType== Argument.type.Boolean)
-                                {
-                                    if (strings.get(j+1).equalsIgnoreCase("true") || strings.get(j+1).equalsIgnoreCase("1"))
-                                    {
-                                        out[i]="true";
-                                    } else if (strings.get(j+1).equalsIgnoreCase("false") || strings.get(j+1).equalsIgnoreCase("0"))
-                                    {
-                                        out[i]="false";
-                                    } else
-                                        throw new IllegalArgumentException("Argument "+args.get(i).argName+" ("+strings.get(j+1)+") is not a boolean type");
-                                }
-                                else
-                                {
-//                                    out[i]=Double.parseDouble(strings.get(j+1));
-                                    //Verify that the argument is sane
-                                    if (!StringUtils.isNumeric(strings.get(j+1)))
-                                        throw new IllegalArgumentException("Argument "+args.get(i).argName+" ("+strings.get(j+1)+") is not numeric");
-                                    //If this an integer, make sure to cast the default argument to an integer, it should not throw errors since we checked it is numeric
-                                    if (args.get(i).myType == Argument.type.Integer)
-                                        out[i] = Integer.toString((int)Double.parseDouble(strings.get(j+1)));
-                                    else//Just read the argument, it is clearly a float
-                                        out[i] = strings.get(j+1);
+                           //Look for true or false
+                           if (args.get(i).myType== Argument.type.Boolean)
+                           {
+                               if (strings.get(j+1).equalsIgnoreCase("true") || strings.get(j+1).equalsIgnoreCase("1"))
+                               {
+                                   out[i]="true";
+                               } else if (strings.get(j+1).equalsIgnoreCase("false") || strings.get(j+1).equalsIgnoreCase("0"))
+                               {
+                                   out[i]="false";
+                               } else
+                                   throw new IllegalArgumentException("Argument "+args.get(i).argName+" ("+strings.get(j+1)+") is not a boolean type");
+                           }
+                           else
+                           {
+//                               out[i]=Double.parseDouble(strings.get(j+1));
+                               //Verify that the argument is sane
+                               if (!StringUtils.isNumeric(strings.get(j+1)))
+                                   throw new IllegalArgumentException("Argument "+args.get(i).argName+" ("+strings.get(j+1)+") is not numeric");
+                               //If this an integer, make sure to cast the default argument to an integer, it should not throw errors since we checked it is numeric
+                               if (args.get(i).myType == Argument.type.Integer)
+                                   out[i] = Integer.toString((int)Double.parseDouble(strings.get(j+1)));
+                               else//Just read the argument, it is clearly a float
+                                   out[i] = strings.get(j+1);
 
-                                }
-                            }
-                            //oh, whatever
-                            catch (Exception e)
-                            {
-                                return null;
-                            }
+                           }
+
 
                         }
                         else

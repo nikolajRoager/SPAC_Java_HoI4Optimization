@@ -1,6 +1,7 @@
 {
   "rulingParty": "Nonaligned",
   "base_stability": 0.50,
+  "permanent_stability": -0.05,
   "autocracy_growth": 0.0012,
   "autocracy_support": 0.3804,
   "democracy_support": 0.3197,

@@ -55,6 +55,7 @@ public class Main
         //Put these two last, so it appears at the bottom when we print
         commands.put("show",new CommandlineCommand("show","show all data collected by the national institute of statistics during the simulation",
                 List.of(new CommandlineCommand.Argument[]{
+                        new CommandlineCommand.Argument("save", "Save the graphs as pdf, (OVERWRITE existing pdfs)", CommandlineCommand.Argument.type.Flag, true, "false"),
                 })));
         commands.put("quit",new CommandlineCommand("quit","stop program",
                 List.of(new CommandlineCommand.Argument[]{

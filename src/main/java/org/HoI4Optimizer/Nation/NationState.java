@@ -122,37 +122,44 @@ public class NationState  implements Cloneable
         openInstituteOfStatistics();
 
         //This is where I think it makes the most sense to tell the logger what to plot together, since this is the class which knows what the things mean
-        //Stability, Consumer goods, and Factory Output
-        instituteOfStatistics.addPlot("Stability, and related effects",Map.of("Political Stability",Color.GRAY,"Factory Output",Color.GREEN,"Consumer goods ratio",Color.ORANGE),"%",false);
+        instituteOfStatistics.addPlot("Construction stats",Map.of("Political Stability",Color.GRAY,"Military factory construction speed",Color.GREEN,"Civilian factory construction speed",Color.YELLOW,"Construction speed",Color.BLUE,"Consumer goods ratio",Color.ORANGE),"%",false);
+        instituteOfStatistics.addPlot("Production stats",Map.of("Factory Output",Color.GREEN,"Efficiency Cap",Color.CYAN),"%",false);
+        instituteOfStatistics.addPlot("Popularity of ideologies",Map.of("Non-aligned",Color.GRAY,"Democracy",Color.BLUE,"Communism",Color.RED,"Fascism (Falangism)",new Color(115, 57, 0)),"%",true);
 
+        instituteOfStatistics.addPlot("Political stability",Map.of("Political Stability",Color.GRAY,"Base Stability",Color.BLACK,"Permanent stability modifiers",Color.GREEN,"Government support",Color.BLUE),"%",false);
 
-        //Party popularity over time
+        instituteOfStatistics.addPlot("Consumer goods",Map.of("Base consumer goods ratio",Color.YELLOW,"Consumer goods multiplier",Color.GREEN,"Consumer goods ratio",Color.ORANGE,"Political Stability",Color.GRAY),"%",false);
     }
 
     /// Open the institute of statistics, so we can keep track of literally everything
     private void openInstituteOfStatistics()
     {
         instituteOfStatistics.setLog("Political Stability",properties::getStability, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Base Stability",properties::getStability, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Permanent stability modifiers",properties::getStability, DataLogger.logDataType.PositivePercent);
+
         instituteOfStatistics.setLog("Factory Output",properties::getFactoryOutput, DataLogger.logDataType.Percent);
-        instituteOfStatistics.setLog("Efficiency Cap",properties::getFactoryOutput, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Efficiency Cap",properties::getEfficiency_cap, DataLogger.logDataType.PositivePercent);
         instituteOfStatistics.setLog("Resource gain bonus",properties::getResource_gain_bonus, DataLogger.logDataType.PositiveUnboundedPercent);
         instituteOfStatistics.setLog("Construction speed",properties::getConstruction_speed, DataLogger.logDataType.Percent);
-        instituteOfStatistics.setLog("Military factory Construction speed",
+        instituteOfStatistics.setLog("Military factory construction speed",
                 ()->{return properties.getMil_construction_speed_bonus()+properties.getConstruction_speed();}
                 , DataLogger.logDataType.Percent);
-        instituteOfStatistics.setLog("Civilian factory Construction speed",
+        instituteOfStatistics.setLog("Civilian factory construction speed",
                 ()->{return properties.getCiv_construction_speed_bonus()+properties.getConstruction_speed();}
                 , DataLogger.logDataType.Percent);
 
         instituteOfStatistics.setLog("Consumer goods ratio",properties::getConsumer_goods_ratio, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Base consumer goods ratio",properties::getBase_consumer_goods_ratio, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Consumer goods multiplier",properties::getBase_consumer_goods_multiplier, DataLogger.logDataType.PositivePercent);
 
         instituteOfStatistics.setLog("percent of resources exported",properties::getResources_to_market, DataLogger.logDataType.PositivePercent);
 
-        instituteOfStatistics.setLog("Non-aligned popular support"  ,properties::getAutocracy_support, DataLogger.logDataType.PositivePercent);
-        instituteOfStatistics.setLog("Democracy popular support"    ,properties::getDemocracy_support, DataLogger.logDataType.PositivePercent);
-        instituteOfStatistics.setLog("Communism popular support"    ,properties::getCommunism_support, DataLogger.logDataType.PositivePercent);
-        instituteOfStatistics.setLog("Fascism popular support"      ,properties::getFascism_support  , DataLogger.logDataType.PositivePercent);
-        instituteOfStatistics.setLog("Government support"           ,properties::getRulingParty_support, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Non-aligned"       ,properties::getAutocracy_support, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Democracy"         ,properties::getDemocracy_support, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Communism"         ,properties::getCommunism_support, DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Fascism (Falangism)"           ,properties::getFascism_support  , DataLogger.logDataType.PositivePercent);
+        instituteOfStatistics.setLog("Government support",properties::getRulingParty_support, DataLogger.logDataType.PositivePercent);
 
         instituteOfStatistics.setLog("Civilian factories",
                 ()->
@@ -594,7 +601,7 @@ public class NationState  implements Cloneable
                properties.apply(propertyEvent,out);
         if (theseEvents.stateEvents()!=null)
             for (var stateEvent : theseEvents.stateEvents())
-                states.get(stateEvent.stateID()).apply(stateEvent,properties,out);
+                states.get(stateEvent.stateID()).apply(stateEvent,properties,out,refineries,civilianFactories,militaryFactories);
         updateDecisions();
     }
 
@@ -738,13 +745,12 @@ public class NationState  implements Cloneable
     {
         for (int d = 0; d < days; d++) {
 
-            //Start by updating the list of decisions, if it is not empty today, stop!
-            if (!buildingDecisions.isEmpty())
+            //Start by checking if yesterday created some decisions for us to react to
+            if (!buildingDecisions.isEmpty() || !factoryReassignments.isEmpty())
                 return;
 
             ++day;
 
-            updateDecisions();
             // First step, update production
             // TBD
 
@@ -822,6 +828,8 @@ public class NationState  implements Cloneable
 
             //Tell the institute to do its thing
             instituteOfStatistics.log();
+
+            updateDecisions();
         }
         //No decisions, but we ended anyway
         return;

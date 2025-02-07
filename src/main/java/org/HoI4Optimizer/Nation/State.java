@@ -487,7 +487,7 @@ public class State implements Cloneable {
     /// Adepply events, and optionally print what happens
     /// @param out Where to print to, use null if you don't want anything printed
     /// @param event event to apply
-    void apply(StateEvent event,NationalProperties properties, PrintStream out)
+    void apply(StateEvent event,NationalProperties properties, PrintStream out, List<Refinery> nationalRefineries, List<CivilianFactory> nationalCivs, List<MilitaryFactory> nationalMils)
     {
 
         Attribute GoodOutcome= Attribute.GREEN_TEXT();
@@ -551,8 +551,11 @@ public class State implements Cloneable {
             case Refinery -> {
                 if (getFreeSlots(properties.getBuildingSlotBonus())>0) {
                     int n = Math.min(getFreeSlots(properties.getBuildingSlotBonus()),event.number());
-                    for (int i = 0; i < n; ++i)
-                        refineries.add(new Refinery(this, false/*Instantly construct*/));
+                    for (int i = 0; i < n; ++i) {
+                        var New = new Refinery(this, false/*Instantly construct*/);
+                        refineries.add(New);
+                        nationalRefineries.add(New);
+                    }
                     if (out != null)
                         if (n==event.number())
                             out.println(colorize("    Add " + event.number() + " refineries in " + name + " total is now " + refineries.size(), outcomeColour));
@@ -565,9 +568,11 @@ public class State implements Cloneable {
             case Civilian -> {
                 if (getFreeSlots(properties.getBuildingSlotBonus())>0) {
                     int n = Math.min(getFreeSlots(properties.getBuildingSlotBonus()),event.number());
-                    for (int i = 0; i < n; ++i)
-                        civilianFactories.add(new CivilianFactory(this, false/*Instantly construct*/));
-                    if (out != null)
+                    for (int i = 0; i < n; ++i) {
+                        var New = new CivilianFactory(this, false/*Instantly construct*/);
+                        civilianFactories.add(New);
+                        nationalCivs.add(New);
+                    }if (out != null)
                         if (n==event.number())
                             out.println(colorize("    Add " + event.number() + " civilian factories in " + name + " total is now " + civilianFactories.size(), outcomeColour));
                         else
@@ -579,8 +584,11 @@ public class State implements Cloneable {
             case Military -> {
                 if (getFreeSlots(properties.getBuildingSlotBonus())>0) {
                     int n = Math.min(getFreeSlots(properties.getBuildingSlotBonus()),event.number());
-                    for (int i = 0; i < n; ++i)
-                        militaryFactories.add(new MilitaryFactory(this, false/*Instantly construct*/));
+                    for (int i = 0; i < n; ++i) {
+                        var New = new MilitaryFactory(this, false/*Instantly construct*/);
+                        militaryFactories.add(New);
+                        nationalMils.add(New);
+                    }
                     if (out != null)
                         if (n==event.number())
                             out.println(colorize("    Add " + event.number() + " military factories in " + name + " total is now " + militaryFactories.size(), outcomeColour));

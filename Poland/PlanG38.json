@@ -161,8 +161,8 @@
       "propertyEvents": [
         {
           "modify": "base_consumer_goods_multiplier",
-          "value": -0.35,
-          "add": true
+          "value": 0.65,
+          "add": false
         }
       ]
     },
@@ -252,8 +252,8 @@
         },
         {
           "modify":"base_consumer_goods_multiplier",
-          "value":0.05,
-          "add": true
+          "value":0.6825,
+          "add":false
         }
       ]
     },
@@ -262,7 +262,7 @@
       "propertyEvents": [
         {
           "modify":"autocracy_growth",
-          "value":-0.0010,
+          "value":-0.0015,
           "add": true
         }
       ]
@@ -391,8 +391,8 @@
         },
         {
           "modify":"base_consumer_goods_multiplier",
-          "value":0.05,
-          "add": true
+          "value":0.7865,
+          "add": false
         }
       ]
     }
@@ -408,7 +408,7 @@
     }
   ],
   "574": [{
-    "name": "Second stage of industrial strategy has significantly boosted production capacity, attention is now focused on the resource sector",
+    "name": "Second stage of industrial strategy has significantly boosted production capacity, attention is now focused on making railway transport more survivable in the face of air-attack",
       "propertyEvents": [
         {
           "modify": "base_factory_output",
@@ -422,7 +422,7 @@
         }
       ]
   }],
-  "497":
+  "547":
   [
     {
       "name": "Under reform program, the Sanation left and unions start improving manufacturing workers' conditions",
@@ -434,6 +434,11 @@
           "add": true
         },
         {
+          "modify":"base_consumer_goods_multiplier",
+          "value":0.715,
+          "add":false
+        },
+        {
           "modify": "base_factory_output",
           "value": -0.1,
           "add": true
@@ -441,7 +446,17 @@
       ]
     }
   ],
-  "700": [
+  "735": [
+    {
+      "name": "Recruiting mathematicians for radio analysis",
+      "propertyEvents": [
+        {
+          "modify":"special_projects_civs",
+          "value":8,
+          "add": false
+        }
+      ]
+    },
     {
       "name": "Rydz-Śmigły backs Sławek as prime minister (in a move weakening Mościcki's power and strengthening the Sejm), in a speech Sławek calls for the need for reconciliation and alliance with the Baltic states",
       "propertyEvents":
@@ -453,8 +468,8 @@
         },
         {
           "modify":"base_consumer_goods_multiplier",
-          "value":-0.20,
-          "add": true
+          "value":0.65,
+          "add": false
         },
         {
           "modify":"autocracy_growth",
@@ -469,12 +484,17 @@
       ]
     },
     {
-      "name": "Falangists strongly oppose Sławek's reform, government cracks down on fascist opposition, while Rydz-Śmigły tries to negotiate with them",
+      "name": "Falangists strongly oppose Sławek's reform, government cracks down on them citing adjacency to fascism, while Rydz-Śmigły tries to negotiate with them",
       "propertyEvents":
       [
         {
           "modify":"autocracy_support",
           "value":-0.05,
+          "add": true
+        },
+        {
+          "modify":"base_stability",
+          "value":-0.10,
           "add": true
         },
         {
@@ -490,12 +510,12 @@
       ]
     },
     {
-      "name": "Leftist and veteran soldier Kazimierz Switalski appointed commander of special forces"
+      "name": "Leftist veteran soldier Kazimierz Switalski appointed commander of special forces"
     }
   ],
   "812": [
     {
-      "name": "Anti-Fascist crackdowns end, and falangist leaders supports the armament and recruitment effor",
+      "name": "Anti-Fascist crackdowns end, as falangist leaders agree to support the armament and recruitment effort",
       "propertyEvents":
       [
         {
@@ -523,8 +543,8 @@
         },
         {
           "modify":"base_consumer_goods_multiplier",
-          "value":0.1,
-          "add": true
+          "value":0.858,
+          "add":false
         },
         {
           "modify":"autocracy_growth",
@@ -532,12 +552,31 @@
           "add": true
         }
       ]
-    },
-    {
-      "name": "Rydz-Śmigły and Sławek talk with President Mościcki about the need to work together, and for the minor Eastern European nations to ally."
     }
   ],
   "630": [
+    {
+      "name": "The sanation left grows stronger in the Sejm, Sławek strengthens his hold over this faction",
+      "propertyEvents": [
+        {
+          "modify": "permanent_stability",
+          "value": 0.15,
+          "add": true
+        },
+        {
+          "modify": "base_consumer_goods_multiplier",
+          "value": 0.7865,
+          "add": false
+        },
+        {
+          "modify": "autocracy_growth",
+          "value": 0.0005,
+          "add": true
+        }
+      ]
+    }
+  ],
+  "665": [
     {
       "name": "Rydz-Śmigły ally with Falangist paramilitaries to bolster military recruitment",
       "propertyEvents":
@@ -549,8 +588,8 @@
         },
         {
           "modify":"base_consumer_goods_multiplier",
-          "value":0.1,
-          "add": true
+          "value":0.858,
+          "add": false
         },
         {
           "modify":"autocracy_growth",
@@ -591,6 +630,11 @@
           "modify": "base_factory_output",
           "value": 0.1,
           "add": true
+        },
+        {
+          "modify":"base_consumer_goods_multiplier",
+          "value":0.7865,
+          "add": false
         }
       ]
     }
@@ -619,29 +663,13 @@
     ]
   }],
   "734": [{
-    "name": "Industrial reform and investment improves yield of mines and smelters",
-    "propertyEvents":
-    [{
-      "modify":"resource_gain_bonus",
-      "value":0.10,
-      "add": true
-    }]
+    "name": "The army orders first Armoured trains"
   },
     {
       "name": "Military engineering training intensifies"
     }
   ],
-  "735": [
-    {
-      "name": "Recruiting mathematicians for radio analysis",
-      "propertyEvents": [
-        {
-          "modify":"special_projects_civs",
-          "value":8,
-          "add": false
-        }
-      ]
-    },
+  "770": [
     {
       "name": "Sławek passes Common Organization of Society, undermining the BBWR",
       "propertyEvents": [
@@ -664,6 +692,11 @@
 
       "stateEvents":
       [
+        {
+          "stateID": 0,
+          "modify":"Slot",
+          "number":2
+        },
         {
           "stateID": 1,
           "modify":"Slot",
@@ -748,11 +781,6 @@
           "stateID": 17,
           "modify":"Slot",
           "number":2
-        },
-        {
-          "stateID": 18,
-          "modify":"Slot",
-          "number":2
         }
       ]
     }
@@ -809,9 +837,9 @@
       }
     ]
   }],
-  "770": [
+  "805": [
     {
-      "name": "PM Sławek's new parliamentarian constitutions, free and fair elections scheduled for September 1938",
+      "name": "PM Sławek's new parliamentarian constitutions takes effect, free and fair elections scheduled for September 1938",
       "propertyEvents": [
         {
           "modify":"permanent_stability",
@@ -852,7 +880,7 @@
           [
             {"name": "Radio operators are integrated at the battalion level, the process of lower-level integration accelerates"}
           ],
-  "840": [
+  "875": [
     {
       "name": "Poland agrees on referendum on return of Vilnius to Lithuania within 2 years, the Polish, Czechoslovak, Lithuanian, Latvian, and Estonian delegations draft mutual defence agreement against Bolshevik and Nazi aggression, diplomatic feelers are extended to Romania"
     }
@@ -867,7 +895,7 @@
       "name": "Design work on new field-howitzer/self-propelled gun enters prototype stage"
     }
   ],
-  "910": [
+  "945": [
     {
       "name": "The Vilnius pact is signed, Hitler is furious, the 4 countries agree to merge their intelligence agencies"
     }
@@ -877,19 +905,19 @@
       "name": "The sudeten crisis intensifies, Britain and France backs down"
     }
   ],
-  "930": [
+  "965": [
     {
       "name": "The national defence fund has been completely spent, the Polish economy starts to buckle under the pressure of rearmament",
       "propertyEvents": [
         {
           "modify": "base_consumer_goods_multiplier",
-          "value": 0.35,
-          "add": true
+          "value": 1.0,
+          "add":false
         }
       ]
     }
   ],
-  "935": [
+  "970": [
     {
       "name": "Sławek's social-democratic block wins comfortable majority in election, though the pacifist-socialist coalition comes in second",
       "propertyEvents": [
@@ -901,12 +929,7 @@
       ]
     },
     {
-      "name": "The polish ambassador to France lobbies against Deladier and Chamberlain's appeasement"
-    }
-  ],
-  "980": [
-    {
-      "name": "Romania joins the Vilnius pact fulfilling the initial Miedzymorze ideals"
+      "name": "The polish ambassadors to France and the UK lobbies against Deladier and Chamberlain's appeasement"
     }
   ],
   "982": [

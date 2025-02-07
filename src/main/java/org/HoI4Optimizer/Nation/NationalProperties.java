@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.HoI4Optimizer.Nation.Event.PropertyEvent;
 import org.apache.commons.lang3.NotImplementedException;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -49,7 +50,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     ///Fraction of all factories (civilian and military)  required for "consumer goods" (the non-military part of the economy) This is subtracted from CIVILIAN factories
     private double base_consumer_goods_ratio=.35;
     /// A multiplier, effecting consumer goods, will be further modified by current stability
-    private double base_consumer_goods_multiplier_percent=0.0;
+    private double base_consumer_goods_multiplier =1.0;
     ///Excavation technology bonus to resource gain on a national level
     private double resource_gain_bonus=0.0;
     /// Base oil income, national basis, unupgraded fuel per oil, and unupgraded income from 1 refinery
@@ -94,7 +95,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
             clone.autocracy_support =autocracy_support;
             clone.base_consumer_goods_ratio=base_consumer_goods_ratio;
             clone.base_fuel=base_fuel;
-            clone.base_consumer_goods_multiplier_percent=base_consumer_goods_multiplier_percent;
+            clone.base_consumer_goods_multiplier = base_consumer_goods_multiplier;
             clone.base_stability=base_stability;
             clone.basic_fuel_capacity=basic_fuel_capacity;
             clone.civ_construction_speed_bonus=civ_construction_speed_bonus;
@@ -244,7 +245,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
 
     /// Does not include stability effect
     public double getBase_consumer_goods_multiplier() {
-        return (1+base_consumer_goods_multiplier_percent);
+        return ( base_consumer_goods_multiplier);
     }
 
     /// Does not include multipliers
@@ -331,8 +332,8 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     }
 
     /// Consumer goods multiplier, do not modify by adding!, instead multiply with (1+thingToAdd)
-    public void setBase_consumer_goods_multiplier_percent(double base_consumer_goods_multiplier) {
-        this.base_consumer_goods_multiplier_percent = Math.max(base_consumer_goods_multiplier,-1.0);
+    public void setBase_consumer_goods_multiplier(double base_consumer_goods_multiplier) {
+        this.base_consumer_goods_multiplier = Math.max(base_consumer_goods_multiplier,-1.0);
     }
 
     /// Base consumer goods ratio, between 0.0 and 1.0
@@ -989,15 +990,11 @@ import static com.diogonunes.jcolor.Ansi.colorize;
             }
             case base_consumer_goods_multiplier -> {
                 if (event.add()) {
-                    setBase_consumer_goods_multiplier_percent(base_consumer_goods_multiplier_percent + event.value());
-                    if (out != null) {
-                        out.println(colorize("    Add " + String.format("%.2f", event.value() * 100) + "% pt to consumer goods multiplier, is now " + String.format("%.2f", base_consumer_goods_multiplier_percent * 100) + "%", negativeGood));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", negativeGood));
-                    }
+                    throw new RuntimeException("Can not add to a multiplicative factor");
                 }
                 else
                 {
-                    setBase_consumer_goods_multiplier_percent(event.value());
+                    setBase_consumer_goods_multiplier(event.value());
                     if (out!=null)
                     {
                         out.println(colorize("    Set consumer goods multiplier: "+String.format("%.2f",event.value()*100), negativeGood));
