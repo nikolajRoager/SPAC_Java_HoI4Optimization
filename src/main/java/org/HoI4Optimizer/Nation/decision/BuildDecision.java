@@ -23,7 +23,8 @@ public record BuildDecision(
         Type type,
         State location,
         Building building,
-        String description
+        String description,
+        int days
 )
 {
     public enum Type
@@ -47,20 +48,20 @@ public record BuildDecision(
     }
 
     /// specifically create a decision which upgrades a state building
-    public BuildDecision(StateBuilding building, String description)
+    public BuildDecision(StateBuilding building, String description,int days)
     {
-        this(Type.upgrade,building.getLocation(),building,description);
+        this(Type.upgrade,building.getLocation(),building,description,days);
     }
 
     /// Specifically create a decision building a new shared building in this state, which creates a new building, to be build in this location
-    public BuildDecision(State location, Factory building, String description)
+    public BuildDecision(State location, Factory building, String description,int days)
     {
-        this(Type.build,location,building,description);
+        this(Type.build,location,building,description,days);
     }
     /// Specifically create a decision building a NEW military factory in this location producing this equipment
-    public BuildDecision(State location, MilitaryFactory factory, Equipment equipment, String description)
+    public BuildDecision(State location, MilitaryFactory factory, Equipment equipment, String description,int days)
     {
-        this(Type.build,location,factory,description);
+        this(Type.build,location,factory,description,days);
         factory.setProduct(equipment);
     }
 
@@ -74,11 +75,13 @@ public record BuildDecision(
                 out.println(colorize("  Build "+building.getBuildingName()+" in "+location.getName()+":",Attribute.BRIGHT_YELLOW_TEXT()));
                 out.println(colorize("  "+building.getName(),Attribute.BRIGHT_YELLOW_TEXT()));
                 out.println(colorize("  "+description,Attribute.BRIGHT_YELLOW_TEXT()));
+                out.println(colorize("  Estimated build time "+days,Attribute.BRIGHT_YELLOW_TEXT()));
             }
             case upgrade ->{
                 out.println(colorize("  Upgrade "+building.getBuildingName()+" in "+location.getName()+":",Attribute.BRIGHT_YELLOW_TEXT()));
                 out.println(colorize("  "+((StateBuilding) building).getNextUpgradeName(),Attribute.BRIGHT_YELLOW_TEXT()));
                 out.println(colorize("  "+description,Attribute.BRIGHT_YELLOW_TEXT()));
+                out.println(colorize("  Estimated build time "+days,Attribute.BRIGHT_YELLOW_TEXT()));
             }
         }
     }

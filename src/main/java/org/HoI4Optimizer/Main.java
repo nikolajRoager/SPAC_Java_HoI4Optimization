@@ -17,7 +17,6 @@ public class Main
     //Main function, controls what commands get done from commandline
     public static void main(String[] args)
     {
-
         NationalSetup Setup;
         //Load setup
         try {
@@ -40,9 +39,9 @@ public class Main
                         new CommandlineCommand.Argument("showStates", "Show detailed breakdown of all States in the nation", CommandlineCommand.Argument.type.Flag, true, "false"),
                         new CommandlineCommand.Argument("showDecisions", "Show all decisions available now", CommandlineCommand.Argument.type.Flag, true, "false"),
                 })));
-        commands.put("step",new CommandlineCommand("step","(Only if no decisions need to be made!) simulate forward a specific number of days, or until a construction or production decision becomes available",
+        commands.put("step",new CommandlineCommand("step","(Only if no decisions need to be made!) simulate forward a specific number of days, or until an event happens, or construction or production decision becomes available",
                 List.of(new CommandlineCommand.Argument[]{
-                        new CommandlineCommand.Argument("days", "how many days should we at most try to step forward, we will stop once a decision needs to be made", CommandlineCommand.Argument.type.Integer, true, "1"),
+                        new CommandlineCommand.Argument("days", "how many days should we at most try to step forward, we will stop once a decision needs to be made; if left our (or set to 0) we will step until an event happens", CommandlineCommand.Argument.type.Integer, true, "0"),
                 })));
         commands.put("decide",new CommandlineCommand("decide","(Only if decisions are available!) do something with your nation",
                 List.of(new CommandlineCommand.Argument[]{
@@ -57,6 +56,12 @@ public class Main
                 List.of(new CommandlineCommand.Argument[]{
                         new CommandlineCommand.Argument("save", "Save the graphs as pdf, (OVERWRITE existing pdfs)", CommandlineCommand.Argument.type.Flag, true, "false"),
                 })));
+        //Put these two last, so it appears at the bottom when we print
+        commands.put("showFactories",new CommandlineCommand("showFactories","show stats for a particular factory",
+                List.of(new CommandlineCommand.Argument[]{
+                        new CommandlineCommand.Argument("mil", "The factory to show data for, out of range shows all", CommandlineCommand.Argument.type.Integer, true, "999"),
+                        new CommandlineCommand.Argument("save", "Save the graphs as pdf, (OVERWRITE existing pdfs)", CommandlineCommand.Argument.type.Flag, true, "false"),
+                })));
         commands.put("quit",new CommandlineCommand("quit","stop program",
                 List.of(new CommandlineCommand.Argument[]{
                 })));
@@ -66,9 +71,9 @@ public class Main
 
         boolean printHelp = true;
         do {
-
             //Load decisions the player can make
             int decisions = MyNation.getDecisions();
+            int tradeDecisions = MyNation.getTradeDecisions();
 
             if (printHelp) {
                 //Print commands, the index is used to color-code the different commands
@@ -78,19 +83,17 @@ public class Main
                 printHelp = false;
             }
 
-
             //If there are available decisions, tell the user where they can find the
             if (decisions>0)
                 System.out.println(colorize("####", Attribute.BOLD(), Attribute.GREEN_TEXT(), Attribute.GREEN_BACK()) + colorize("There are available decisions, write print showDecisions to see them", Attribute.BOLD(), Attribute.GREEN_TEXT()));
-
+            if (tradeDecisions>0)
+                System.out.println(colorize("####", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("There are available optional trade decisions, write print showDecisions to see them", Attribute.ITALIC(), Attribute.BLUE_TEXT()));
 
             System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()));
-            System.out.println(colorize(" ",Attribute.MAGENTA_BACK())+" "+colorize("("+Calender.getDate(MyNation.getDay())+" day "+MyNation.getDay()+")", Attribute.ITALIC(),Attribute.WHITE_TEXT()));
+            System.out.println(colorize(" ",Attribute.MAGENTA_BACK())+" "+colorize("("+ MyCalendar.getDate(MyNation.getDay())+" day "+MyNation.getDay()+")", Attribute.ITALIC(),Attribute.WHITE_TEXT()));
             System.out.print(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK())+colorize("$",Attribute.BLACK_TEXT(),Attribute.MAGENTA_BACK())+" ");
 
             String input = System.console().readLine();
-
-
 
             List<String> command_inputs = new ArrayList<>(List.of(input.split(" ")));
             command_inputs.replaceAll(String::trim);
@@ -98,20 +101,28 @@ public class Main
             //Save some longer commands in lists, so we can read the arguments individually
             String[] printArgs=null;
             String[] stepArgs=null;
+            String[] showArgs=null;
+            String[] showFactoryArgs=null;
             String[] decisionArgs=null;
             try
             {
                 printArgs = commands.get("print").match(command_inputs);
                 stepArgs = commands.get("step").match(command_inputs);
+                showArgs = commands.get("show").match(command_inputs);
+                showFactoryArgs = commands.get("showFactories").match(command_inputs);
                 decisionArgs=commands.get("decide").match(command_inputs);
                 //Check which arguments we match, these will not throw errors as they don't have arguments which can be wrong
                 if (commands.get("help").match(command_inputs)!=null)
                 {
                     printHelp = true;
                 }
-                else if (commands.get("show").match(command_inputs)!=null)
+                else if (showFactoryArgs!=null)
                 {
-                    MyNation.displayPlots();
+                    MyNation.displayPlots( Integer.parseInt(showFactoryArgs[0]),showFactoryArgs[1].equalsIgnoreCase("true"));
+                }
+                else if (showArgs!=null)
+                {
+                    MyNation.displayPlots( showArgs[0].equalsIgnoreCase("true"));
                 }
                 else if (commands.get("quit").match(command_inputs)!=null)
                 {
@@ -130,7 +141,7 @@ public class Main
                     if (decisions>0)
                         System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("You have available decisions!", Attribute.BOLD(), Attribute.RED_TEXT()));
                     else
-                        MyNation.update(Math.max(1,Integer.parseInt(stepArgs[0])),System.out);
+                        MyNation.update(Math.max(0,Integer.parseInt(stepArgs[0])),System.out);
                 }
                 else
                     System.out.println(colorize("###", Attribute.BOLD(), Attribute.BLUE_TEXT(), Attribute.BLUE_BACK()) + colorize("Write \"help\" to see all valid commands and arguments!", Attribute.BOLD(), Attribute.RED_TEXT()));

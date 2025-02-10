@@ -2,6 +2,7 @@ package org.HoI4Optimizer.NationalConstants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import net.bytebuddy.utility.nullability.NeverNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,16 +79,40 @@ public class Equipment {
         this.unit_cost = unit_cost;
     }
 
-    /// When is this unlocked after January 1 1936:
+    /// When is this unlocked after January 1, 1936:
     private int researchTime;
 
-    /// When is this unlocked after January 1 1936:
+    /// When is this unlocked after January 1, 1936:
     public int getResearchTime() {
         return researchTime;
     }
 
     public void setResearchTime(int ResearchTime) {
         this.researchTime = ResearchTime;
+    }
+
+    /// What type of equipment is this? effects which special bonuses get applied to them
+    public enum Category{
+        infantry,
+        artillery,
+        armor,
+        truck,
+        train,
+        support,
+        /// No bonuses can be applied for production
+        none,
+    }
+
+    @NeverNull
+    private Category category=Category.none;
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    @NeverNull
+    public Category getCategory() {
+        return category;
     }
 
     /// Next upgraded model of this thing
@@ -126,6 +151,17 @@ public class Equipment {
     private int tungsten;
     /// How much Chromium is required per production line?
     private int chromium;
+
+    /// How much of this stuff do we start with?
+    private long initial=0;
+
+    public void setInitial(long initial) {
+        this.initial = initial;
+    }
+
+    public long getInitial() {
+        return initial;
+    }
 
     /// How much aluminium is required per production line?
     public int getAluminium() {
@@ -185,6 +221,7 @@ public class Equipment {
         this.chromium = 0;
         this.aluminium = 0;
         this.tungsten = 0;
+        this.initial=0;
     }
 
     ///load a list of equipment from json, identified by a unique name

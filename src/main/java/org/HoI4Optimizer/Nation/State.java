@@ -294,13 +294,6 @@ public class State implements Cloneable {
         //Now loop through every state, and update the factory names
         for (var S : List)
         {
-            //Make sure that factories is not null
-            if (S.militaryFactories==null)
-                S.militaryFactories=new ArrayList<>();
-            if (S.civilianFactories==null)
-                S.civilianFactories=new ArrayList<>();
-            if (S.refineries==null)
-                S.refineries=new ArrayList<>();
             for (var f : S.militaryFactories)
             {
                 // Update military factory to produce the right thing

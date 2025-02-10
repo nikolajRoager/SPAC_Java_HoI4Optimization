@@ -14,33 +14,41 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
+        <!-- Java charts for data visualization-->
         <dependency>
             <groupId>org.jfree</groupId>
             <artifactId>jfreechart</artifactId>
             <version>1.5.3</version>
         </dependency>
+        <!-- JSon loading -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.17.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.diogonunes/JColor -->
+        <!-- A nice lightweight terminal colour library: https://mvnrepository.com/artifact/com.diogonunes/JColor -->
         <dependency>
             <groupId>com.diogonunes</groupId>
             <artifactId>JColor</artifactId>
             <version>5.5.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/jline/jline -->
+        <!--This was included automatically, don't know what it does https://mvnrepository.com/artifact/jline/jline -->
         <dependency>
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
             <version>3.0.0.M1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <!--Useful string utilities https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.17.0</version>
+        </dependency>
+        <!-- For saving plots as pdf -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.13.2</version>
         </dependency>
     </dependencies>
 </project>

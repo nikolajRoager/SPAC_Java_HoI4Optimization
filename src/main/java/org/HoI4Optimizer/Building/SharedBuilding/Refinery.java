@@ -38,9 +38,10 @@ public class Refinery extends Factory implements Cloneable{
         return Building.type.Refinery;
     }
 
+    /// Print a report of this building and all its properties
     @Override
     public void printReport(PrintStream out, String prefix) {
-        out.println(colorize(prefix+"==== Chemical plant ========================================================", Attribute.BRIGHT_YELLOW_TEXT()) );
+        out.println(colorize(prefix+"==== Chemical refinery "+String.format("ref%-3d",id)+" ==================================================================", Attribute.BLUE_TEXT()) );
         super.printReport(out,prefix+"\t");
     }
 
@@ -58,10 +59,9 @@ public class Refinery extends Factory implements Cloneable{
         try {
             Refinery clone = (Refinery) super.clone();
             clone.CIC_invested=CIC_invested;
-
             //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
             clone.location=location;
-
+            clone.id=id;
             clone.name=name;
             clone.underConstruction=underConstruction;
             return clone;

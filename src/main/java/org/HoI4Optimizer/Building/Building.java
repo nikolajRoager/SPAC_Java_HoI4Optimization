@@ -107,5 +107,4 @@ public abstract class Building {
 
     /// Is this factory operating?, other implementations may overwrite this with more data
     public boolean operating() {return !underConstruction;}
-
 }

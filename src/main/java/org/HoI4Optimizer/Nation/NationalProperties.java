@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.HoI4Optimizer.Nation.Event.PropertyEvent;
 import org.apache.commons.lang3.NotImplementedException;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -85,6 +84,7 @@ import static com.diogonunes.jcolor.Ansi.colorize;
     private int special_chromium=0;
     /// Special project rubber consumption
     private int special_rubber=0;
+
 
     @Override
     public NationalProperties clone() {

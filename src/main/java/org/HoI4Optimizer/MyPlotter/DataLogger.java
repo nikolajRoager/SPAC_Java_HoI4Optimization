@@ -6,11 +6,13 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /// A class which can log, save, and plot any data
 public class DataLogger implements Cloneable{
@@ -122,6 +124,17 @@ public class DataLogger implements Cloneable{
     @NeverNull
     Map<String,TableEntry> table;
 
+
+    /// Counters used to count some type of data up
+    @NeverNull
+    Map<String,Double> counters;
+    /// Functions which make counters tick up
+    @NeverNull
+    List<Supplier<Map<String,Double>>> counterFunctions;
+
+    static private final List<Color> colors =List.of(Color.RED,Color.GREEN,Color.BLUE,Color.YELLOW,Color.CYAN,Color.MAGENTA,Color.PINK,Color.GRAY);
+
+    /// List of plots we need to make
     @NeverNull
     List<PlotTemplate> plots;
 
@@ -133,8 +146,9 @@ public class DataLogger implements Cloneable{
         day=0;
         table = new HashMap<>();
         plots = new ArrayList<>();
+        counters = new HashMap<>();
+        counterFunctions = new ArrayList<>();
     }
-
     /// Either add new log of this function, which returns a double each day
     /// If an existing name is used, we replace the function but keep the existing data (useful in clone constructors, if we want to save and load data)
     /// @param function the function we monitor
@@ -147,7 +161,56 @@ public class DataLogger implements Cloneable{
             table.put(name, new TableEntry(day, function, name, type));
     }
 
+    /// Either add or replace multiple logs at the same time, if they are calculated by the same function
+    /// If an existing name is used, we replace the function but keep the existing data (useful in clone constructors, if we want to save and load data)
+    /// @param function the function we monitor, it returns doubles for every name (for example number of factories on different types of equipment)
+    /// @param names names of things we get from the function
+    public void setLog(Set<String> names, Supplier<Map<String,Double>> function, logDataType type)
+    {
 
+        //Add the function to the list of counters, which we will call each log
+        counterFunctions.add(function);
+        //Then create faux functions for every name, which just checks the counter
+        for (String name : names) {
+            if (table.containsKey(name))
+                table.get(name).setFunction(()-> counters.getOrDefault(name,0.0));
+            else
+                table.put(name, new TableEntry(day,()-> counters.getOrDefault(name,0.0), name, type));
+        }
+    }
+
+
+    /// Add a plot without used defined colors
+    /// @param title title of plot and window, saved as title.pdf
+    /// @param lines name of the datasets to plot (must have been added with one of the setLog functions)
+    /// @param stacked_areas use stacked area plots
+    /// @param yaxis_title title to put on the y-axis
+    public void addPlot(
+            String title,
+            List<String> lines,
+            String yaxis_title,
+            boolean stacked_areas
+    ){
+        //Check that each line in the plot actually exists before adding i
+        for (String line : lines)
+            if (!table.containsKey(line)) {
+                StringBuilder nomen = new StringBuilder();
+                for (var k : table.keySet())
+                    nomen.append(k+" ");
+                throw new IllegalArgumentException("No such entry " + line + " valid: " + nomen.toString());
+            }
+        //This is apparently how you convert a list of a map, I had to look that up
+        Map<String,Color> lineColors = IntStream.range(0,lines.size()).boxed().collect(Collectors.toMap(lines::get, i-> colors.get(i%colors.size())));
+
+        plots.add(new PlotTemplate(title, yaxis_title, stacked_areas, lineColors));
+    }
+
+
+    /// Add a plot with user defined colors
+    /// @param title title of plot and window, saved as title.pdf
+    /// @param lines name of the datasets to plot (must have been added with one of the setLog functions), and user defined color
+    /// @param stacked_areas use stacked area plots
+    /// @param yaxis_title title to put on the y-axis
     public void addPlot(
             String title,
             Map<String,Color> lines,
@@ -156,26 +219,35 @@ public class DataLogger implements Cloneable{
     ){
         //Check that each line in the plot actually exists before adding i
         for (Map.Entry<String,Color> entry : lines.entrySet())
-            if (!table.containsKey(entry.getKey()))
-                throw new IllegalArgumentException("No such entry "+entry.getKey());
+            if (!table.containsKey(entry.getKey())) {
+                StringBuilder nomen= new StringBuilder();
+                for (var k : table.keySet())
+                    nomen.append(k);
+                throw new IllegalArgumentException("No such entry " + entry.getKey()+" valid: "+nomen.toString());
+            }
         plots.add(new PlotTemplate(title, yaxis_title, stacked_areas, lines));
     }
-
     /// Log for this day, I assume this is called once per day
     public void log()
     {
+        //Call all counter functions
+        for (var cf : counterFunctions)
+        {
+            counters.putAll(cf.get());
+        }
+
         for (var entry : table.values())
         {
             entry.log();
         }
         ++day;
     }
-
     //Open windows with all plots
-    public void show()
+    public void show(boolean save)
     {
         for (var plot: plots)
         {
+            //Create the lines with the data
             List<LinePlotData> lines = new ArrayList<>();
             logDataType type=null;
             for (var line : plot.lines_color_names().entrySet())
@@ -204,14 +276,14 @@ public class DataLogger implements Cloneable{
                     else if (type==logDataType.PositiveReal && entry.myType==logDataType.Real)
                         type=logDataType.Real;
                 }
-
                 lines.add(new LinePlotData(
                         line.getKey(),
                         entry.getData(),
                         entry.getDay0(),
                         line.getValue()));
             }
-            var frame= new LinePlotFrame(plot.title(), plot.yaxis_title(),lines, type==null?logDataType.Real:type,plot.stacked_areas());
+
+            var frame= new LinePlotFrame(plot.title(), plot.yaxis_title(),lines, type==null?logDataType.Real:type,plot.stacked_areas(),save);
             frame.setVisible(true);
         }
     }

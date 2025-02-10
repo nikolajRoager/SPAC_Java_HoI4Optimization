@@ -1,31 +1,77 @@
 package org.HoI4Optimizer.Nation;
-
-
 import com.diogonunes.jcolor.Attribute;
 import net.bytebuddy.utility.nullability.NeverNull;
 import org.HoI4Optimizer.Building.SharedBuilding.CivilianFactory;
+import org.HoI4Optimizer.Building.SharedBuilding.Factory;
 import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
 import org.HoI4Optimizer.Building.stateBuilding.StateBuilding;
-import org.HoI4Optimizer.Calender;
+import org.HoI4Optimizer.MyCalendar;
 import org.HoI4Optimizer.Building.*;
 import org.HoI4Optimizer.MyPlotter.DataLogger;
 import org.HoI4Optimizer.Nation.Event.Events;
 import org.HoI4Optimizer.Nation.decision.BuildDecision;
 import org.HoI4Optimizer.NationalConstants.Equipment;
 import org.HoI4Optimizer.NationalConstants.NationalSetup;
-
 import java.awt.*;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 
 /// The state of a nation, at some point in time, it is essentially a "save" we can return to
 public class NationState  implements Cloneable
 {
+
+    ///A little struct containing a possible trade policy
+    /// @param rubberDeals How many civilian factories are we trading away for rubber?
+    /// @param steelDeals How many civilian factories are we trading away for steel?
+    /// @param oilDeals How many civilian factories are we trading away for oil?
+    /// @param chromiumDeals How many civilian factories are we trading away for chromium?
+    /// @param aluminiumDeals How many civilian factories are we trading away for aluminium?
+    /// @param tungstenDeals How many civilian factories are we trading away for tungsten?
+    private record TradePolicy(
+            int rubberDeals,
+            int steelDeals,
+            int tungstenDeals,
+            int chromiumDeals,
+            int aluminiumDeals,
+            int oilDeals)
+    {
+        /// Empty trade policy
+        public TradePolicy()
+        {
+            this(0,0,0,0,0,0);
+        }
+        public int steelImport(){return steelDeals*8;}
+        public int rubberImport(){return rubberDeals*8;}
+        public int oilImport(){return oilDeals*8;}
+        public int aluminiumImport(){return aluminiumDeals*8;}
+        public int tungstenImport(){return tungstenDeals*8;}
+        public int chromiumImport(){return chromiumDeals*8;}
+
+        public int cost (){return rubberDeals+steelDeals+tungstenDeals+chromiumDeals+aluminiumDeals+oilDeals;}
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            TradePolicy that = (TradePolicy) o;
+            return oilDeals == that.oilDeals && steelDeals == that.steelDeals && rubberDeals == that.rubberDeals && tungstenDeals == that.tungstenDeals && chromiumDeals == that.chromiumDeals && aluminiumDeals == that.aluminiumDeals;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(rubberDeals, steelDeals, tungstenDeals, chromiumDeals, aluminiumDeals, oilDeals);
+        }
+    }
+
+    @NeverNull
+    TradePolicy tradePolicy;
+
 
     /// The organ tasked with writing down every little detail of this nation
     @NeverNull
@@ -52,23 +98,27 @@ public class NationState  implements Cloneable
             return (int)(remainingCost/CIC_per_day+1.0/*Round up*/);
         }
     }
+    
+    /// All equipment ever produced, once upon a time, the developers used Unsigned longs for this, players very quickly found numerous ways to overflow that
+    @NeverNull
+    private Map<Equipment,Long> nationalStockpile;
 
-    /// Reference to the Setup for this nation, has effects to modify propertyEvents above on certain days
+    /// Reference to the Setup for this nation, has effects to modify properties above on certain days
     private NationalSetup setup;
 
     private String name;
     private List<State> states;
 
-    /// All stateEvents in this nation, including all factories
+    /// All states in this nation, including all factories
     public List<State> getStates() {return states;}
     //Refineries don't need to be references from the nation directly
-    /// References to all military factories in all core stateEvents
+    /// References to all military factories in all core states
     public List<MilitaryFactory> militaryFactories;
 
-    /// References to all civilian factories in all core stateEvents
+    /// References to all civilian factories in all core states
     public List<CivilianFactory> civilianFactories;
 
-    /// References to all civilian factories in all core stateEvents
+    /// References to all civilian factories in all core states
     public List<Refinery> refineries;
 
     public int getDay() {return day;}
@@ -77,20 +127,35 @@ public class NationState  implements Cloneable
 
     private List<constructionLine> constructionLines;
 
+    private int nationalAluminium=0;
+    private int nationalOil=0;
+    private int nationalSteel=0;
+    private int nationalRubber=0;
+    private int nationalChromium=0;
+    private int nationalTungsten=0;
+
     /// The things we can build this day
     @NeverNull
     private List<BuildDecision> buildingDecisions;
     /// The list of all the different ways we can re-assign un-assigned factories
     @NeverNull
-    private List<Map<Equipment,Integer>> factoryReassignments;
+    private List<Map<Equipment,Integer>> factoryReassignmentDecisions;
+
+    /// The list of possible trade policies we can adopt
+    @NeverNull
+    private List<TradePolicy> tradeDecisions;
+
+
 
     /// Load setup from a folder, assumed to be start of the simulation
     public NationState(String countryName,NationalSetup setup) throws IOException {
+        //Start not importing anything
+        tradePolicy=new TradePolicy();
         try {states=State.loadState(Paths.get(countryName,"States.json").toString(),setup);}
-        catch (IOException e) {throw new IOException("Error loading stateEvents of "+countryName+":"+e.getMessage());}
+        catch (IOException e) {throw new IOException("Error loading states of "+countryName+":"+e.getMessage());}
 
         try {properties=NationalProperties.loadProperties(Paths.get(countryName,"Properties.json").toString());}
-        catch (IOException e) {throw new IOException("Error loading propertyEvents of "+countryName+":"+e.getMessage());}
+        catch (IOException e) {throw new IOException("Error loading properties of "+countryName+":"+e.getMessage());}
 
         // Set up references to all military and civilian factories loaded
         civilianFactories=new ArrayList<>();
@@ -99,24 +164,37 @@ public class NationState  implements Cloneable
 
         constructionLines=new ArrayList<>();
 
+        //For incrementing the unique id of each factory
+        AtomicInteger milID=new AtomicInteger(0);
+        AtomicInteger civID=new AtomicInteger(0);
+        AtomicInteger refID=new AtomicInteger(0);
+
         for (var s : states)
         {
+            s.getCivilianFactories().forEach(f->f.setId(civID.getAndIncrement()));
+            s.getMilitaryFactories().forEach(f->f.setId(milID.getAndIncrement()));
+            s.getRefineries().forEach(f->f.setId(refID.getAndIncrement()));
+
             civilianFactories.addAll(s.getCivilianFactories());
             militaryFactories.addAll(s.getMilitaryFactories());
             refineries.addAll(s.getRefineries());
         }
 
+
+        //Shuffle the factories, so the factories producing consumer goods are all over the nation
         Collections.shuffle(civilianFactories);
         Collections.shuffle(militaryFactories);
         Collections.shuffle(refineries);
+
 
         name=countryName;
         this.setup=setup;
 
         //Check if we have decisions the first day (we most certainly have)
         buildingDecisions = new ArrayList<>();
-        factoryReassignments = new ArrayList<>();
-        updateDecisions();
+        factoryReassignmentDecisions = new ArrayList<>();
+        tradeDecisions = new ArrayList<>();
+        updateDecisionsResourcesAndFactories();
 
         instituteOfStatistics = new DataLogger();
         openInstituteOfStatistics();
@@ -129,6 +207,22 @@ public class NationState  implements Cloneable
         instituteOfStatistics.addPlot("Political stability",Map.of("Political Stability",Color.GRAY,"Base Stability",Color.BLACK,"Permanent stability modifiers",Color.GREEN,"Government support",Color.BLUE),"%",false);
 
         instituteOfStatistics.addPlot("Consumer goods",Map.of("Base consumer goods ratio",Color.YELLOW,"Consumer goods multiplier",Color.GREEN,"Consumer goods ratio",Color.ORANGE,"Political Stability",Color.GRAY),"%",false);
+
+        instituteOfStatistics.addPlot("Industry",Map.of("Civilian factories",Color.YELLOW,"Military factories",Color.GREEN,"Chemical refineries",Color.BLUE),"Factories",false);
+
+        instituteOfStatistics.addPlot("Military Factories",setup.getEquipment().values().stream().map(e->e.getShortname()+" factories").toList(),"Factories",true);
+
+        instituteOfStatistics.addPlot("Resource balance",Map.of("Steel",Color.CYAN,"Aluminium",Color.LIGHT_GRAY,"Tungsten",Color.DARK_GRAY,"Chromium",Color.magenta,"Rubber",Color.BLUE,"Oil",Color.BLACK),"units/day",false);
+
+        instituteOfStatistics.addPlot("National Stockpile",setup.getEquipment().values().stream().map(Equipment::getShortname).toList(),"units",false);
+
+        nationalStockpile =setup.getEquipment().values().stream().collect(Collectors.toMap(e->e, Equipment::getInitial));
+    }
+
+    /// recalculate resources available, used by military factories, and what the civilian factories are doing, but do not advance anything
+    private void recalculateResourcesAndFactories()
+    {
+
     }
 
     /// Open the institute of statistics, so we can keep track of literally everything
@@ -161,6 +255,13 @@ public class NationState  implements Cloneable
         instituteOfStatistics.setLog("Fascism (Falangism)"           ,properties::getFascism_support  , DataLogger.logDataType.PositivePercent);
         instituteOfStatistics.setLog("Government support",properties::getRulingParty_support, DataLogger.logDataType.PositivePercent);
 
+        instituteOfStatistics.setLog("Steel",()->nationalSteel, DataLogger.logDataType.Integer);
+        instituteOfStatistics.setLog("Rubber",()->nationalRubber, DataLogger.logDataType.Integer);
+        instituteOfStatistics.setLog("Oil",()->nationalOil, DataLogger.logDataType.Integer);
+        instituteOfStatistics.setLog("Aluminium",()->nationalAluminium, DataLogger.logDataType.Integer);
+        instituteOfStatistics.setLog("Tungsten",()->nationalTungsten, DataLogger.logDataType.Integer);
+        instituteOfStatistics.setLog("Chromium",()->nationalChromium, DataLogger.logDataType.Integer);
+
         instituteOfStatistics.setLog("Civilian factories",
                 ()->
                 {
@@ -181,7 +282,7 @@ public class NationState  implements Cloneable
                     return mils;
                 }
                 , DataLogger.logDataType.PositiveInteger);
-        instituteOfStatistics.setLog("Chemical Refineries",
+        instituteOfStatistics.setLog("Chemical refineries",
                 ()->
                 {
                     int refs=0;
@@ -191,11 +292,44 @@ public class NationState  implements Cloneable
                     return refs;
                 }
                 , DataLogger.logDataType.PositiveInteger);
+        //Add all equipment factories numbers in bulk, append the word factories after each name
+        instituteOfStatistics.setLog(setup.getEquipment().values().stream().map(e->e.getShortname()+" factories").collect(Collectors.toSet()),
+                ()->
+                {
+                    Map<String,Double> counts=new HashMap<>();
+                    for (var f : militaryFactories)
+                        if (!f.getUnderConstruction() && f.getProduct()!=null) {
+                            //Increment the count of this factory
+                                counts.put(f.getProduct().getShortname()+" factories",counts.getOrDefault(f.getProduct().getShortname()+" factories",0.0)+1.0);
+                        }
+                    return counts;
+                }
+                , DataLogger.logDataType.PositiveInteger);
+
+        //Add equipment stockpiles
+        instituteOfStatistics.setLog(setup.getEquipment().values().stream().map(Equipment::getShortname).collect(Collectors.toSet()),
+                ()->
+                {
+                    Map<String,Double> counts=new HashMap<>();
+                    for (var entry : nationalStockpile.entrySet())
+                    {
+                        counts.put(entry.getKey().getShortname(),(double)entry.getValue());
+                    }
+                    return counts;
+                }
+                , DataLogger.logDataType.PositiveInteger);
     }
 
-    public void displayPlots()
+    public void displayPlots(boolean save)
     {
-        instituteOfStatistics.show();
+        instituteOfStatistics.show(save);
+    }
+    public void displayPlots(int factoryId,boolean save)
+    {
+        if (factoryId<militaryFactories.size() && factoryId>=0)
+            militaryFactories.get(factoryId).show(save);
+        else
+            militaryFactories.forEach(f->f.show(save));
     }
 
     /// Print a bar-plot with a percentage
@@ -234,40 +368,37 @@ public class NationState  implements Cloneable
 
     public void applyDecision(int decId, PrintStream out) throws RuntimeException
     {
-        if (buildingDecisions.size()+factoryReassignments.size()<decId)
+        if (buildingDecisions.size()+factoryReassignmentDecisions.size()+tradeDecisions.size()<decId)
             throw new RuntimeException("Target decision does not exist");
-
         if (buildingDecisions.size()>decId) {
-
             var decision = buildingDecisions.get(decId);
-
             //Build something new
             if (decision.type() == BuildDecision.Type.build) {
                 decision.location().build(decision.building());
+                //These adds are a little long, what I do here is I set the id to the index they are at in the list when added
+                //That way they can correctly display the id you need to call to load them
                 if (decision.building() instanceof Refinery)
-                    refineries.add((Refinery) decision.building());
+                    refineries.add((Refinery) ((Factory) decision.building()).setIdAndGet(refineries.size()));
                 else if (decision.building() instanceof CivilianFactory)
-                    civilianFactories.add((CivilianFactory) decision.building());
+                    civilianFactories.add((CivilianFactory)((Factory) decision.building()).setIdAndGet(civilianFactories.size()));
                 else if (decision.building() instanceof MilitaryFactory)
-                    militaryFactories.add((MilitaryFactory) decision.building());
+                    militaryFactories.add((MilitaryFactory) ((Factory) decision.building()).setIdAndGet(militaryFactories.size()));
                 constructionLines.add(new constructionLine(decision.building()));
                 out.println(colorize("==Started building "+constructionLines.getLast().building.getBuildingName()+"==",Attribute.YELLOW_TEXT()));
-                int finish = constructionLines.getLast().daysRemaining(getUnassignedCivs(),properties);
-                out.println(colorize(constructionLines.getLast().building.getName()+" in "+constructionLines.getLast().building.getLocation().getName()+" approximate days remaining: "+finish,Attribute.BRIGHT_YELLOW_TEXT())+colorize("("+Calender.getDate(finish+day)+")",Attribute.WHITE_TEXT()));
-
+                int finish = constructionLines.getLast().daysRemaining(getUnassignedCivs()-15*(constructionLines.size()-1),properties);
+                out.println(colorize(constructionLines.getLast().building.getName()+" in "+constructionLines.getLast().building.getLocation().getName()+" approximate days remaining: "+finish,Attribute.BRIGHT_YELLOW_TEXT())+colorize(" ("+ MyCalendar.getDate(finish+day)+")",Attribute.WHITE_TEXT()));
             }
             if (decision.type() == BuildDecision.Type.upgrade) {
                 ((StateBuilding) decision.building()).upgrade();
                 constructionLines.add(new constructionLine(decision.building()));
                 out.println(colorize("==Started upgrading==",Attribute.YELLOW_TEXT()));
-                int finish = constructionLines.getLast().daysRemaining(getUnassignedCivs(),properties);
-                out.println(colorize(constructionLines.getLast().building.getName()+" in "+constructionLines.getLast().building.getLocation().getName()+" approximate days remaining: "+finish,Attribute.BRIGHT_YELLOW_TEXT())+colorize("("+Calender.getDate(finish+day)+")",Attribute.WHITE_TEXT()));
+                int finish = constructionLines.getLast().daysRemaining(getUnassignedCivs()-15*(constructionLines.size()-1),properties);
+                out.println(colorize(constructionLines.getLast().building.getName()+" in "+constructionLines.getLast().building.getLocation().getName()+" approximate days remaining: "+finish,Attribute.BRIGHT_YELLOW_TEXT())+colorize(" ("+ MyCalendar.getDate(finish+day)+")",Attribute.WHITE_TEXT()));
             }
         }
-        else
+        else if (buildingDecisions.size()+factoryReassignmentDecisions.size()>decId)
         {
-            var assignmentDecision = factoryReassignments.get(decId-buildingDecisions.size());
-
+            var assignmentDecision = factoryReassignmentDecisions.get(decId-buildingDecisions.size());
             out.println(colorize("==Set up production lines==",Attribute.GREEN_TEXT()));
             int factoryI=0;
             for (var EqNumber : assignmentDecision.entrySet())
@@ -286,7 +417,18 @@ public class NationState  implements Cloneable
                 }
             }
         }
-        updateDecisions();
+        else
+            tradePolicy=tradeDecisions.get(decId-buildingDecisions.size()-factoryReassignmentDecisions.size());
+        updateDecisionsResourcesAndFactories();
+    }
+
+
+    /// Print an integer which is green if positive, red if negative, otherwise gray
+    private String goodInt(int i)
+    {
+        return colorize(String.format("%4d",i),
+                i>0? Attribute.GREEN_TEXT() : (i==0? Attribute.WHITE_TEXT() : Attribute.RED_TEXT())
+                );
     }
 
     /// Give a written report of the nation
@@ -295,13 +437,13 @@ public class NationState  implements Cloneable
     /// @param showConstructionLines Show ongoing construction
     /// @param showFactories Also print all civilian and military factories and refineries
     /// @param showResources Show detailed breakdown of all resources
-    /// @param showStates Show detailed breakdown of all stateEvents
+    /// @param showStates Show detailed breakdown of all states
     public void printReport(PrintStream Output,boolean showResources, boolean showProductionLines,boolean showConstructionLines , boolean showFactories,boolean showStates,boolean showDecisions)
     {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PrintStream out=new PrintStream(outputStream);
 
-        out.println(colorize("==Status report for "+name+" at "+ Calender.getDate(day)+"==",Attribute.BOLD()));
+        out.println(colorize("==Status report for "+name+" at "+ MyCalendar.getDate(day)+"==",Attribute.BOLD()));
         out.println(colorize("--Political report---"));
         double stab = properties.getStability();
         out.println(colorize("\tSocial stability..............:"+(int)(stab*100)+"%",(stab<0.3334?Attribute.BRIGHT_RED_TEXT():(stab>0.6667?Attribute.BRIGHT_GREEN_TEXT():Attribute.BRIGHT_YELLOW_TEXT()))));
@@ -394,8 +536,10 @@ public class NationState  implements Cloneable
 
         //Table header
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %4s %9s %6s %8s %5s %8s%n", "", "Oil", "Aluminium", "Rubber", "Tungsten","Steel","Chromium"),Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD()));
-        //Resources available
+        {
+            out.println(colorize(("\t\t                     Oil | Aluminium | Rubber | Tungsten | Steel | Chromium"),Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD()));
+        }
+        //Resources available (we re-calculate it here, to display every step)
         int oil=0;
         int steel=0;
         int aluminium=0;
@@ -415,18 +559,24 @@ public class NationState  implements Cloneable
         }
 
 
+        //Seperator used to print table
+        String sep= colorize("|",Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD());
 
+        if (showResources) {
+            out.println(("\t\tProduced in States:   "+colorize(String.format("%4d",oil),oil>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"      "+colorize(String.format("%4d",aluminium),aluminium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"   "+colorize(String.format("%4d",rubber),rubber>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",tungsten),tungsten>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"  "+colorize(String.format("%4d",steel),steel>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",chromium),chromium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())));
+        }
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Production in stateEvents", oil, aluminium, rubber, tungsten, steel, chromium),Attribute.GREEN_TEXT()));
+            out.println(("\t\tExcavation tech bonus:"+colorize(String.format("%4d", (int)Math.round((1+properties.getResource_gain_bonus())*oil)-oil),oil>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"      "+colorize(String.format("%4d",aluminium),aluminium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"   "+colorize(String.format("%4d",rubber),rubber>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",tungsten),tungsten>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"  "+colorize(String.format("%4d",steel),steel>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",chromium),chromium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())));
+
         //THIS IS A ROUNDING MESS, but it is game accurate!
-        rubber*= (int) (1+properties.getResource_gain_bonus());
-        oil*=(int)(1+properties.getResource_gain_bonus());
-        aluminium*=(int)(1+properties.getResource_gain_bonus());
-        chromium*=(int)(1+properties.getResource_gain_bonus());
-        steel*=(int)(1+properties.getResource_gain_bonus());
-        tungsten*=(int)(1+properties.getResource_gain_bonus());
+        rubber=(int)Math.round(rubber*(1+properties.getResource_gain_bonus()));
+        oil=(int)Math.round(oil*(1+properties.getResource_gain_bonus()));
+        aluminium=(int)Math.round(aluminium*(1+properties.getResource_gain_bonus()));
+        chromium=(int)Math.round(chromium*(1+properties.getResource_gain_bonus()));
+        steel=(int)Math.round(steel*(1+properties.getResource_gain_bonus()));
+        tungsten=(int)Math.round(tungsten*(1+properties.getResource_gain_bonus()));
         double rtm = properties.getResources_to_market();
-        if (showResources)
+
             out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "+"+(int)(100* properties.getResource_gain_bonus())+"% excavation tech", oil, aluminium, rubber, tungsten, steel, chromium),Attribute.GREEN_TEXT()));
         if (showResources)
             out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Exporting "+(int)(100*rtm)+"%", (int)(rtm*oil), (int)(rtm*aluminium), (int)(rtm*rubber), (int)(rtm*tungsten), (int)(rtm*steel), (int)(rtm*chromium)),Attribute.RED_TEXT()));
@@ -437,18 +587,29 @@ public class NationState  implements Cloneable
         steel-=(int)(rtm*steel);
         chromium-=(int)(rtm*chromium);
 
+
+
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Import", 0, 0, 0, 0, 0, 0),Attribute.GREEN_TEXT()));
+            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Import", tradePolicy.oilImport(), tradePolicy.aluminiumImport(), tradePolicy.rubberImport(), tradePolicy.tungstenImport(), tradePolicy.steelImport(), tradePolicy.chromiumImport()),Attribute.GREEN_TEXT()));
+        //Not implemented yet
+        //if (showResources)
+        //    out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Special projects", "-", 0, 0, 0, 0, 0),Attribute.RED_TEXT()));
+
+        int needSteel    =militaryFactories.stream().mapToInt(MilitaryFactory::getSteelNeeded    ).sum();
+        int needAluminium=militaryFactories.stream().mapToInt(MilitaryFactory::getAluminiumNeeded).sum();
+        int needRubber   =militaryFactories.stream().mapToInt(MilitaryFactory::getRubberNeeded   ).sum();
+        int needTungsten =militaryFactories.stream().mapToInt(MilitaryFactory::getTungstenNeeded ).sum();
+        int needChromium =militaryFactories.stream().mapToInt(MilitaryFactory::getChromiumNeeded ).sum();
+
+        //Just get what we have left over, by checking the difference between our calculated data, and the thing actually left over in the national stockpile (any deficit must have been used for production)
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Special projects", "-", 0, 0, 0, 0, 0),Attribute.RED_TEXT()));
+            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Used for production", "-", needAluminium, needRubber, needTungsten, needSteel, needChromium),Attribute.RED_TEXT()));
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Used for production", "-", 0, 0, 0, 0, 0),Attribute.RED_TEXT()));
-        if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Balance", oil, aluminium, rubber, tungsten, steel, chromium),Attribute.WHITE_TEXT()));
+            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Balance", nationalOil, nationalAluminium, nationalRubber, nationalTungsten, nationalSteel, nationalChromium),Attribute.WHITE_TEXT()));
         else
         {
             //Print short summary
-            out.println(colorize("Balance: ",Attribute.BLUE_TEXT())+" oil: "+oil+" aluminium: "+aluminium+" rubber: "+rubber+" tungsten: "+tungsten+" steel: "+steel+" chromium: "+chromium);
+            out.println(colorize("Balance: ",Attribute.BLUE_TEXT())+" oil: "+nationalOil+" aluminium: "+nationalAluminium+" rubber: "+nationalRubber+" tungsten: "+nationalTungsten+" steel: "+nationalSteel+" chromium: "+nationalChromium);
         }
 
         double baseFuel =properties.getBase_fuel();
@@ -466,24 +627,17 @@ public class NationState  implements Cloneable
 
 
 
-        out.println(colorize("\t\tOperational military + civilian factories:"+civs,Attribute.BRIGHT_YELLOW_TEXT())+" +"+colorize(" "+mils,Attribute.BRIGHT_GREEN_TEXT())+" = "+factories);
-        out.println(colorize("\t\tRequired for consumer goods..............:",Attribute.BRIGHT_YELLOW_TEXT())+ printBadModifier(cg)+" * "+factories+ " = "+colorize(cg_factories+"",Attribute.RED_TEXT()));
+        out.println(colorize("\t\tOperational military + civilian factories: "+civs,Attribute.BRIGHT_YELLOW_TEXT())+" +"+colorize(" "+mils,Attribute.BRIGHT_GREEN_TEXT())+" = "+factories);
+        out.println(colorize("\t\tRequired for consumer goods..............: ",Attribute.BRIGHT_YELLOW_TEXT())+ printBadModifier(cg)+" * "+factories+ " = "+colorize(cg_factories+"",Attribute.RED_TEXT()));
         out.println(colorize("\t\tRequired for special projects............: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+properties.getSpecial_projects_civs(),Attribute.WHITE_TEXT()));
-        int exportGoods=0;
-        out.println(colorize("\t\tProducing export goods...................: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+0,Attribute.WHITE_TEXT()));
+        int exportGoods=tradePolicy.cost();
+        out.println(colorize("\t\tProducing export goods...................: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize(""+exportGoods,Attribute.WHITE_TEXT()));
         int unassignedCivs = getUnassignedCivs();
         out.println(colorize("\t\tRemains available for construction.......: ",Attribute.BRIGHT_YELLOW_TEXT())+colorize("+"+unassignedCivs,Attribute.BRIGHT_YELLOW_TEXT()));
         if (showFactories) {
             out.println(colorize("\t\t Our " + civilianFactories.size() + " civilian factories:", Attribute.BRIGHT_YELLOW_TEXT()));
             for (var f : civilianFactories) {
-                if (exportGoods > 0) {
-                    --exportGoods;
-                    f.printReport(out, colorize("Trade goods", Attribute.YELLOW_TEXT()), "\t\t\t");
-                } else if (cg_factories > 0) {
-                    --cg_factories;
-                    f.printReport(out, colorize("Consumer products", Attribute.RED_TEXT()), "\t\t\t");
-                } else
-                    f.printReport(out, colorize("Construction", Attribute.BRIGHT_YELLOW_TEXT()), "\t\t\t");
+                f.printReport(out,"\t\t\t");
             }
         }
 
@@ -522,14 +676,23 @@ public class NationState  implements Cloneable
                 buildingDecisions.get(i).display(i,out);
             out.println("More decisions may be available in-game, this list leaves out decisions which will have the same effect");
 
-            for (int i = 0; i < factoryReassignments.size(); i++)
+            for (int i = 0; i < factoryReassignmentDecisions.size(); i++)
             {
                 out.println(colorize("Decision: "+(i+buildingDecisions.size()),Attribute.GREEN_TEXT()));
                 out.println(colorize("  assign our "+getUnassignedMils()+" unassigned military factories to: ",Attribute.BRIGHT_GREEN_TEXT()));
-                factoryReassignments.get(i).forEach((E,f)->
+                factoryReassignmentDecisions.get(i).forEach((E, f)->
                 {
-                    out.println(colorize("\t"+E.getName()+": "+f+" factories",Attribute.BRIGHT_GREEN_TEXT()));
+                    if (f>0)
+                        out.println(colorize("\t"+E.getName()+" ("+E.getShortname()+"): "+f+" factories",Attribute.BRIGHT_GREEN_TEXT()));
                 });
+            }
+            if (!tradeDecisions.isEmpty()) {
+                for (int i = 0; i < tradeDecisions.size(); i++) {
+                    out.println(colorize("Optional Decision: " + (i + buildingDecisions.size() + factoryReassignmentDecisions.size()), Attribute.BLUE_TEXT()));
+                    out.println(colorize("  sign new trade policy, import " + tradeDecisions.get(i).rubberDeals + " rubber, " + tradeDecisions.get(i).steelDeals + " steel, " + tradeDecisions.get(i).aluminiumDeals + " aluminium, " + tradeDecisions.get(i).tungstenDeals + " tungsten, " + tradeDecisions.get(i).chromiumDeals + " chromium", Attribute.BRIGHT_BLUE_TEXT()));
+                }
+                out.println(colorize("Trade deals are optional, just keep stepping to keep the current trade policy Optional:", Attribute.BLUE_TEXT()));
+                out.println(colorize("  sign new trade policy, import " + tradePolicy.rubberDeals + " rubber, " + tradePolicy.steelDeals + " steel, " + tradePolicy.aluminiumDeals + " aluminium, " + tradePolicy.tungstenDeals + " tungsten, " + tradePolicy.chromiumDeals + " chromium", Attribute.BRIGHT_BLUE_TEXT()));
             }
         }
 
@@ -565,17 +728,21 @@ public class NationState  implements Cloneable
             clone.civilianFactories=new ArrayList<>();
             clone.militaryFactories=new ArrayList<>();
             clone.buildingDecisions =new ArrayList<>();
+            //Cloning kills the construction lindee
+            clone.constructionLines=new ArrayList<>();
 
             for (var s : states)
             {
                 var newState = s.clone();
                 clone.states.add(newState);
+                //The id should still work after copying
                 clone.refineries.addAll(newState.getRefineries());
                 clone.civilianFactories.addAll(newState.getCivilianFactories());
                 clone.militaryFactories.addAll(newState.getMilitaryFactories());
             }
             //Auto-calculate decisions
-            clone.updateDecisions();
+            clone.updateDecisionsResourcesAndFactories();
+            clone.nationalStockpile =setup.getEquipment().values().stream().collect(Collectors.toMap(e->e, e->0L));
 
             //Hand over the institute of statistics
             clone.instituteOfStatistics=instituteOfStatistics.clone();
@@ -588,12 +755,12 @@ public class NationState  implements Cloneable
         }
     }
 
-    /// Apply an event to my propertyEvents, or my stateEvents
+    /// Apply an event to my properties, or my states
     public void apply(Events theseEvents, PrintStream out) {
         if (out!=null)
         {
             out.println(colorize("==An event has happened==", Attribute.BOLD(), Attribute.BLUE_TEXT()));
-            out.println(colorize(Calender.getDate(day)+" (day "+day+")",Attribute.WHITE_TEXT()));
+            out.println(colorize(MyCalendar.getDate(day)+" (day "+day+")",Attribute.WHITE_TEXT()));
             out.println(colorize("    "+ theseEvents.name(),Attribute.ITALIC()));
         }
         if (theseEvents.propertyEvents()!=null)
@@ -602,26 +769,31 @@ public class NationState  implements Cloneable
         if (theseEvents.stateEvents()!=null)
             for (var stateEvent : theseEvents.stateEvents())
                 states.get(stateEvent.stateID()).apply(stateEvent,properties,out,refineries,civilianFactories,militaryFactories);
-        updateDecisions();
+        updateDecisionsResourcesAndFactories();
     }
 
 
 
-    ///Get currently available decisions
+    ///Get currently available non-optional decisions (Trade decisions are optional)
     public int getDecisions()
     {
-        return buildingDecisions.size()+factoryReassignments.size();
+        return buildingDecisions.size()+ factoryReassignmentDecisions.size();
     }
 
-    private void updateDecisions()
+    /// Trade decisions are optional, they don't need to be taken, and can't be exhausted (if you sign a new policy, you instantly have the option of cancelling it)
+    public int getTradeDecisions()
     {
-        if (!buildingDecisions.isEmpty())
-            buildingDecisions = new ArrayList<>();
-        if (!factoryReassignments.isEmpty())
-            factoryReassignments = new ArrayList<>();
+        return tradeDecisions.size();
+    }
+
+    private void updateDecisionsResourcesAndFactories()
+    {
+        buildingDecisions = new ArrayList<>();
+        factoryReassignmentDecisions = new ArrayList<>();
+        tradeDecisions = new ArrayList<>();
         //Check for idling civilian factories
-        int unassignedCivs = getUnassignedCivs();
-        if (unassignedCivs > constructionLines.size()*15)
+        int unassignedCivs = getUnassignedCivs()-constructionLines.size()*15;
+        while (unassignedCivs > 0)
         {
             //Generate hash-maps of the different construction
 
@@ -633,26 +805,44 @@ public class NationState  implements Cloneable
                 //Add either refineries or civilian factories
                 if (s.canBuildCivilianFactory(properties.getBuildingSlotBonus()))
                 {
+                    double CIC_per_day = 5*Math.min(unassignedCivs,15)*(1+0.2*s.getInfrastructureLevel())*(1+properties.getConstruction_speed()+
+                            properties.getCiv_construction_speed_bonus());
+                    double remainingCost = Building.getCost(Building.type.Civilian);
+                    int days =(int)(remainingCost/CIC_per_day+1.0/*Round up*/);
+
                     Object myHash= Objects.hash('c',s.getInfrastructureLevel());
-                    var dec =new BuildDecision(s,new CivilianFactory(s,true),"Add +"+String.format("%.2f",100*properties.getConsumer_goods_ratio())+"% Civilian factory after consumer goods");
+                    var dec =new BuildDecision(
+                            s,
+                            new CivilianFactory(s,true),
+                            "Add +"+String.format("%.2f",100*properties.getConsumer_goods_ratio())+"% Civilian factory after consumer goods",
+                            days);
                     tryAddDecision(constructionDecisions, s, myHash, dec);
                 }
                 if (s.canBuildRefineryFactory(properties.getBuildingSlotBonus()))
                 {
+                    double CIC_per_day = 5*Math.min(unassignedCivs,15)*(1+0.2*s.getInfrastructureLevel())*(1+properties.getConstruction_speed());
+                    double remainingCost = Building.getCost(Building.type.Refinery);
+                    int days =(int)(remainingCost/CIC_per_day+1.0/*Round up*/);
+
                     //Generate a unique hash with the effects I care about for refineries
                     Object myHash= Objects.hash('r',s.getInfrastructureLevel());
-                    var dec = new BuildDecision(s,new Refinery(s,true),"Add +"+ (int)(properties.getRubber_per_refineries()*(1.0+properties.getResource_gain_bonus()))+" rubber on a national basis and "+String.format("%.2f",properties.getBase_fuel()*(1+properties.getRefinery_fuel_bonus()))+" fuel per day");
+                    var dec = new BuildDecision(s,new Refinery(s,true),"Add +"+ (int)(properties.getRubber_per_refineries()*(1.0+properties.getResource_gain_bonus()))+" rubber on a national basis and "+String.format("%.2f",properties.getBase_fuel()*(1+properties.getRefinery_fuel_bonus()))+" fuel per day",days);
                     tryAddDecision(constructionDecisions, s, myHash, dec);
                 }
                 if (s.canBuildMilitaryFactory(properties.getBuildingSlotBonus()))
                 {
+                    double CIC_per_day = 5*Math.min(unassignedCivs,15)*(1+0.2*s.getInfrastructureLevel())*(1+properties.getConstruction_speed()+
+                        properties.getMil_construction_speed_bonus());
+                    double remainingCost = Building.getCost(Building.type.Military);
+                    int days =(int)(remainingCost/CIC_per_day+1.0/*Round up*/);
+
                     //We can build a factory for any legal type of equipment
                     var Equipment=setup.getEquipment(day);
                     for (var eq : Equipment.values())
                     {
-                        //Generate a unique hash with the effects I care about for refineries
+                        //Generate a unique hash with the effects I care about for military production
                         Object myHash= Objects.hash(eq,s.getInfrastructureLevel());
-                        var dec = new BuildDecision(s,new MilitaryFactory(s,true),eq,"Add production-line of "+eq.getName()+" ("+eq.getShortname()+")");
+                        var dec = new BuildDecision(s,new MilitaryFactory(s,true),eq,"Add production-line of "+eq.getName()+" ("+eq.getShortname()+")",days);
                         tryAddDecision(constructionDecisions, s, myHash, dec);
 
                     }
@@ -667,6 +857,10 @@ public class NationState  implements Cloneable
                     int dChromium = (int)(s.getNextChromium()*(1+ properties.getResource_gain_bonus()))-(int)(s.getChromium()*(1+ properties.getResource_gain_bonus()));
                     int dOil      = (int)(s.getNextOil()*(1+ properties.getResource_gain_bonus()))-(int)(s.getOil()*(1+ properties.getResource_gain_bonus()));
 
+                    double CIC_per_day = 5*Math.min(unassignedCivs,15)*(1+0.2*s.getInfrastructureLevel())*(1+properties.getConstruction_speed());
+                    double remainingCost = Building.getCost(Building.type.Infrastructure);
+                    int days =(int)(remainingCost/CIC_per_day+1.0/*Round up*/);
+
                     //Generate a unique hash with the effects I care about, when it comes to building infrastructure
                     Object myHash= Objects.hash(dSteel,dAluminium,dRubber,dTungsten,dChromium,dOil,s.getInfrastructureLevel());
                     var dec =new BuildDecision(s.getInfrastructure(),"local construction speed bonus +"+(int)(s.getInfrastructureLevel()*20)+"% -> +"+(int)(s.getInfrastructureLevel()*20+20)+"% "+(dSteel>0?", +"+dSteel+" Steel":"")
@@ -674,11 +868,13 @@ public class NationState  implements Cloneable
                             +(dChromium>0?", +"+dChromium+" Chromium":"")
                             +(dAluminium>0?", +"+dAluminium+" Aluminium":"")
                             +(dRubber>0?", +"+dRubber+" Rubber":"")
-                            +(dOil>0?", +"+dOil+" Oil":"")+(dSteel+dOil+dChromium+dAluminium+dTungsten+dRubber>0?" (subject to rounding errors)":""));
+                            +(dOil>0?", +"+dOil+" Oil":"")+(dSteel+dOil+dChromium+dAluminium+dTungsten+dRubber>0?" (subject to rounding errors)":""),
+                            days);
                     //We should NOT add decision if dSteel, dAluminium, dRubber, dTungsten, dChromium, and dOil is the same, the decision type is the same, the decision.building() is the same, decision.location().getInfrastructureLevel() is the same
                     tryAddDecision(constructionDecisions, s, myHash, dec);
                 }
             }
+            unassignedCivs-=15;
         }
 
         //Check for idling military factories, knowing the game mechanics, I ASSUME that they are fungible, (i.e. they all start with same efficiency)
@@ -699,9 +895,195 @@ public class NationState  implements Cloneable
                 for (int j = 0; j < availableEquipment.size(); j++) {
                     Reassignments.put(availableEquipment.get(j), EquipmentPermutations.get(j + i));
                 }
-                factoryReassignments.add(Reassignments);
+                factoryReassignmentDecisions.add(Reassignments);
             }
         }
+
+        //Now, we want to update available trade decisions, at the same time we will tell the factories how many resources they have, and updating which civilian factories are labeled as exporting
+        nationalAluminium=0;
+        nationalOil=0;
+        nationalSteel=0;
+        nationalRubber=0;
+        nationalChromium=0;
+        nationalTungsten=0;
+
+
+        //There are serious rounding errors with saving these as integers, but that is how it is done in game
+        for (var s : states)
+        {
+            nationalOil+=s.getOil();
+            nationalChromium+=s.getChromium();
+            nationalSteel+=s.getSteel();
+            nationalAluminium+=s.getAluminium();
+            nationalRubber+=s.getRubber(properties.getRubber_per_refineries());
+            nationalTungsten+=s.getTungsten();
+        }
+
+
+        //game accurate rounding mess
+        nationalRubber   =(int)Math.round(nationalRubber*(1+properties.getResource_gain_bonus()));
+        nationalOil      =(int)Math.round(nationalOil*(1+properties.getResource_gain_bonus()));
+        nationalAluminium=(int)Math.round(nationalAluminium*(1+properties.getResource_gain_bonus()));
+        nationalChromium =(int)Math.round(nationalChromium*(1+properties.getResource_gain_bonus()));
+        nationalSteel    =(int)Math.round(nationalSteel*(1+properties.getResource_gain_bonus()));
+        nationalTungsten =(int)Math.round(nationalTungsten*(1+properties.getResource_gain_bonus()));
+        double rtm       = properties.getResources_to_market();
+
+
+        nationalOil      -=(int)(rtm*nationalOil);
+        nationalRubber   -=(int)(rtm*nationalRubber);
+        nationalAluminium-=(int)(rtm*nationalAluminium);
+        nationalTungsten -=(int)(rtm*nationalTungsten);
+        nationalChromium -=(int)(rtm*nationalChromium);
+        nationalSteel    -=(int)(rtm*nationalSteel);
+
+        //First check what our deficit would be if we did not import:
+
+        int ownRubber   =nationalRubber;
+        int ownAluminium=nationalAluminium;
+        int ownTungsten =nationalTungsten;
+        int ownChromium =nationalChromium;
+        int ownSteel    =nationalSteel;
+
+        int factories =0;
+        for (var f : militaryFactories)
+            if (!f.getUnderConstruction()) {
+                factories++;
+                if (f.operating())
+                {
+                    ownRubber   -=f.getRubberNeeded();
+                    ownAluminium-=f.getAluminiumNeeded();
+                    ownTungsten -=f.getTungstenNeeded();
+                    ownChromium -=f.getChromiumNeeded();
+                    ownSteel    -=f.getSteelNeeded();
+                }
+            }
+
+
+        //To see what contracts we can sign, we need to know how many civs we have after consumer goods
+        int civs=0;
+
+        for (var f : civilianFactories)
+            if (!f.getUnderConstruction())
+                civs++;
+        factories+=civs;
+
+        double cg = properties.getConsumer_goods_ratio();
+        int cg_factories = (int)(factories*cg);
+
+        int freeFactories= civs-cg_factories;
+
+        //How many contracts do we need to solve all shortages
+        int maxRubber   =(int)Math.ceil(Math.max(-ownRubber,0)/8.0);
+        int maxAluminium=(int)Math.ceil(Math.max(-ownAluminium,0)/8.0);
+        int maxTungsten =(int)Math.ceil(Math.max(-ownTungsten,0)/8.0);
+        int maxChromium =(int)Math.ceil(Math.max(-ownChromium,0)/8.0);
+        int maxSteel    =(int)Math.ceil(Math.max(-ownSteel,0)/8.0);
+
+
+        //Try to add a new trade decision, the last will be the one which covers all our needs
+        for (int r =0; r<=maxRubber; ++r)
+            for (int a =0; a<=maxAluminium; ++a)
+                for (int t =0; t<=maxTungsten; ++t)
+                    for (int c =0; c<=maxChromium; ++c)
+                        for (int s =0; s<=maxSteel; ++s) {
+                            if (r + s + t + c + a <= freeFactories)
+                            {
+                                var tp =new TradePolicy(r, s, t, c, a, 0);
+                                System.out.println("tryadd "+r+" "+s+" "+t+" "+c+" "+a);
+                                if (!tp.equals(tradePolicy)) {
+                                    System.out.println("doadd "+r+" "+s+" "+t+" "+c+" "+a);
+                                    tradeDecisions.add(tp);
+                                }
+                            }
+                        }
+
+        int exportGoods;
+        {
+            //Then update our existing policy, if it can not be supported
+            exportGoods = tradePolicy.cost();
+
+            //If we do not have enough factories for trade, forcefully cancel trade agreements, this is not even a choice
+            if (freeFactories < exportGoods) {
+                int newExportGoods = 0;
+                int rubber = Math.min(tradePolicy.rubberDeals, freeFactories);
+                freeFactories -= rubber;
+                newExportGoods += rubber;
+                int steel = Math.min(tradePolicy.steelDeals, freeFactories);
+                freeFactories -= steel;
+                newExportGoods += steel;
+                int chromium = Math.min(tradePolicy.chromiumDeals, freeFactories);
+                freeFactories -= chromium;
+                newExportGoods += chromium;
+                int tungsten = Math.min(tradePolicy.tungstenDeals, freeFactories);
+                freeFactories -= tungsten;
+                newExportGoods += tungsten;
+                int aluminium = Math.min(tradePolicy.aluminiumDeals, freeFactories);
+                freeFactories -= aluminium;
+                newExportGoods += aluminium;
+                int oil = Math.min(tradePolicy.oilDeals, freeFactories);
+                freeFactories -= oil;
+                newExportGoods += oil;
+                tradePolicy = new TradePolicy(rubber, steel, tungsten, chromium, aluminium, oil);
+                exportGoods = newExportGoods;
+            }
+        }
+        //Ok, now that we know our current policy is valid, and we know the player will
+        nationalAluminium+=tradePolicy.aluminiumImport();
+        nationalOil+=tradePolicy.oilImport();
+        nationalSteel+=tradePolicy.steelImport();
+        nationalRubber+=tradePolicy.rubberImport();
+        nationalChromium+=tradePolicy.chromiumImport();
+        nationalTungsten+=tradePolicy.tungstenImport();
+
+
+        //Now actually update the resources, using the existing contract
+        for (var f : militaryFactories)
+            if (!f.getUnderConstruction()) {
+                if (f.operating())
+                {
+                    nationalRubber   =f.addRubberSupplied   (nationalRubber);
+                    nationalChromium =f.addChromiumSupplied (nationalChromium);
+                    nationalAluminium=f.addAluminiumSupplied(nationalAluminium);
+                    nationalTungsten =f.addTungstenSupplied (nationalTungsten);
+                    nationalSteel    =f.addSteelSupplied    (nationalSteel);
+                }
+            }
+
+        //And update what they say they produce
+        for (int i = 0; i < cg_factories; ++i)
+        {
+            var f = civilianFactories.get(i);
+            if (f.operating())
+                f.assign(colorize("Consumer goods", Attribute.WHITE_TEXT()));
+        }
+
+        for (int i = cg_factories; i < cg_factories+exportGoods; ++i)
+        {
+            var f = civilianFactories.get(i);
+            if (f.operating())
+                f.assign(colorize("Export goods", Attribute.BRIGHT_BLUE_TEXT()));
+        }
+
+        for (int j = 0; j <constructionLines.size();++j) {
+            var c = constructionLines.get(j);
+            for (int i = cg_factories + exportGoods + j * 15; i < cg_factories + exportGoods + j * 15+15 && i < civilianFactories.size(); ++i) {
+                var f = civilianFactories.get(i);
+                if (f.operating())
+                    f.assign(colorize(c.building.getName()+" in "+c.building.getLocation().getName(), Attribute.YELLOW_TEXT()));
+            }
+        }
+
+        for (int i = cg_factories + exportGoods + constructionLines.size() * 15; i < civilianFactories.size(); ++i) {
+            var f = civilianFactories.get(i);
+            if (f.operating())
+                f.assign(colorize("Awaiting orders", Attribute.BRIGHT_RED_TEXT()));
+        }
+
+
+
+
+
     }
 
     /// AI generated code, to generate all possible Lists of positive integers, with length N and sum M, for distributing equipment between factories
@@ -721,6 +1103,8 @@ public class NationState  implements Cloneable
         }
     }
 
+    /// Try to add a new building decision, but only if we do not have an equivalent decision already added
+    /// @param constructionDecisions Map of existing decisions, the object is a hash generated from the effects, the integer points to its id in buildingDecisions for instance: if we already have an infrastructure upgrade from 2 to 3 which adds 5 steel, we will not add another
     private void tryAddDecision(Map<Object, Integer> constructionDecisions, State s, Object myHash, BuildDecision dec) {
         if (!constructionDecisions.containsKey(myHash))
         {
@@ -743,38 +1127,59 @@ public class NationState  implements Cloneable
     ///
     public void update(int days, PrintStream out)
     {
-        for (int d = 0; d < days; d++) {
-
+        //Days = 0, means we want to continue Until something happens
+        for (int d = 0; d < days || days==0; d++) {
             //Start by checking if yesterday created some decisions for us to react to
-            if (!buildingDecisions.isEmpty() || !factoryReassignments.isEmpty())
+            if (!buildingDecisions.isEmpty() || !factoryReassignmentDecisions.isEmpty())
                 return;
 
             ++day;
 
             // First step, update production
-            // TBD
+            for (var f : militaryFactories)
+            {
 
-            // Now, update construction
+                f.update(properties.getEfficiency_cap(),properties.getFactoryOutput());
+                if (f.getProduct()!=null)
+                    nationalStockpile.put(f.getProduct(),nationalStockpile.get(f.getProduct())+f.getDailyQuantity());
+            }
+
+
+            // Now, update construction, this also updates the displayed products
             int unassignedCivs = getUnassignedCivs();
 
-            for (int i = constructionLines.size()-1; i>=0; i--) {
+            for (int i = 0; i<constructionLines.size(); i++) {
                 var c = constructionLines.get(i);
+                int thisCivs =Math.min(unassignedCivs,15);
                 //Add 5 daily CIC plus 20%,40%,60%,80% or 100% bonus per level infrastructure, plus construction speed bonus
-                if (c.building.construct(5*Math.min(unassignedCivs,15)*(1+0.2*c.building.getLocation().getInfrastructureLevel())*(1+properties.getConstruction_speed()
+                if (c.building.construct(5*thisCivs*(1+0.2*c.building.getLocation().getInfrastructureLevel())*(1+properties.getConstruction_speed()
                         +(c.building instanceof MilitaryFactory ? properties.getMil_construction_speed_bonus() :0.0)
                         +(c.building instanceof CivilianFactory ? properties.getCiv_construction_speed_bonus() :0.0)
                 )))
                 {
                     out.println(colorize("==Construction completed==",Attribute.BOLD(),Attribute.BRIGHT_YELLOW_TEXT()));
-                    out.println(colorize(c.building.getName()+" now operational in "+c.building.getLocation().getName()+" on "+Calender.getDate(day),Attribute.WHITE_TEXT()));
+                    out.println(colorize(c.building.getName()+" now operational in "+c.building.getLocation().getName()+" on "+ MyCalendar.getDate(day),Attribute.WHITE_TEXT()));
                     constructionLines.remove(i);
+                    //Step back down, so we don't skip over the next element
+                    --i;
                 }
+                unassignedCivs-=thisCivs;
+                //It is possible that a construction line will idle, if you suddenly lost available factories, (i.e. you started trading or got extra consumer goods due to events)
+                if (unassignedCivs<=0)
+                    break;
             }
 
+            boolean eventHappened=false;
             //Apply events at the end of the day (I believe it is similar to the game)
             for (Events e : setup.getEvent(day))
             {
+                eventHappened=true;
                 apply(e,out);
+            }
+
+            //If days == 0, any event interrupts us
+            if (eventHappened && days==0) {
+                return;
             }
 
             //Weekly stability is applied the night between friday and saturday (as it is in game)
@@ -785,12 +1190,12 @@ public class NationState  implements Cloneable
             double newCommunism = properties.getCommunism_support()+getPartyGrowth(properties.getCommunism_support(),properties.getCommunism_growth());
             double newDemocracy = properties.getDemocracy_support()+getPartyGrowth(properties.getDemocracy_support(),properties.getDemocracy_growth());
             double newAutocracy = properties.getAutocracy_support()+getPartyGrowth(properties.getAutocracy_support(),properties.getAutocracy_growth());
-            double newFascism = properties.getFascism_support()+getPartyGrowth(properties.getFascism_support(),properties.getFascism_growth());
+            double newFascism   = properties.getFascism_support()  +getPartyGrowth(properties.getFascism_support()  ,properties.getFascism_growth());
 
             //What do we have too much of, after adding?
             double sum = newAutocracy+newCommunism+newDemocracy+newFascism;
             if (sum>1.0)
-            {//Remove proportional to existing support (NOT REALLY TRUE, the game FAVOURS FASCISM!, but I could not figure out algorithm)
+            {//Remove proportional to existing support (NOT REALLY TRUE, due to weird rounding errors the game FAVOURS FASCISM! (at least I HOPE those are rounding errors), but I could not figure out algorithm)
                 //This is labeled (due to changes in other parties) in game
                 newCommunism-=(sum-1.0)*newCommunism/sum;
                 newDemocracy-=(sum-1.0)*newDemocracy/sum;
@@ -826,10 +1231,10 @@ public class NationState  implements Cloneable
             properties.setAutocracy_support(newAutocracy);
             properties.setFascism_support(newFascism);
 
+            updateDecisionsResourcesAndFactories();
+
             //Tell the institute to do its thing
             instituteOfStatistics.log();
-
-            updateDecisions();
         }
         //No decisions, but we ended anyway
         return;
@@ -867,6 +1272,7 @@ public class NationState  implements Cloneable
         return mils;
     }
 
+    /// Get our unassigned civilian factories, (the ones used on export, idling or construction)
     private int getUnassignedCivs() {
         int factories =0;
         int civs=0;
@@ -881,7 +1287,7 @@ public class NationState  implements Cloneable
             }
         double cg = properties.getConsumer_goods_ratio();
         int cg_factories = (int)(factories*cg);
-        int exportGoods=0;
-        return Math.max(0,civs-properties.getSpecial_projects_civs()-cg_factories-exportGoods);
+
+        return Math.max(0,civs-properties.getSpecial_projects_civs()-cg_factories);
     }
 }

@@ -46,10 +46,12 @@
     [
       {
         "type": "military",
+        "efficiency": 0.5,
         "underConstruction":false
       },
       {
         "type": "military",
+        "efficiency": 0.5,
         "underConstruction":false
       },
       {
@@ -100,6 +102,7 @@
     [
       {
         "type": "military",
+        "efficiency": 0.5,
         "underConstruction":false
       },
       {
@@ -242,14 +245,17 @@
     [
       {
         "type": "military",
+        "efficiency": 0.5,
         "underConstruction":false
       },
       {
         "type": "military",
+        "efficiency": 0.5,
         "underConstruction":false
       },
       {
         "type": "military",
+        "efficiency": 0.5,
         "underConstruction":false
       },
       {

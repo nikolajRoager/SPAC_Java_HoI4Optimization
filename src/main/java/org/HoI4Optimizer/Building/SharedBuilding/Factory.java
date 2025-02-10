@@ -20,6 +20,24 @@ import java.io.PrintStream;
         @JsonSubTypes.Type(value = Refinery.class, name = "refinery")
 })
 public abstract class Factory extends Building {
+    /// My id, likely my location in the List of factories of my type
+    protected int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    /// Used when we are inserting this in a list, and also need to update the ID to fit that list
+    public Factory setIdAndGet(int id)
+    {
+        this.id=id;
+        return this;
+    }
+
     /// Factories created by event activate immediately
     public Factory(State location,boolean underConstruction)
     {
@@ -31,6 +49,7 @@ public abstract class Factory extends Building {
     }
 
 
+    /// Print a report of this building and all its properties
     public void printReport(PrintStream out, String prefix)
     {
         out.println(prefix+"Name..................: "+name);
