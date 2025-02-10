@@ -3,10 +3,12 @@
   "base_stability": 0.50,
   "permanent_stability": -0.05,
   "autocracy_growth": 0.0012,
+
   "autocracy_support": 0.3804,
   "democracy_support": 0.3197,
-  "fascism_support": 0.1099,
   "communism_support": 0.1898,
+  "fascism_support": 0.1099,
+
   "mil_construction_speed_bonus": -0.3,
   "civ_construction_speed_bonus": -0.3,
   "efficiency_cap": 0.5,

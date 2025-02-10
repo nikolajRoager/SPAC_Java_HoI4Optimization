@@ -300,8 +300,8 @@ public class MilitaryFactory extends Factory implements Cloneable{
         rubberSupplied=0;
         statisticsDepartment = new DataLogger();
         openDepartment();
-        statisticsDepartment.addPlot("Factory "+id+" Production stats",Map.of("Factory Output", Color.GREEN,"Efficiency Cap",new Color(64,255,255,127),"Efficiency",Color.CYAN,"Resource Multiplier",Color.RED),"%",false);
-        statisticsDepartment.addPlot("Factory "+id+" Production",Map.of("Daily MIC", new Color(0,255,128),"Total MIC",Color.GREEN,"Units produced",Color.RED),"MIC/units",false);
+        statisticsDepartment.addPlot("Factory "+id+" Production stats ("+name+") in "+location.getName(),Map.of("Factory Output", Color.GREEN,"Efficiency Cap",new Color(64,255,255,127),"Efficiency",Color.CYAN,"Resource Multiplier",Color.RED),"%",false);
+        statisticsDepartment.addPlot("Factory "+id+" Production ("+name+") in "+location.getName(),Map.of("Daily MIC", new Color(0,255,128),"Total MIC",Color.GREEN,"Units produced",Color.RED),"MIC/units",false);
     }
 
     /// For use by JSon deserializer
@@ -365,6 +365,14 @@ public class MilitaryFactory extends Factory implements Cloneable{
             efficiency = Math.clamp(efficiency+efficiencyGain, 0, efficiencyCap);
             statisticsDepartment.log();
         }
+        else
+        {
+            MIC_gain=0.0;
+            MIC_produced =0.0;
+            efficiency=0.0;
+            this.efficiencyCap=0;
+            this.factoryOutput=0;
+        }
     }
 
     @Override
@@ -391,6 +399,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
             clone.chromiumSupplied  =chromiumSupplied;
             clone.rubberSupplied    =rubberSupplied;
             clone.statisticsDepartment=statisticsDepartment.clone();
+            clone.id=id;
             clone.openDepartment();
             return clone;
         } catch (CloneNotSupportedException e) {

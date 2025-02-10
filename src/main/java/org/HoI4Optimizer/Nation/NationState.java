@@ -219,12 +219,6 @@ public class NationState  implements Cloneable
         nationalStockpile =setup.getEquipment().values().stream().collect(Collectors.toMap(e->e, Equipment::getInitial));
     }
 
-    /// recalculate resources available, used by military factories, and what the civilian factories are doing, but do not advance anything
-    private void recalculateResourcesAndFactories()
-    {
-
-    }
-
     /// Open the institute of statistics, so we can keep track of literally everything
     private void openInstituteOfStatistics()
     {
@@ -426,7 +420,7 @@ public class NationState  implements Cloneable
     /// Print an integer which is green if positive, red if negative, otherwise gray
     private String goodInt(int i)
     {
-        return colorize(String.format("%4d",i),
+        return colorize(String.format("%5d",i),
                 i>0? Attribute.GREEN_TEXT() : (i==0? Attribute.WHITE_TEXT() : Attribute.RED_TEXT())
                 );
     }
@@ -457,8 +451,6 @@ public class NationState  implements Cloneable
         {
             case Nonaligned ->
             {
-
-
                 out.println(colorize("\tNon-aligned Government support......:"+Agrowth+ printBarPlot((int)(100*properties.getAutocracy_support()),Attribute.WHITE_BACK()),Attribute.BOLD()       ,Attribute.WHITE_TEXT()     ));
                 out.println(colorize("\tDemocratic opposition support.......:"+Dgrowth+ printBarPlot((int)(100*properties.getDemocracy_support()),Attribute.BLUE_BACK())                         ,Attribute.BLUE_TEXT()      ));
                 out.println(colorize("\tCommunist opposition support........:"+Cgrowth+ printBarPlot((int)(100*properties.getCommunism_support()),Attribute.RED_BACK())                   ,Attribute.RED_TEXT()));
@@ -537,7 +529,7 @@ public class NationState  implements Cloneable
         //Table header
         if (showResources)
         {
-            out.println(colorize(("\t\t                     Oil | Aluminium | Rubber | Tungsten | Steel | Chromium"),Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD()));
+            out.println(colorize(("\t\t                           Oil |  Aluminium |  Rubber |  Tungsten |  Steel |  Chromium"),Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD()));
         }
         //Resources available (we re-calculate it here, to display every step)
         int oil=0;
@@ -563,37 +555,27 @@ public class NationState  implements Cloneable
         String sep= colorize("|",Attribute.BRIGHT_WHITE_TEXT(),Attribute.BOLD());
 
         if (showResources) {
-            out.println(("\t\tProduced in States:   "+colorize(String.format("%4d",oil),oil>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"      "+colorize(String.format("%4d",aluminium),aluminium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"   "+colorize(String.format("%4d",rubber),rubber>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",tungsten),tungsten>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"  "+colorize(String.format("%4d",steel),steel>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",chromium),chromium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())));
+
+            out.println(("\t\tProduced in states:      "+goodInt(oil)+" "+sep+"      "+goodInt(aluminium)+" "+sep+"   "+goodInt(rubber)+" "+sep+"     "+goodInt(tungsten)+" "+sep+"  "+goodInt(steel)+" "+sep+"     "+goodInt(chromium)));
         }
-        if (showResources)
-            out.println(("\t\tExcavation tech bonus:"+colorize(String.format("%4d", (int)Math.round((1+properties.getResource_gain_bonus())*oil)-oil),oil>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"      "+colorize(String.format("%4d",aluminium),aluminium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"   "+colorize(String.format("%4d",rubber),rubber>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",tungsten),tungsten>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"  "+colorize(String.format("%4d",steel),steel>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())+" "+sep+"     "+colorize(String.format("%4d",chromium),chromium>0?Attribute.GREEN_TEXT():Attribute.WHITE_TEXT())));
 
         //THIS IS A ROUNDING MESS, but it is game accurate!
-        rubber=(int)Math.round(rubber*(1+properties.getResource_gain_bonus()));
-        oil=(int)Math.round(oil*(1+properties.getResource_gain_bonus()));
-        aluminium=(int)Math.round(aluminium*(1+properties.getResource_gain_bonus()));
-        chromium=(int)Math.round(chromium*(1+properties.getResource_gain_bonus()));
-        steel=(int)Math.round(steel*(1+properties.getResource_gain_bonus()));
-        tungsten=(int)Math.round(tungsten*(1+properties.getResource_gain_bonus()));
+        int newrubber=(int)Math.round(rubber*(1+properties.getResource_gain_bonus()));
+        int newoil=(int)Math.round(oil*(1+properties.getResource_gain_bonus()));
+        int newaluminium=(int)Math.round(aluminium*(1+properties.getResource_gain_bonus()));
+        int newchromium=(int)Math.round(chromium*(1+properties.getResource_gain_bonus()));
+        int newsteel=(int)Math.round(steel*(1+properties.getResource_gain_bonus()));
+        int newtungsten=(int)Math.round(tungsten*(1+properties.getResource_gain_bonus()));
+
+        if (showResources)
+            out.println(("\t\tExcavation tech bonus:   "+goodInt(newoil-oil)+" "+sep+"      "+goodInt(newaluminium-aluminium)+" "+sep+"   "+goodInt(newrubber-rubber)+" "+sep+"     "+goodInt(newtungsten-tungsten)+" "+sep+"  "+goodInt(newsteel-steel)+" "+sep+"     "+goodInt(newchromium-chromium)));
+
         double rtm = properties.getResources_to_market();
 
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "+"+(int)(100* properties.getResource_gain_bonus())+"% excavation tech", oil, aluminium, rubber, tungsten, steel, chromium),Attribute.GREEN_TEXT()));
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Exporting "+(int)(100*rtm)+"%", (int)(rtm*oil), (int)(rtm*aluminium), (int)(rtm*rubber), (int)(rtm*tungsten), (int)(rtm*steel), (int)(rtm*chromium)),Attribute.RED_TEXT()));
-        oil-=(int)(rtm*oil);
-        rubber-=(int)(rtm*rubber);
-        aluminium-=(int)(rtm*aluminium);
-        tungsten-=(int)(rtm*tungsten);
-        steel-=(int)(rtm*steel);
-        chromium-=(int)(rtm*chromium);
-
-
-
+            out.println(("\t\tCivilian industry/export:"+goodInt(-(int)(newoil*rtm))+" "+sep+"      "+goodInt(-(int)(newaluminium*rtm))+" "+sep+"   "+goodInt(-(int)(newrubber*rtm))+" "+sep+"     "+goodInt(-(int)(newtungsten*rtm))+" "+sep+"  "+goodInt(-(int)(newsteel*rtm))+" "+sep+"     "+goodInt(-(int)(newchromium*rtm))));
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Import", tradePolicy.oilImport(), tradePolicy.aluminiumImport(), tradePolicy.rubberImport(), tradePolicy.tungstenImport(), tradePolicy.steelImport(), tradePolicy.chromiumImport()),Attribute.GREEN_TEXT()));
-        //Not implemented yet
-        //if (showResources)
-        //    out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Special projects", "-", 0, 0, 0, 0, 0),Attribute.RED_TEXT()));
+            out.println(("\t\tImported:                "+goodInt(tradePolicy.oilImport())+" "+sep+"      "+goodInt(tradePolicy.aluminiumImport())+" "+sep+"   "+goodInt(tradePolicy.rubberImport())+" "+sep+"     "+goodInt(tradePolicy.tungstenImport())+" "+sep+"  "+goodInt(tradePolicy.steelImport())+" "+sep+"     "+goodInt(tradePolicy.chromiumImport())));
 
         int needSteel    =militaryFactories.stream().mapToInt(MilitaryFactory::getSteelNeeded    ).sum();
         int needAluminium=militaryFactories.stream().mapToInt(MilitaryFactory::getAluminiumNeeded).sum();
@@ -603,17 +585,17 @@ public class NationState  implements Cloneable
 
         //Just get what we have left over, by checking the difference between our calculated data, and the thing actually left over in the national stockpile (any deficit must have been used for production)
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Used for production", "-", needAluminium, needRubber, needTungsten, needSteel, needChromium),Attribute.RED_TEXT()));
+            out.println(("\t\tMilitary industry:       "+colorize("   -",Attribute.WHITE_TEXT())+" "+sep+"      "+goodInt(needAluminium)+" "+sep+"   "+goodInt(needRubber)+" "+sep+"     "+goodInt(needTungsten)+" "+sep+"  "+goodInt(needSteel)+" "+sep+"     "+goodInt(needChromium)));
         if (showResources)
-            out.print(colorize(String.format("\t\t%-21s %3s %6s %8s %7s %6s %7s%n", "Balance", nationalOil, nationalAluminium, nationalRubber, nationalTungsten, nationalSteel, nationalChromium),Attribute.WHITE_TEXT()));
+            out.println(("\t\tBalance:                 "+goodInt(nationalOil)+" "+sep+"      "+goodInt(nationalAluminium)+" "+sep+"   "+goodInt(nationalRubber)+" "+sep+"     "+goodInt(nationalTungsten)+" "+sep+"  "+goodInt(nationalSteel)+" "+sep+"     "+goodInt(nationalChromium)));
         else
         {
             //Print short summary
-            out.println(colorize("Balance: ",Attribute.BLUE_TEXT())+" oil: "+nationalOil+" aluminium: "+nationalAluminium+" rubber: "+nationalRubber+" tungsten: "+nationalTungsten+" steel: "+nationalSteel+" chromium: "+nationalChromium);
+            out.println(("Resource balance: Oil: "+goodInt(nationalOil)+", Aluminium: "+goodInt(nationalAluminium)+", rubber: "+goodInt(nationalRubber)+", tungsten: "+goodInt(nationalTungsten)+", steel: "+goodInt(nationalSteel)+", and chromium "+goodInt(nationalChromium)));
         }
 
         double baseFuel =properties.getBase_fuel();
-        double naturalFuel =properties.getBase_fuel()*(1+properties.getNatural_fuel_bonus())*oil;
+        double naturalFuel =properties.getBase_fuel()*(1+properties.getNatural_fuel_bonus())*nationalOil;
         double refineryFuel=properties.getBase_fuel()*(1+properties.getRefinery_fuel_bonus())*refineries.size();
 
         out.println(colorize("\t\tFuel gain per day........................:",Attribute.BLUE_TEXT())+String.format("%.2f",baseFuel+naturalFuel+refineryFuel));
@@ -990,9 +972,7 @@ public class NationState  implements Cloneable
                             if (r + s + t + c + a <= freeFactories)
                             {
                                 var tp =new TradePolicy(r, s, t, c, a, 0);
-                                System.out.println("tryadd "+r+" "+s+" "+t+" "+c+" "+a);
                                 if (!tp.equals(tradePolicy)) {
-                                    System.out.println("doadd "+r+" "+s+" "+t+" "+c+" "+a);
                                     tradeDecisions.add(tp);
                                 }
                             }
