@@ -19,7 +19,7 @@ import java.io.PrintStream;
         @JsonSubTypes.Type(value = MilitaryFactory.class, name = "military"),
         @JsonSubTypes.Type(value = Refinery.class, name = "refinery")
 })
-public abstract class Factory extends Building {
+public abstract class Factory extends Building implements Cloneable {
     /// My id, likely my location in the List of factories of my type
     protected int id;
 
@@ -68,4 +68,16 @@ public abstract class Factory extends Building {
     }
     /// Generate the name of this factory, given a town name
     public abstract void generateName();
+
+    @Override
+    public Factory clone() {
+        try {
+            Factory clone = (Factory) super.clone();
+            clone.id = id;
+
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }

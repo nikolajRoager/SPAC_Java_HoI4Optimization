@@ -56,18 +56,14 @@ public class Refinery extends Factory implements Cloneable{
 
     @Override
     public Refinery clone() {
-        try {
-            Refinery clone = (Refinery) super.clone();
-            clone.CIC_invested=CIC_invested;
-            //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
-            clone.location=location;
-            clone.id=id;
-            clone.name=name;
-            clone.underConstruction=underConstruction;
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        Refinery clone = (Refinery) super.clone();
+        clone.CIC_invested=CIC_invested;
+        //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
+        clone.location=location;
+        clone.id=id;
+        clone.name=name;
+        clone.underConstruction=underConstruction;
+        return clone;
     }
 
     @Override

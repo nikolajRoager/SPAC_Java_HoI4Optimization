@@ -66,7 +66,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addSteelSupplied(int steelSupplied)
     {
-        if (!operating()) return steelSupplied;
+        if (!operating() && getSteelNeeded()>0) return steelSupplied;
         this.steelSupplied=Math.min(steelSupplied,getSteelNeeded());
         return steelSupplied-this.getSteelNeeded();
     }
@@ -76,7 +76,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addAluminiumSupplied(int aluminiumSupplied)
     {
-        if (!operating()) return aluminiumSupplied;
+        if (!operating() && getAluminiumNeeded()>0) return aluminiumSupplied;
         this.aluminiumSupplied=Math.min(aluminiumSupplied,getAluminiumNeeded());
         return aluminiumSupplied-this.getAluminiumNeeded();
     }
@@ -86,7 +86,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addRubberSupplied(int rubberSupplied)
     {
-        if (!operating()) return rubberSupplied;
+        if (!operating()&& getRubberNeeded()>0) return rubberSupplied;
         this.rubberSupplied=Math.min(rubberSupplied,getRubberNeeded());
         return rubberSupplied-this.getRubberNeeded();
     }
@@ -96,7 +96,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addTungstenSupplied(int tungstenSupplied)
     {
-        if (!operating()) return tungstenSupplied;
+        if (!operating()&& getTungstenNeeded()>0) return tungstenSupplied;
         this.tungstenSupplied=Math.min(tungstenSupplied,getTungstenNeeded());
         return tungstenSupplied-this.getTungstenNeeded();
     }
@@ -106,7 +106,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addChromiumSupplied(int chromiumSupplied)
     {
-        if (!operating()) return chromiumSupplied;
+        if (!operating()&& getChromiumNeeded()>0) return chromiumSupplied;
         this.chromiumSupplied=Math.min(chromiumSupplied,getChromiumNeeded());
         return chromiumSupplied-this.getChromiumNeeded();
     }
@@ -138,9 +138,10 @@ public class MilitaryFactory extends Factory implements Cloneable{
         //Check what is the bottleneck
         //We only apply a penalty for it (presumably, while we are busy figuring out how to turn 100 tonne alu-foil back into aluminium, we will have more than enough time to find 50 tonnes of scap steel we can melt down)
         int deficit =
-                Math.max(chromiumSupplied-getChromiumNeeded(),Math.max(
-                Math.max(aluminiumSupplied-getAluminiumNeeded(),tungstenSupplied-getTungstenNeeded()),
-                Math.max(rubberSupplied-getRubberNeeded(),steelSupplied-getSteelNeeded())));
+                Math.max(0,
+                Math.max(-chromiumSupplied+getChromiumNeeded(),Math.max(
+                Math.max(-aluminiumSupplied+getAluminiumNeeded(),-tungstenSupplied+getTungstenNeeded()),
+                Math.max(-rubberSupplied+getRubberNeeded(),-steelSupplied+getSteelNeeded()))));
 
         //The greater our deficit, the harder solving it becomes
         //This includes if we are the 5th factory in line, and everybody else just bought up all the scrap iron
@@ -215,8 +216,8 @@ public class MilitaryFactory extends Factory implements Cloneable{
         rubberSupplied=0;
         statisticsDepartment = new DataLogger();
         openDepartment();
-        statisticsDepartment.addPlot("Factory "+id+" Production stats",Map.of("Factory Output", Color.GREEN,"Efficiency Cap",new Color(64,255,255,127),"Efficiency",Color.CYAN,"Resource Multiplier",Color.RED),"%",false);
-        statisticsDepartment.addPlot("Factory "+id+" Production",Map.of("Daily MIC", new Color(0,255,128),"Total MIC",Color.GREEN,"Units produced",Color.RED),"MIC/units",false);
+        statisticsDepartment.addPlot("Production stats",Map.of("Factory Output", Color.GREEN,"Efficiency Cap",new Color(64,255,255,127),"Efficiency",Color.CYAN,"Resource Multiplier",Color.RED),"%",false);
+        statisticsDepartment.addPlot("Production",Map.of("Daily MIC", new Color(0,255,128),"Total MIC",Color.GREEN,"Units produced",Color.RED),"MIC/units",false);
     }
 
     /// Open this factory's department of statistics
@@ -338,8 +339,8 @@ public class MilitaryFactory extends Factory implements Cloneable{
         rubberSupplied=0;
         statisticsDepartment = new DataLogger();
         openDepartment();
-        statisticsDepartment.addPlot("Factory "+id+" Production stats",Map.of("Factory Output", Color.GREEN,"Efficiency Cap",new Color(64,255,255,127),"Efficiency",Color.CYAN,"Resource Multiplier",Color.RED),"%",false);
-        statisticsDepartment.addPlot("Factory "+id+" Production",Map.of("Daily MIC", new Color(0,255,128),"Total MIC",Color.GREEN,"Units produced",Color.RED),"MIC/units",false);
+        statisticsDepartment.addPlot("Production stats",Map.of("Factory Output", Color.GREEN,"Efficiency Cap",new Color(64,255,255,127),"Efficiency",Color.CYAN,"Resource Multiplier",Color.RED),"%",false);
+        statisticsDepartment.addPlot("Production",Map.of("Daily MIC", new Color(0,255,128),"Total MIC",Color.GREEN,"Units produced",Color.RED),"MIC/units",false);
     }
 
     /// Current efficiency of the production line
@@ -366,7 +367,15 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// Step forward 1 day, and calculate production following the instructions on the wiki: [...](https://hoi4.paradoxwikis.com/Production#Production_lines)
     /// @param efficiencyCap highest possible efficiency in this nation, efficiency is how much of the 4.5 MIC per day base output we can access
     /// @param factoryOutput national % bonus output, will be further modified by resource penalties
-    public void update(double efficiencyCap, double factoryOutput) {
+    public void update(double efficiencyCap, double factoryOutput, int day) {
+        if (day> statisticsDepartment.getDay()+1)
+        {
+            MIC_gain=0;
+            //Have department collect no-production data until we are caught up
+            for (int i = statisticsDepartment.getDay(); i+1 < day; i++)
+                statisticsDepartment.log();
+        }
+
         if (product!=null && operating()) {
             this.factoryOutput=factoryOutput;
             this.efficiencyCap=efficiencyCap;
@@ -377,53 +386,46 @@ public class MilitaryFactory extends Factory implements Cloneable{
             //If we are close to our cap, innovation becomes hard, and if we have to waste our creative energies looking for alternate suppliers we don't improve as fast
             double efficiencyGain = 0.001 * getResourceMultiplier()*efficiencyCap * efficiencyCap / efficiency;
             efficiency = Math.clamp(efficiency+efficiencyGain, 0, efficiencyCap);
-            statisticsDepartment.log();
         }
         else
         {
             MIC_gain=0.0;
             MIC_produced =0.0;
-            efficiency=0.1;
-            this.efficiencyCap=0;
-            this.factoryOutput=0;
         }
+        statisticsDepartment.log();
     }
 
     @Override
     public MilitaryFactory clone() {
-        try {
-            MilitaryFactory clone = (MilitaryFactory) super.clone();
-            clone.CIC_invested=CIC_invested;
+        MilitaryFactory clone = (MilitaryFactory) super.clone();
+        clone.CIC_invested=CIC_invested;
 
-            //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
-            clone.location=location;
+        //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
+        clone.location=location;
 
-            clone.name=name;
-            clone.underConstruction=underConstruction;
-            clone.closed=closed;
-            clone.efficiency=efficiency;
-            clone.MIC_produced=MIC_produced;
-            //The product can not be modified by the factory, so I just copy the reference
-            clone.product=product;
-            clone.productName=productName;
+        clone.name=name;
+        clone.underConstruction=underConstruction;
+        clone.closed=closed;
+        clone.efficiency=efficiency;
+        clone.MIC_produced=MIC_produced;
+        //The product can not be modified by the factory, so I just copy the reference
+        clone.product=product;
+        clone.productName=productName;
 
-            clone.steelSupplied     =steelSupplied;
-            clone.aluminiumSupplied =aluminiumSupplied;
-            clone.tungstenSupplied  =tungstenSupplied;
-            clone.chromiumSupplied  =chromiumSupplied;
-            clone.rubberSupplied    =rubberSupplied;
-            clone.statisticsDepartment=statisticsDepartment.clone();
-            clone.id=id;
-            clone.openDepartment();
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        clone.steelSupplied     =steelSupplied;
+        clone.aluminiumSupplied =aluminiumSupplied;
+        clone.tungstenSupplied  =tungstenSupplied;
+        clone.chromiumSupplied  =chromiumSupplied;
+        clone.rubberSupplied    =rubberSupplied;
+        clone.statisticsDepartment=statisticsDepartment.clone();
+        clone.id=id;
+        clone.openDepartment();
+        return clone;
     }
     @Override
     public String getBuildingName(){return "Military factory";}
 
     public void show(boolean save) {
-        statisticsDepartment.show(save);
+        statisticsDepartment.show(save,name+", "+location.getName()+" ");
     }
 }

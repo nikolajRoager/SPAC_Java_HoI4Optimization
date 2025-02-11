@@ -138,7 +138,11 @@ public class DataLogger implements Cloneable{
     @NeverNull
     List<PlotTemplate> plots;
 
-    int day;
+    private int day;
+
+    public int getDay() {
+        return day;
+    }
 
     /// Initialize new data-logger
     public DataLogger()
@@ -227,6 +231,7 @@ public class DataLogger implements Cloneable{
             }
         plots.add(new PlotTemplate(title, yaxis_title, stacked_areas, lines));
     }
+
     /// Log for this day, I assume this is called once per day
     public void log()
     {
@@ -242,8 +247,14 @@ public class DataLogger implements Cloneable{
         }
         ++day;
     }
-    //Open windows with all plots
+
     public void show(boolean save)
+    {
+        show(save,"");
+    }
+
+    //Open windows with all plots
+    public void show(boolean save,String name)
     {
         for (var plot: plots)
         {
@@ -283,7 +294,7 @@ public class DataLogger implements Cloneable{
                         line.getValue()));
             }
 
-            var frame= new LinePlotFrame(plot.title(), plot.yaxis_title(),lines, type==null?logDataType.Real:type,plot.stacked_areas(),save);
+            var frame= new LinePlotFrame(name+plot.title(), plot.yaxis_title(),lines, type==null?logDataType.Real:type,plot.stacked_areas(),save);
             frame.setVisible(true);
         }
     }

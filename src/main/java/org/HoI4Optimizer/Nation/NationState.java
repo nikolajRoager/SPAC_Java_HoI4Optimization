@@ -585,7 +585,7 @@ public class NationState  implements Cloneable
 
         //Just get what we have left over, by checking the difference between our calculated data, and the thing actually left over in the national stockpile (any deficit must have been used for production)
         if (showResources)
-            out.println(("\t\tMilitary industry:        "+colorize("   -",Attribute.WHITE_TEXT())+" "+sep+"      "+goodInt(needAluminium)+" "+sep+"   "+goodInt(needRubber)+" "+sep+"     "+goodInt(needTungsten)+" "+sep+"  "+goodInt(needSteel)+" "+sep+"     "+goodInt(needChromium)));
+            out.println(("\t\tMilitary industry:        "+colorize("   -",Attribute.WHITE_TEXT())+" "+sep+"      "+goodInt(-needAluminium)+" "+sep+"   "+goodInt(-needRubber)+" "+sep+"     "+goodInt(-needTungsten)+" "+sep+"  "+goodInt(-needSteel)+" "+sep+"     "+goodInt(-needChromium)));
         if (showResources)
             out.println(("\t\tBalance:                 "+goodInt(nationalOil)+" "+sep+"      "+goodInt(nationalAluminium)+" "+sep+"   "+goodInt(nationalRubber)+" "+sep+"     "+goodInt(nationalTungsten)+" "+sep+"  "+goodInt(nationalSteel)+" "+sep+"     "+goodInt(nationalChromium)));
         else
@@ -710,7 +710,7 @@ public class NationState  implements Cloneable
             clone.civilianFactories=new ArrayList<>();
             clone.militaryFactories=new ArrayList<>();
             clone.buildingDecisions =new ArrayList<>();
-            //Cloning kills the construction lindee
+            //Cloning kills the construction lines
             clone.constructionLines=new ArrayList<>();
 
             for (var s : states)
@@ -1119,7 +1119,7 @@ public class NationState  implements Cloneable
             for (var f : militaryFactories)
             {
 
-                f.update(properties.getEfficiency_cap(),properties.getFactoryOutput());
+                f.update(properties.getEfficiency_cap(),properties.getFactoryOutput(),day);
                 if (f.getProduct()!=null)
                     nationalStockpile.put(f.getProduct(),nationalStockpile.get(f.getProduct())+f.getDailyQuantity());
             }

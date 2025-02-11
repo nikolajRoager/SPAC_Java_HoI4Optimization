@@ -86,19 +86,15 @@ public class CivilianFactory extends Factory implements Cloneable{
 
     @Override
     public CivilianFactory clone() {
-        try {
-            CivilianFactory clone = (CivilianFactory) super.clone();
-            clone.CIC_invested=CIC_invested;
+        CivilianFactory clone = (CivilianFactory) super.clone();
+        clone.CIC_invested=CIC_invested;
 
-            //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
-            clone.id=id;
-            clone.location=location;
-            clone.name=name;
-            clone.underConstruction=underConstruction;
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        //Keep the same location, the state is responsible for moving me to a clone of it, if it is cloned
+        clone.id=id;
+        clone.location=location;
+        clone.name=name;
+        clone.underConstruction=underConstruction;
+        return clone;
     }
 
     @Override
