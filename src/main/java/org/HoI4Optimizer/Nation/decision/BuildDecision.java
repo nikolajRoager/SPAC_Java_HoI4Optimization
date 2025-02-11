@@ -62,7 +62,7 @@ public record BuildDecision(
     public BuildDecision(State location, MilitaryFactory factory, Equipment equipment, String description,int days)
     {
         this(Type.build,location,factory,description,days);
-        factory.setProduct(equipment);
+        factory.setProduct(equipment,0/*will be overwritten when finished*/);
     }
 
     /// Print this thing to out

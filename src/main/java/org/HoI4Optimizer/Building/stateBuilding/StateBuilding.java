@@ -21,7 +21,7 @@ public abstract class StateBuilding extends Building {
     public int getLevel(){return underConstruction && level>0?  level-1: level;}
 
     /// Force a level, likely due to an event, like in-game ongoing construction is NOT canceled (except if max-level is reached)
-    public void setLevel(int level) {
+    public void setLevel(int level, int day) {
         this.level = Math.clamp(level, 0, getMaxLevel());
 
         //Only cancel construction if we hit max level, similar to how it works in game
@@ -31,12 +31,12 @@ public abstract class StateBuilding extends Building {
             CIC_invested = getCost(this.getMyType());
         }
         //And also call this function as we DID just gain a new level
-        onFinishConstruction();
+        onFinishConstruction(day);
     }
 
 
     /// Force an instant upgrade, likely due to an event, like in-game ongoing construction is NOT canceled (except if max-level is reached)
-    public void addLevel(int level)
+    public void addLevel(int level, int day)
     {
         this.level = Math.clamp(this.level+level,0,getMaxLevel());
         //Only cancel construction if we hit max level, similar to how it works in game
@@ -45,7 +45,7 @@ public abstract class StateBuilding extends Building {
             underConstruction = false;
             CIC_invested = getCost(this.getMyType());
             //And also call this function as we DID just gain a new level
-            onFinishConstruction();
+            onFinishConstruction(day);
         }
     }
 

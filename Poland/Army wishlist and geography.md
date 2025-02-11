@@ -104,10 +104,18 @@ cost 5 xp
 
 3 divisions per province is ideal, but might not be realistic, at the very least 2 per province: 76 divisions
 
-Elite Hill infantry: ideally 6 to match the special forces limit
+Elite Hill infantry: ideally 6 to fill 2 70 width battles
 cost 80xp + 60 for rangers +12 for tanks
-Elite Hussars: as many as possible aiming for 6
+Elite Hussars: as many as possible aiming for 4
 cost 95xp
+
+Estimated cost: 
+* 2820 Support equipment
+* 1760 Anti Aircraft guns
+* 1056 Howitzers
+* 90560 Infantry squad equipment
+* 1440 Light Tanks
+
 
 A decent stockpile of trains and trucks is a good idea as well aim for 15 to 30 armored trains, and 100 supply trucks
 

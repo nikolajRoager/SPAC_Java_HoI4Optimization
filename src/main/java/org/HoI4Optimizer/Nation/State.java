@@ -197,7 +197,12 @@ public class State implements Cloneable {
     /// Used by json deserializer
     public void setInfrastructure(int level)
     {
-        infrastructure.setLevel(level);
+        infrastructure.setLevel(level,0);
+    }
+
+    public void setInfrastructure(int level,int day)
+    {
+        infrastructure.setLevel(level,day);
     }
 
     /// Is it possible to
@@ -306,7 +311,7 @@ public class State implements Cloneable {
                     if (product==null)
                         throw new RuntimeException("Loaded factory producing "+((MilitaryFactory) f).getProductName()+" but that does not exist!");
                     else
-                        ((MilitaryFactory) f).setProduct(product);
+                        ((MilitaryFactory) f).setProduct(product,0);
                 }
                 f.setLocation(S);
             }
@@ -480,7 +485,7 @@ public class State implements Cloneable {
     /// Adepply events, and optionally print what happens
     /// @param out Where to print to, use null if you don't want anything printed
     /// @param event event to apply
-    void apply(StateEvent event,NationalProperties properties, PrintStream out, List<Refinery> nationalRefineries, List<CivilianFactory> nationalCivs, List<MilitaryFactory> nationalMils)
+    void apply(StateEvent event,NationalProperties properties, PrintStream out, List<Refinery> nationalRefineries, List<CivilianFactory> nationalCivs, List<MilitaryFactory> nationalMils,int day)
     {
 
         Attribute GoodOutcome= Attribute.GREEN_TEXT();
@@ -594,7 +599,7 @@ public class State implements Cloneable {
             case Infrastructure -> {
                 if (infrastructure.canUpgrade())
                 {
-                    infrastructure.setLevel(infrastructure.getLevel()+ event.number());
+                    infrastructure.setLevel(infrastructure.getLevel()+ event.number(),day);
                     if (out!=null)
                     {
                         out.println(colorize("    Build "+event.number()+" level of infrastructure in "+name+" total is now "+infrastructure.getLevel(), outcomeColour));

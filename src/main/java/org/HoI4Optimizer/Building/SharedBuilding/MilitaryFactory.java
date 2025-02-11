@@ -2,6 +2,7 @@ package org.HoI4Optimizer.Building.SharedBuilding;
 
 import com.diogonunes.jcolor.Attribute;
 import net.bytebuddy.utility.nullability.NeverNull;
+import org.HoI4Optimizer.MyCalendar;
 import org.HoI4Optimizer.MyPlotter.DataLogger;
 import org.HoI4Optimizer.Nation.State;
 import org.HoI4Optimizer.NationalConstants.Equipment;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -30,6 +32,9 @@ public class MilitaryFactory extends Factory implements Cloneable{
     private int tungstenSupplied;
     private int chromiumSupplied;
     private int rubberSupplied;
+
+    //The first day this was operational
+    private int day0=0;
 
     /// Keep track of our local data over time
     @NeverNull
@@ -168,7 +173,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     }
 
     /// Replace null with product, we can NOT re-assign existing factories (instead close the factory and build a new one)
-    public void setProduct(Equipment product)
+    public void setProduct(Equipment product,int day)
     {
         if (Objects.equals(this.productName, "null"))
             this.product=product;
@@ -176,7 +181,14 @@ public class MilitaryFactory extends Factory implements Cloneable{
             throw new RuntimeException("Attempting to assign product "+product.getName()+" to factory expecting "+this.productName);
         else
             this.product=product;
+        day0=day;
         generateName();
+    }
+
+    @Override
+    protected void onFinishConstruction(int day) {
+        super.onFinishConstruction(day);
+        day0=day;//This is the day we became operational
     }
 
     /// Military industrial capacity produced in the lifetime of the factory
@@ -244,7 +256,9 @@ public class MilitaryFactory extends Factory implements Cloneable{
             }
             else
             {
+                out.println(colorize(prefix+"\tEstablished...........: "+ MyCalendar.getDate(day0)));
                 out.println(colorize(prefix+"\tProduces..............: "+product.getName()+" ("+product.getShortname()+")"));
+                out.println(colorize(prefix+"\tResource multiplier...: "+String.format("%.2f",getResourceMultiplier()*100)+"%"));
                 out.println(colorize(prefix+"\tTotal units produced..: "+getQuantity()+"\t("+MIC_produced+" MIC)"));
                 out.println(colorize(prefix+"\tEfficiency............: "+efficiency));
                 out.println(colorize(prefix+"\tSteel.................: "+steelSupplied+"/"+getSteelNeeded()));
@@ -353,7 +367,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @param efficiencyCap highest possible efficiency in this nation, efficiency is how much of the 4.5 MIC per day base output we can access
     /// @param factoryOutput national % bonus output, will be further modified by resource penalties
     public void update(double efficiencyCap, double factoryOutput) {
-        if (product!=null) {
+        if (product!=null && operating()) {
             this.factoryOutput=factoryOutput;
             this.efficiencyCap=efficiencyCap;
             //Daily production can never become negative, (as long as striking workers don't start running the assembly lines backwards)
@@ -369,7 +383,7 @@ public class MilitaryFactory extends Factory implements Cloneable{
         {
             MIC_gain=0.0;
             MIC_produced =0.0;
-            efficiency=0.0;
+            efficiency=0.1;
             this.efficiencyCap=0;
             this.factoryOutput=0;
         }

@@ -1,6 +1,7 @@
 package org.HoI4Optimizer.MyPlotter;
 import java.awt.geom.AffineTransform;
 import java.io.Console;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,6 +40,7 @@ import java.util.Calendar;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
+import org.jfree.chart.ChartUtils;
 
 /// Class which contains some kind of line-plot of data
 public class LinePlotFrame extends JFrame
@@ -246,7 +248,7 @@ public class LinePlotFrame extends JFrame
         chart.getLegend().setItemFont(new Font("SansSerif", Font.PLAIN, 16));
         chart.setTitle(new TextTitle(name, new Font("Serif", java.awt.Font.BOLD, 18)));
         ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        chartPanel.setBorder(BorderFactory.createEmptyBorder(150, 15, 150, 15));
         chartPanel.setBackground(Color.white);
         add(chartPanel);
 
@@ -256,5 +258,16 @@ public class LinePlotFrame extends JFrame
         setTitle(name);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        if (save)
+            // Save chart as PNG
+            try {
+                File file = new File(name+".png");
+                ChartUtils.saveChartAsPNG(file, chart, defaultWidth, defaultHeight);
+                System.out.println("Chart saved as PNG.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
     }
 }

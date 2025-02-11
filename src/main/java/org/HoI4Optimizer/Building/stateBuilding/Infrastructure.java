@@ -61,7 +61,7 @@ public class Infrastructure extends StateBuilding implements Cloneable {
 
     ///Upgrade infrastructure level, called automatically when construction finishes
     @Override
-    protected void onFinishConstruction() {
+    protected void onFinishConstruction(int day) {
         //Upgrade
         level=Math.clamp(level, 0, maxLevel);
         underConstruction=false;

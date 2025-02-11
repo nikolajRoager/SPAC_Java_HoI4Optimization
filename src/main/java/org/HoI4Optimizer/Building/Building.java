@@ -4,6 +4,7 @@ import org.HoI4Optimizer.Nation.State;
 
 /// Any type of building which can be constructed , parent class for factories
 public abstract class Building {
+
     public enum type
     {
         Military,
@@ -53,13 +54,13 @@ public abstract class Building {
     }
 
     /// Called automatically when the building is finished
-    protected void onFinishConstruction()
-    {/*Overwrite this function to do stuff*/}
+    protected void onFinishConstruction(int day)
+    {/*Overwrite this function to do stuff, keep as is to not*/}
 
     /// Add this CIC to the factory, return true if the construction finished,
     /// CIC is counted up at the end of every day in game, and buildings do not finish faster regardless if the last step costs 100 or 1 CIC
     /// I believe this is how it works in game, (or so my testing suggests)
-    public boolean construct(double CIC)
+    public boolean construct(double CIC,int day)
     {
         //This is already working
         if (!underConstruction) return true;
@@ -71,7 +72,7 @@ public abstract class Building {
             //We are done here
             underConstruction = false;
             CIC_invested =getCost(getMyType());
-            onFinishConstruction();
+            onFinishConstruction(day);
             return true;
         }
         else return false;
