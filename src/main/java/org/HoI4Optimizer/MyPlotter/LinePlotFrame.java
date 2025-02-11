@@ -249,9 +249,6 @@ public class LinePlotFrame extends JFrame
         chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         chartPanel.setBackground(Color.white);
         add(chartPanel);
-
-
-
         pack();
         setTitle(name);
         setLocationRelativeTo(null);
