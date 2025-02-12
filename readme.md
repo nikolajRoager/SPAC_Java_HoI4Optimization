@@ -2,12 +2,14 @@ An excessively detailed simulation of the economy in Hearts of Iron 4
 =====================================================================
 This project has primarily been created as a Java training project.
 
-The aim is to accurately simulate the economy, and industry in the real time grand strategy game Hearts of Iron 4, in particular, the aim is to simulate a game as Poland, from the games start on the 1st of January 1936, and be ready to fight a defensive war with Nazi Germany on the 14th of September 1938: A year earlier than historically.
+The aim is to accurately simulate the economy, and industry in the real-time grand strategy game Hearts of Iron 4, in particular, the aim is to simulate a game as Poland, from the games starting on the 1st of January 1936, and be ready to fight a defensive war with Nazi Germany on the 14th of September 1938: A year earlier than historically.
 
 This learning project involves the following points:
 
 * A large Java project in IntelliJ with several packages, classes, records, enums, and with error-handling.
-* Extensive loading of data from Json files using the Jackson library.
+* Working with dates and times in Java using the Calendar utility
+* Working with Jframes and windows
+* Extensive loading of data from JSON files using the Jackson library.
 * The organization, generation and display of data in the terminal, and in graphs using the jfree.chart package.
 
 
@@ -17,35 +19,35 @@ Historically, buoyed by the Anschluss of Austria, Adolf Hitler's demanded to ann
 
 Setting the state for the complete annexation of Czechoslovakia, and the joint Nazi-Soviet invasion of Poland 1 year later.
 
-In the game, there is however an alternative: If Walery Sławek wins the power struggle after the death of the nations founder turned dictator Josef Pilsudski, Poland can restore democracy and form and alliance with Czechoslovakia, Estonia, Latvia and Lithuania before the Munich conference, and fight Hitler already in 1938. (And Stalin 1 year later, when he invades the Baltics)
+In the game, there is however an alternative: If Walery Sławek wins the power struggle after the death of the nation founder turned dictator Josef Pilsudski, Poland can restore democracy and ally with Czechoslovakia, Estonia, Latvia and Lithuania before the Munich conference, and fight Hitler already in 1938. (And Stalin 1 year later, when he invades the Baltics)
 
 
 Mechanical background, Factories in Hearts of Iron 4 works
 -----------------------------
-The economy in the game follow very simple rules, since the focus of the game is on fighting the war, but even simple rules can be quite complex.
+The economy in the game follows very simple rules since the focus of the game is on fighting the war, but even simple rules can be quite complex.
 
 Every nation has a number of "states", these states contains buildings and resources (and people, but that is not important in my simulation). The most important type of building is factories, which can be either Civilian factories (called "Civs" by most players), Military factories (or just "mils"), and Refineries
 
 * Civilian factories are used to build other buildings
     - Buildings cost CIC (Civilian Industrial Capacity) to build 
     - Civilian factories produce 5 CIC per day, which can be used to build buildings, this is increased by 20% pts per level "Infrastructure" in the target state
-    - Infrastructure is another building which can be build
-    - A number of Civs, proportional to the nations total factories are required for "consumer goods", and do not produce CIC
+    - Infrastructure is another building which can be built
+    - A number of Civs, proportional to the nation's total factories are required for "consumer goods", and do not produce CIC
     - Civs can also be traded for 8 resources, in which case they don't produce
 * Military factories are used to build military equipment
     - Military factories produce $4.5\times E\times (1+F) (1-R)$ MIC (Military industrial capacity) each day
     - The efficiency $E$ is a number between 0 and the efficiency cap $E_{cap}<1.0$, and where $dE/dt=0.001 E_{cap}^2/E$ every day (So efficiency grows slowly until it reaches the Efficiency cap)
     - The factories which exist on day 1 start with $E=E_{cap}=0.5$, all new factories start with $E=0.1$
     - $F$ is the factory output bonus for the nation
-    - Each Military factory uses a number of resources per factory: either Rubber, Steel, Tungsten, and Chromium (which really represents many rare metals such as Chromium and Nickel), the exact number depend on the type of equipment.
+    - Each Military factory uses a number of resources per factory: either Rubber, Steel, Tungsten, and Chromium (which really represents many rare metals such as Chromium and Nickel), the exact number depends on the type of equipment.
     - For every resource deficit, the resource penalty $R$ grows by 0.05.
-    - The MIC is converted to equipment based on its MIC cost, (For example enough guns to equip one infantry squad costs 0.5 MIC, and a single light tank cost 6 MIC)
+    - The MIC is converted to equipment based on its MIC cost, (For example, enough guns to equip one infantry squad costs 0.5 MIC, and a single light tank costs 6 MIC)
     - The program will produce a plot of production efficiency $E$, Factory output bonus $F$, and resource multiplier ($1-R$)
     - Total production is proportional to the area under the efficiency curve
 
 ![Gdansk FB bullet factory, Gdansk Production stats.png](Gdansk%20FB%20bullet%20factory%2C%20Gdansk%20Production%20stats.png "An example of how production efficiency grows until the cap") 
 
-* Refineries do not produce points, but add synthetic rubber to the states
+* Refineries do not produce points but add synthetic rubber to the states
   - It is not as cost-effective as buying rubber on the free market
 * Infrastructure boosts construction speed and gives a 20% boost to local resources
     - The construction speed bonus is generally not worth the investment
@@ -55,21 +57,21 @@ Every nation has a number of "states", these states contains buildings and resou
 
 Mechanical background, Stats, "Focuses" and Plan G
 ------------
-Everything is effected by dozens of stats: such as factory output bonus, construction speed bonus, and more, which in turn are effected by political stability, which depends on the popularity of the four great ideologies: Democracy, Fascism, Communism, and non-aligned (which is a miscellaneous category including monarchy, oligarchy, and Finland).
+Everything is affected by dozens of stats: such as factory output bonuses, construction speed bonuses, and more, which in turn are affected by political stability, which depends on the popularity of the four great ideologies: Democracy, Fascism, Communism, and non-aligned (which is a miscellaneous category including monarchy, oligarchy, and Finland).
 
-Here is how politics in Poland change over time, from 1936 to 1938:
+Here is how politics in Poland changed over time, from 1936 to 1938:
 
 ![Popularity of ideologies.png](Popularity%20of%20ideologies.png)
 
-Truth be told, this is the least accurate part of my simulation, as the mechanics governing ideological drifts are poorly explained in game, and on the official Wiki
+Truth be told, this is the least accurate part of my simulation, as the mechanics governing ideological drifts are poorly explained in-game, and on the official Wiki
 
-The player can control these stats by researching new technologies, taking "decisions" (often trading one stat for another), and by completing one political "focus" which take 35 or 70 days, and can give stats or instantly create buildings.
+The player can control these stats by researching new technologies, taking "decisions" (often trading one stat for another), and completing one political "focus" each 35 or 70 days and can give stats or instantly create buildings.
 
 A true simulation would include all these things: include the ability to research in different order, and the ability to choose which focus to take.
 
-I have decided not to do this, instead, my simulation loads "events" from a JSon file, and based on these events, modifies stats or state buildings on certain days. After re-playing the start a dozen or so times, I have created "PlanG38.json" which records all the focuses, research, and decisions in what I believe is optimal order. 
+I have decided not to do this, instead, my simulation loads "events" from a JSON file, and based on these events, modify stats or state buildings on certain days. After replaying the start a dozen or so times, I have created "PlanG38.json" which records all the focuses, research, and decisions in what I believe is optimal order. 
 
-I have even tried to make some sort of in-universe narrative explanation of the events, explaining how Walery Sławek (who historically lost the power-struggle to Ignacy Mościcki and Edward Rydz-Śmigły and died in 1939), regained the role as prime-minister, restored democracy, and formed and alliance of minor states against the Nazis.
+I have even tried to make some sort of in-universe narrative explanation of the events, explaining how Walery Sławek (who historically lost the power struggle to Ignacy Mościcki and Edward Rydz-Śmigły and died in 1939), regained the role as prime-minister, restored democracy, and formed and an alliance of minor states against the Nazis.
 
 The goal: building an army for 1938
 ------------
@@ -78,12 +80,12 @@ Poland starts with a modest army, with:
 * 18400 infantry equipment
 * 209 support equipment
 
-Sidenote: the Game abstracts away a lot of equipment: "1 infantry equipment" really means guns, bullets, uniforms, boots and helmets for 1 infantry squad, and 1 howitzer also includes ammunition for it.
+Sidenote: The game abstracts away a lot of equipment: "1 infantry equipment" really means guns, bullets, uniforms, boots and helmets for 1 infantry squad, and 1 howitzer also includes ammunition.
 
 
 The goal of the economic buildup, from 1936 to 1938 is to build an army to win the war.
 
-The primary task is to defend the Western border in Silesia, and Pommerania and around the Exclave of East-Prussia in the north.
+The primary task is to defend the Western border in Silesia, and Pommerania; and around the Exclave of East Prussia in the north.
 
 To defend our borders, I estimate that we need 76 infantry divisions.
 
@@ -97,7 +99,7 @@ The game allows the player to design their divisions however they like, the chea
 
 Or put another way 747 MIC points for a division
 
-so in total our minimum target is:
+so in total, our minimum target is:
 
 * 76760 Infantry equipment (58360 on top of existing stockpile)
 * 2280 Support equipment   (2071 on top of existing stockpile)
@@ -107,15 +109,15 @@ so in total our minimum target is:
 
 Costing 56772 MIC (and 0.8 million men, which Poland can easily mobilize).
 
-Additionally, it would be good to have a few hundred trucks (2.5 MIC per truck) and a few dozen armored trains (170 MIC per train) to help with logistics.
+Additionally, it would be good to have a few hundred trucks (2.5 MIC per truck) and a few dozen armoured trains (170 MIC per train) to help with logistics.
 
 It is also worth keeping a few divisions worth of equipment in the stockpile to replace losses.
 
 
-But wars are not won by defending, and our basic infantry is not good enough for attacking, so we also need a force of elite infantry or cavalry supported by tanks. I expect these elite divisions will need:
+However, wars are not won by defending, and our basic infantry is not good enough for attacking, so we also need a force of elite infantry or cavalry supported by tanks. I expect these elite divisions will need the following:
 
 * 1300 Infantry equipment costs 650 MIC
-* 120 "7TP" light tanks costs 708 MIC (Becomes available in mid 1937)
+* 120 "7TP" light tanks cost 708 MIC (Becomes available in mid-1937)
 * 45 Support equipment costs 180 MIC
 * 12 Howitzers costs 42 MIC
 * 20 Anti-Aircraft guns costs 80 MIC
@@ -131,7 +133,11 @@ Results
 -----------
 Feel free to look at all the images included in the repository, which show all stats for the nation and all factories in the best example I ran
 
-In the course of running the simulation, I found that the best strategy is to start by building Infrastructure in Katowice (to boost the local steel-mines), and then build nothing but military factories, primarily in Katowice and Warzawa (since this is where infrastructure is the highest).
+In the course of running the simulation, I found that the best strategy is to start by building 2 levels of Infrastructure in Katowice (to boost the local steel mines), and then build nothing but military factories, primarily in Katowice and Warzawa (since this is where infrastructure is the highest).
+
+This is also a good idea since we start with a large penalty to civilian and military factory construction speed, which goes away only when the government passes a partial mobilization:
+
+![Construction stats.png](Construction%20stats.png)
 
 The result is that we build the following factories:
 
@@ -165,11 +171,11 @@ The result is that we build the following factories:
 | 16th Apr 38  | Katowice      | Build          | Trains    | 241       | 2     |
 | 8th Aug 38   | Katowice      | Build          | Trains    | 48        | 0     |
 
-Or in a simple graph:
+Or in a simple graph (CORRECTION, this graph is from an OLDER simulation, where the 3rd of May 1937 factory produced trucks, and the 19th of October 1937 factory support equipment):
 
 ![Military Factories.png](Military%20Factories.png)
 
-In general, I tried to import resources whenever the national deficit was more than 4:
+In general, I tried to import resources whenever the national deficit was more than 4 (Again, this is from the older simulation, but the only difference is in rubber):
 
 ![Resource balance.png](Resource%20balance.png)
 
@@ -180,7 +186,7 @@ The integration of Gdansk was worth it, as it gave us a 10% boost to constructio
 
 In the end, we ended up with:
 
-* 1748 Anti aircraft guns
+* 1748 Anti-aircraft guns
 * 1063 Howitzers
 * 386 Trucks
 * 2 Armored trains
@@ -190,18 +196,18 @@ In the end, we ended up with:
 
 This is enough to equip our 74 regular infantry divisions, and 4 Elite divisions, with a modest but adequate logistical train off, 386 Trucks and 2 Armored trains.
 
-* 188 Anti aircraft guns
+* 188 Anti-aircraft guns
 * 126 Howitzers
 * 99 7TP tanks
 * 84 support equipment
 * 589 Infantry equipment
 
-This is not a big stockpile, and our lack of proper armored trains means the government will have to seize civilian locomotives (The fact that armored trains only become available in 1938 means that we can't do anything about it). 
+This is not a big stockpile, and our lack of properly armoured trains means the government will have to seize civilian locomotives (The fact that armoured trains only became available in 1938 means that we can't do anything about it). 
 
 But we still have built an army more than large enough to defend Poland and Czechoslovakia, and even go on limited counter-offensives with our elite armoured divisions (In fact, with this preparation, the combined Polish and Czech army has numerical parity with the Wehrmacht).
 
 Hitler did not stand a chance. 
 
-In one test-game I did, using the lessons learned from this simulation, the Polish, Czech, and Baltic armies fully occupied all of Germany by Christmas 1939, and promptly turned around and squashed Stalin and Mussolini when they tried to invade Estonia and Greece respectively by 1942. Thus preventing a lot of terrible crimes, and ushering in a new golden age of liberty and democracy, all while suffering only 500000 casualties (only 1/20th of what Poland historically lost in WW2).
+In one test game I did, using the lessons learned from this simulation, the Polish, Czech, and Baltic armies fully occupied all of Germany by Christmas 1939, and promptly turned around and squashed Stalin and Mussolini when they tried to invade Estonia and Greece respectively by 1942. Thus preventing a lot of terrible crimes, and ushering in a new golden age of liberty and democracy, all while suffering only 500000 casualties (only 1/20th of what Poland historically lost in WW2).
 
 This outcome is not particularly surprising, the game is, after all, not balanced around players spending a month mathematically optimizing it!
