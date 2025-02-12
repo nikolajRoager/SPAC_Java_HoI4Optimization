@@ -27,11 +27,16 @@
       "name": "Hitler violates treaty of Versailles, re-militarizing the Rhineland. The threat of war is aparent"
     }
   ],
-  "110": [
+  "355": [
     {
       "name": "The AVA company starts building a large demonstration electro-mechanical computer"
     }
   ],
+  "721": [
+    {
+      "name": "The AVA company starts selling its mechanical computer to industry and university, significantly boosting all research efforts"
+    }],
+
   "105": [
     {
       "name": "Civilian industry expansion have been funded under the \"Central Region industrial strategy\"",
@@ -190,7 +195,9 @@
   "279": [
     {
       "name": "Kazimir Sosnkowski appointed chief of the Polish army, tasked with drawing up 2 year rearmament program"
-    },
+    }
+    ],
+    "110": [
     {
       "name": "Funding approved for light tank prototype at PZinz institute"
     }
@@ -227,10 +234,6 @@
       ]
     }
   ],
-  "376": [
-    {
-      "name": "The AVA company starts selling its mechanical computer to industry and university, significantly boosting all research efforts"
-    }],
   "377": [
     {
       "name": "Ambitious 1937 stage of the industrial strategy starts, focusing on reorganized industry and use of new advanced machine tools in production"
@@ -322,9 +325,9 @@
       ]
     }
   ],
-  "474": [
+  "305": [
     {
-      "name": "The PZInż 140 Recon tankette enters serial production, work on a proper light tank continues"
+      "name": "The TKS Recon tankette enters serial production, work on a proper light tank continues"
     }
   ],
   "490": [
@@ -615,10 +618,12 @@
       "name": "Rydz-Śmigły and Sławek talk with President Mościcki about the need to work together, and for the minor Eastern European nations to ally."
     }
   ],
-  "634": [
+  "465": [
     {
-      "name": "The PZInż 10TP multi-role light tank (anti-air and anti-infantry) enters serial production, and research improves artillery techniques"
-    },
+      "name": "The PZInż 7TP light tank enters serial production, and research improves artillery techniques"
+    }
+    ],
+  "634": [
     {
       "name": "Sosnkowski and Rydz-Śmigły start program to widely implement Anti-Tank riffles and radio training in the army"
     }
@@ -831,16 +836,6 @@
       {
         "modify":"special_projects_civs",
         "value":5,
-        "add": false
-      }
-    ]
-  }],
-  "1005": [{
-    "name": "Intelligence expansion ends, department can now be sustained by existing budget",
-    "propertyEvents": [
-      {
-        "modify":"special_projects_civs",
-        "value":0,
         "add": false
       }
     ]

@@ -62,6 +62,14 @@ I have even tried to make some sort of in-universe narrative explanation of the 
 
 The goal: building an army for 1938
 ------------
+Poland starts with a modest army, with:
+
+* 18400 infantry equipment
+* 209 support equipment
+
+Sidenote: the Game abstracts away a lot of equipment: "1 infantry equipment" really means guns, bullets, uniforms, boots and helmets for 1 infantry squad, and 1 howitzer also includes ammunition for it.
+
+
 The goal of the economic buildup, from 1936 to 1938 is to build an army to win the war.
 
 The primary task is to defend the Western border in Silesia, and Pommerania and around the Exclave of East-Prussia in the north.
@@ -78,12 +86,10 @@ The game allows the player to design their divisions however they like, the chea
 
 Or put another way 747 MIC points for a division
 
-Sidenote: the Game abstracts away a lot of equipment: "1 infantry equipment" really means guns, bullets, uniforms, boots and helmets for 1 infantry squad, and 1 howitzer also includes ammunition for it.
-
 so in total our minimum target is:
 
-* 76760 Infantry equipment 
-* 2280 Support equipment 
+* 76760 Infantry equipment (58360 on top of existing stockpile)
+* 2280 Support equipment   (2071 on top of existing stockpile)
 * 912 Howitzers 
 * 1520 Anti-Aircraft guns 
 * 828400 Men
@@ -92,10 +98,13 @@ Costing 56772 MIC (and 0.8 million men, which Poland can easily mobilize).
 
 Additionally, it would be good to have a few hundred trucks (2.5 MIC per truck) and a few dozen armored trains (170 MIC per train) to help with logistics.
 
+It is also worth keeping a few divisions worth of equipment in the stockpile to replace losses.
+
+
 But wars are not won by defending, and our basic infantry is not good enough for attacking, so we also need a force of elite infantry or cavalry supported by tanks. I expect these elite divisions will need:
 
 * 1300 Infantry equipment costs 650 MIC
-* 120 "7TP" light tanks costs 708 MIC (Becomes available in 1937)
+* 120 "7TP" light tanks costs 708 MIC (Becomes available in mid 1937)
 * 45 Support equipment costs 180 MIC
 * 12 Howitzers costs 42 MIC
 * 20 Anti-Aircraft guns costs 80 MIC
@@ -111,11 +120,45 @@ Results
 -----------
 In the course of running the simulation, I found that the best strategy is to start by building Infrastructure in Katowice (to boost the local steel-mines), and then build nothing but military factories, primarily in Katowice and Warzawa (since this is where infrastructure is the highest).
 
-We end up with 27 military factories and 22 civilian factories
+We end up with 27 military factories and 22 civilian factories.
 
-In principle, I would expect 67% to be assigned to infantry equipment, 16.5% to support equipment 6.5% to howitzers, 10% to support the basic infantry divisions.
+one stat I tracked was total MIC produced over the factories lifetime:
 
-ie 13
-se 3
-hw 1
-aa 2
+Our 9 starting factories produced 3600 MIC, largely due to starting at 0.5 Efficiency rather than 0.1, I assigned 2 to support equipment and 7 to infantry equipment
+
+* 19th Jul, 36, produced 2700 MIC inf
+* 18th Aug, 36, produced 2600 MIC inf
+* 1st  Oct, 36, produced 2500 MIC inf
+* 13th Nov, 36, produced 2300 MIC aa
+* 31st Dec, 36, produced 2200 MIC how
+* 9th  Feb, 37, produced 2000 MIC how
+* 6th  Mar, 37, produced 1900 MIC aa
+* 21st Mar, 37, produced 1900 MIC inf
+* 28th Apr, 37, produced 1790 MIC tank 
+* 9th  Jun, 37, produced 1600 MIC tank
+* 14th Jul, 37, produced 1500 MIC sup
+* 26th Jul, 37, produced 1400 MIC tank
+* 9th  Sep, 37, produced 1300 MIC aa
+* 15th Oct, 37, produced 1200 MIC trucks
+* 24th Nov, 37, produced 1000 MIC sup
+* 25th Jan, 38, produced  700 MIC trains
+* 16th Apr, 38, produced  400 MIC tank
+* 26th Aug, 38, produced   20 MIC how
+
+In the end, we ended up with
+
+* 1776 Anti aircraft guns
+* 1481 Howitzers
+* 621 Trucks
+* 7 Armored trains
+* 1088 7TP 7 tanks
+* 3243 support equipment
+* 104011 Infantry equipment
+
+This is enough for 80 regular infantry divisions, and 9 elite divisions.
+
+Hitler did not stand a chance. 
+
+In one test-game I did, using the lessons learned from this simulation, the Polish, Czech, and Baltic armies fully occupied all of Germany by Christmas 1939, and promptly turned around and squashed Stalin and Mussolini when they tried to invade Estonia and Greece respectively. Thus preventing a lot of terrible crimes, and ushering in a new golden age of liberty and democracy, all while suffering less than 500000 casualties.
+
+This outcome is not particularly surprising, the game is, after all, not balanced around players spending a month mathematically optimizing it!

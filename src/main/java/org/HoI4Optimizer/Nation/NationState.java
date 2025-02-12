@@ -509,6 +509,18 @@ public class NationState  implements Cloneable
                 f.printReport(out,"\t\t\t");
             }
 
+        if (showProductionLines)
+        {
+            out.println(colorize("--National Stockpile--"));
+
+            int nameLength = nationalStockpile.keySet().stream().mapToInt(e->e.getName().length()).max().orElse(20);
+            for (var pile : nationalStockpile.entrySet())
+            {
+                String ename = pile.getKey().getName();
+                out.println(colorize("\t\t"+ename+(".".repeat(Math.max(0, nameLength + 5 - ename.length())))+":"+String.format("%8d",pile.getValue()) ,Attribute.GREEN_TEXT()));
+            }
+        }
+
         out.println(colorize("\t...Resource and Fuel sector...",Attribute.ITALIC(),Attribute.BLUE_TEXT()));
         out.println(colorize("\t\tResource gain bonus......................:",Attribute.BLUE_TEXT())+printGoodModifier(properties.getResource_gain_bonus()));
         out.println(colorize("\t\tResources exported.......................:",Attribute.BLUE_TEXT())+printBadModifier(properties.getResources_to_market()));
@@ -724,7 +736,7 @@ public class NationState  implements Cloneable
             }
             //Auto-calculate decisions
             clone.updateDecisionsResourcesAndFactories();
-            clone.nationalStockpile =setup.getEquipment().values().stream().collect(Collectors.toMap(e->e, e->0L));
+            clone.nationalStockpile = setup.getEquipment().values().stream().collect(Collectors.toMap(e->e, Equipment::getInitial));
 
             //Hand over the institute of statistics
             clone.instituteOfStatistics=instituteOfStatistics.clone();
@@ -1112,6 +1124,11 @@ public class NationState  implements Cloneable
             //Start by checking if yesterday created some decisions for us to react to
             if (!buildingDecisions.isEmpty() || !factoryReassignmentDecisions.isEmpty())
                 return;
+
+            if (days> setup.getLastDay()) {
+                out.println(colorize("We have reached the end of the simulation!",Attribute.RED_TEXT()));
+                return;
+            }
 
             ++day;
 
