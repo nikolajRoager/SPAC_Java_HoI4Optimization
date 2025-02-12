@@ -61,7 +61,7 @@ Everything is affected by dozens of stats: such as factory output bonuses, const
 
 Here is how politics in Poland changed over time, from 1936 to 1938:
 
-![Popularity of ideologies.png](Popularity%20of%20ideologies.png)
+![Popularity of ideologies.png](Popularity%20of%20ideologies.png "Popularity of the games 4 ideologies over time in the simulation")
 
 Truth be told, this is the least accurate part of my simulation, as the mechanics governing ideological drifts are poorly explained in-game, and on the official Wiki
 
@@ -137,7 +137,7 @@ In the course of running the simulation, I found that the best strategy is to st
 
 This is also a good idea since we start with a large penalty to civilian and military factory construction speed, which goes away only when the government passes a partial mobilization:
 
-![Construction stats.png](Construction%20stats.png)
+![Construction stats.png](Construction%20stats.png "All stats for construction, military and civilian construction speed overlap at the start")
 
 The result is that we build the following factories:
 
@@ -173,11 +173,11 @@ The result is that we build the following factories:
 
 Or in a simple graph (CORRECTION, this graph is from an OLDER simulation, where the 3rd of May 1937 factory produced trucks, and the 19th of October 1937 factory support equipment):
 
-![Military Factories.png](Military%20Factories.png)
+![Military Factories.png](Military%20Factories.png "Military factories assigned to each type of equipment")
 
 In general, I tried to import resources whenever the national deficit was more than 4 (Again, this is from the older simulation, but the only difference is in rubber):
 
-![Resource balance.png](Resource%20balance.png)
+![Resource balance.png](Resource%20balance.png "National balance of all resources, (i.e. left over after production)")
 
 The sudden drop is when we managed to integrate our main trade-port Gdansk, then known as the "free-city of Danzig" a semi-independent league of nation mandate whose leaders in practice were controlled by the German Nazi party.
 
