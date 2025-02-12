@@ -40,6 +40,11 @@ Every nation has a number of "states", these states contains buildings and resou
     - Each Military factory uses a number of resources per factory: either Rubber, Steel, Tungsten, and Chromium (which really represents many rare metals such as Chromium and Nickel), the exact number depend on the type of equipment.
     - For every resource deficit, the resource penalty $R$ grows by 0.05.
     - The MIC is converted to equipment based on its MIC cost, (For example enough guns to equip one infantry squad costs 0.5 MIC, and a single light tank cost 6 MIC)
+    - The program will produce a plot of production efficiency $E$, Factory output bonus $F$, and resource multiplier ($1-R$)
+    - Total production is proportional to the area under the efficiency curve
+
+![Gdansk FB bullet factory, Gdansk Production stats.png](Gdansk%20FB%20bullet%20factory%2C%20Gdansk%20Production%20stats.png "An example of how production efficiency grows until the cap") 
+
 * Refineries do not produce points, but add synthetic rubber to the states
   - It is not as cost-effective as buying rubber on the free market
 * Infrastructure boosts construction speed and gives a 20% boost to local resources
@@ -51,6 +56,12 @@ Every nation has a number of "states", these states contains buildings and resou
 Mechanical background, Stats, "Focuses" and Plan G
 ------------
 Everything is effected by dozens of stats: such as factory output bonus, construction speed bonus, and more, which in turn are effected by political stability, which depends on the popularity of the four great ideologies: Democracy, Fascism, Communism, and non-aligned (which is a miscellaneous category including monarchy, oligarchy, and Finland).
+
+Here is how politics in Poland change over time, from 1936 to 1938:
+
+![Popularity of ideologies.png](Popularity%20of%20ideologies.png)
+
+Truth be told, this is the least accurate part of my simulation, as the mechanics governing ideological drifts are poorly explained in game, and on the official Wiki
 
 The player can control these stats by researching new technologies, taking "decisions" (often trading one stat for another), and by completing one political "focus" which take 35 or 70 days, and can give stats or instantly create buildings.
 
@@ -118,7 +129,7 @@ We will essentially be able to convert one infantry division to an elite divisio
 
 Results
 -----------
-Feel free to look at the images included in the repository, which show all stats for the nation and all factories in the best example I ran:
+Feel free to look at all the images included in the repository, which show all stats for the nation and all factories in the best example I ran
 
 In the course of running the simulation, I found that the best strategy is to start by building Infrastructure in Katowice (to boost the local steel-mines), and then build nothing but military factories, primarily in Katowice and Warzawa (since this is where infrastructure is the highest).
 
@@ -153,6 +164,19 @@ The result is that we build the following factories:
 | 25th Jan 38  | Katowice      | Build          | Howitzer  | 493       | 140   |
 | 16th Apr 38  | Katowice      | Build          | Trains    | 241       | 2     |
 | 8th Aug 38   | Katowice      | Build          | Trains    | 48        | 0     |
+
+Or in a simple graph:
+
+![Military Factories.png](Military%20Factories.png)
+
+In general, I tried to import resources whenever the national deficit was more than 4:
+
+![Resource balance.png](Resource%20balance.png)
+
+The sudden drop is when we managed to integrate our main trade-port Gdansk, then known as the "free-city of Danzig" a semi-independent league of nation mandate whose leaders in practice were controlled by the German Nazi party.
+
+The integration of Gdansk was worth it, as it gave us a 10% boost to construction speed, Factory output and research speed and removed a massive intelligence advantage the Nazis had over Poland (not modelled in this simulation), but it also increased the number of Polish resources exported to the international market, hence why we suddenly need to import steel from Sweden.
+
 
 In the end, we ended up with:
 
