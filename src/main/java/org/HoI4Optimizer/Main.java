@@ -126,6 +126,7 @@ public class Main
                 }
                 else if (commands.get("quit").match(command_inputs)!=null)
                 {
+                    System.out.println(colorize("If the program doesn't stop, you may need to close any open graph windows!", Attribute.BOLD(), Attribute.YELLOW_TEXT()));
                     return;
                 }
                 else if ((printArgs)!=null)

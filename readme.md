@@ -118,47 +118,66 @@ We will essentially be able to convert one infantry division to an elite divisio
 
 Results
 -----------
+Feel free to look at the images included in the repository, which show all stats for the nation and all factories in the best example I ran:
+
 In the course of running the simulation, I found that the best strategy is to start by building Infrastructure in Katowice (to boost the local steel-mines), and then build nothing but military factories, primarily in Katowice and Warzawa (since this is where infrastructure is the highest).
 
-We end up with 27 military factories and 22 civilian factories.
+The result is that we build the following factories:
 
-one stat I tracked was total MIC produced over the factories lifetime:
+| Operational  | Location      | gained by      | Equipment | total MIC | units |
+|--------------|---------------|----------------|-----------|-----------|-------|
+| 1st Jan 36   | Gdynia        | owned at start | Support   | 3479      | 869   |
+| 1st Jan 36   | Gdynia        | owned at start | Support   | 3479      | 869   |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 19th Jun 36  | Gdansk/Danzig | From event     | infantry  | 2554      | 5109  |
+| 18th Aug 36  | Katowice      | Build          | infantry  | 2453      | 4907  |
+| 1st  Oct 36  | Katowice      | Build          | infantry  | 2303      | 4607  |
+| 13th Nov 36  | Katowice      | Build          | anti-air  | 2153      | 538   |
+| 26th Dec 36  | Katowice      | Build          | anti-air  | 2001      | 500   |
+| 4th Feb 37   | Katowice      | Build          | Howitzer  | 1740      | 497   |
+| 6th Mar 37   | Gdansk        | From event     | anti-air  | 1756      | 439   |
+| 16th Mar 37  | Katowice      | Build          | Howitzer  | 1494      | 426   |
+| 3rd May 37   | Warsawa       | Build          | Support   | 1442      | 360   |
+| 15th June 37 | Warsawa       | Build          | 7TP Tank  | 1396      | 232   |
+| 14th July 37 | Warsawa       | From event     | 7TP Tank  | 1265      | 210   |
+| 26th July 37 | Warsawa       | Build          | 7TP Tank  | 1247      | 207   |
+| 9th Sep 37   | Lublin        | Build          | Anti-air  | 1085      | 271   |
+| 19th Oct 37  | Warsawa       | Build          | Trucks    | 968       | 387   |
+| 28th Nov 37  | Warsawa       | Build          | support   | 762       | 190   |
+| 25th Jan 38  | Katowice      | Build          | Howitzer  | 493       | 140   |
+| 16th Apr 38  | Katowice      | Build          | Trains    | 241       | 2     |
+| 8th Aug 38   | Katowice      | Build          | Trains    | 48        | 0     |
 
-Our 9 starting factories produced 3600 MIC, largely due to starting at 0.5 Efficiency rather than 0.1, I assigned 2 to support equipment and 7 to infantry equipment
+In the end, we ended up with:
 
-* 19th Jul, 36, produced 2700 MIC inf
-* 18th Aug, 36, produced 2600 MIC inf
-* 1st  Oct, 36, produced 2500 MIC inf
-* 13th Nov, 36, produced 2300 MIC aa
-* 31st Dec, 36, produced 2200 MIC how
-* 9th  Feb, 37, produced 2000 MIC how
-* 6th  Mar, 37, produced 1900 MIC aa
-* 21st Mar, 37, produced 1900 MIC inf
-* 28th Apr, 37, produced 1790 MIC tank 
-* 9th  Jun, 37, produced 1600 MIC tank
-* 14th Jul, 37, produced 1500 MIC sup
-* 26th Jul, 37, produced 1400 MIC tank
-* 9th  Sep, 37, produced 1300 MIC aa
-* 15th Oct, 37, produced 1200 MIC trucks
-* 24th Nov, 37, produced 1000 MIC sup
-* 25th Jan, 38, produced  700 MIC trains
-* 16th Apr, 38, produced  400 MIC tank
-* 26th Aug, 38, produced   20 MIC how
+* 1748 Anti aircraft guns
+* 1063 Howitzers
+* 386 Trucks
+* 2 Armored trains
+* 649 7TP tanks
+* 2497 support equipment
+* 80529 Infantry equipment
 
-In the end, we ended up with
+This is enough to equip our 74 regular infantry divisions, and 4 Elite divisions, with a modest but adequate logistical train off, 386 Trucks and 2 Armored trains.
 
-* 1776 Anti aircraft guns
-* 1481 Howitzers
-* 621 Trucks
-* 7 Armored trains
-* 1088 7TP 7 tanks
-* 3243 support equipment
-* 104011 Infantry equipment
+* 188 Anti aircraft guns
+* 126 Howitzers
+* 99 7TP tanks
+* 84 support equipment
+* 589 Infantry equipment
 
-This is enough for 80 regular infantry divisions, and 9 elite divisions.
+This is not a big stockpile, and our lack of proper armored trains means the government will have to seize civilian locomotives (The fact that armored trains only become available in 1938 means that we can't do anything about it). 
+
+But we still have built an army more than large enough to defend Poland and Czechoslovakia, and even go on limited counter-offensives with our elite armoured divisions (In fact, with this preparation, the combined Polish and Czech army has numerical parity with the Wehrmacht).
 
 Hitler did not stand a chance. 
 
-In one test-game I did, using the lessons learned from this simulation, the Polish, Czech, and Baltic armies fully occupied all of Germany by Christmas 1939, and promptly turned around and squashed Stalin and Mussolini when they tried to invade Estonia and Greece respectively. Thus preventing a lot of terrible crimes, and ushering in a new golden age of liberty and democracy, all while suffering less than 500000 casualties.
+In one test-game I did, using the lessons learned from this simulation, the Polish, Czech, and Baltic armies fully occupied all of Germany by Christmas 1939, and promptly turned around and squashed Stalin and Mussolini when they tried to invade Estonia and Greece respectively by 1942. Thus preventing a lot of terrible crimes, and ushering in a new golden age of liberty and democracy, all while suffering only 500000 casualties (only 1/20th of what Poland historically lost in WW2).
 
 This outcome is not particularly surprising, the game is, after all, not balanced around players spending a month mathematically optimizing it!

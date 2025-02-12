@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.HoI4Optimizer.Nation.Event.PropertyEvent;
 import org.apache.commons.lang3.NotImplementedException;
 
+import javax.smartcardio.ATR;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -994,12 +995,13 @@ import static com.diogonunes.jcolor.Ansi.colorize;
                 }
                 else
                 {
-                    setBase_consumer_goods_multiplier(event.value());
                     if (out!=null)
                     {
-                        out.println(colorize("    Set consumer goods multiplier: "+String.format("%.2f",event.value()*100), negativeGood));
-                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", negativeGood));
+                        Attribute good = event.value()<base_consumer_goods_multiplier ? Attribute.GREEN_TEXT() : Attribute.RED_TEXT();
+                        out.println(colorize("    Set consumer goods multiplier: "+String.format("%.2f",event.value()*100), good));
+                        out.println(colorize("    Total consumer goods ratio is now " + String.format("%.2f",getConsumer_goods_ratio()*100) + " ", good));
                     }
+                    setBase_consumer_goods_multiplier(event.value());
                 }
             }
             case buildingSlotBonus -> {

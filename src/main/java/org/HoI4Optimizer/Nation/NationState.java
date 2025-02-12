@@ -1125,7 +1125,7 @@ public class NationState  implements Cloneable
             if (!buildingDecisions.isEmpty() || !factoryReassignmentDecisions.isEmpty())
                 return;
 
-            if (days> setup.getLastDay()) {
+            if (day> setup.getLastDay()) {
                 out.println(colorize("We have reached the end of the simulation!",Attribute.RED_TEXT()));
                 return;
             }

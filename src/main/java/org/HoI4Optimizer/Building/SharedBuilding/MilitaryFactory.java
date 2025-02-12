@@ -66,7 +66,11 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addSteelSupplied(int steelSupplied)
     {
-        if (!operating() && getSteelNeeded()>0) return steelSupplied;
+        if (!operating() || getSteelNeeded()==0)
+        {
+            this.steelSupplied=0;
+            return steelSupplied;
+        }
         this.steelSupplied=Math.min(steelSupplied,getSteelNeeded());
         return steelSupplied-this.getSteelNeeded();
     }
@@ -76,7 +80,11 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addAluminiumSupplied(int aluminiumSupplied)
     {
-        if (!operating() && getAluminiumNeeded()>0) return aluminiumSupplied;
+        if (!operating() || getAluminiumNeeded()==0)
+        {
+            this.aluminiumSupplied=0;
+            return aluminiumSupplied;
+        }
         this.aluminiumSupplied=Math.min(aluminiumSupplied,getAluminiumNeeded());
         return aluminiumSupplied-this.getAluminiumNeeded();
     }
@@ -86,7 +94,11 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addRubberSupplied(int rubberSupplied)
     {
-        if (!operating()&& getRubberNeeded()>0) return rubberSupplied;
+        if (!operating() || getRubberNeeded()==0)
+        {
+            this.rubberSupplied=0;
+            return rubberSupplied;
+        }
         this.rubberSupplied=Math.min(rubberSupplied,getRubberNeeded());
         return rubberSupplied-this.getRubberNeeded();
     }
@@ -96,7 +108,11 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addTungstenSupplied(int tungstenSupplied)
     {
-        if (!operating()&& getTungstenNeeded()>0) return tungstenSupplied;
+        if (!operating() || getTungstenNeeded()==0)
+        {
+            this.tungstenSupplied=0;
+            return tungstenSupplied;
+        }
         this.tungstenSupplied=Math.min(tungstenSupplied,getTungstenNeeded());
         return tungstenSupplied-this.getTungstenNeeded();
     }
@@ -106,7 +122,11 @@ public class MilitaryFactory extends Factory implements Cloneable{
     /// @return how much is left after this factory
     public int addChromiumSupplied(int chromiumSupplied)
     {
-        if (!operating()&& getChromiumNeeded()>0) return chromiumSupplied;
+        if (!operating() || getChromiumNeeded()==0)
+        {
+            this.chromiumSupplied=0;
+            return chromiumSupplied;
+        }
         this.chromiumSupplied=Math.min(chromiumSupplied,getChromiumNeeded());
         return chromiumSupplied-this.getChromiumNeeded();
     }
