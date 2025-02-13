@@ -163,6 +163,17 @@ public class Equipment {
         return initial;
     }
 
+    private long target=0;
+
+    public void setTarget(long target) {
+        this.target = target;
+    }
+
+    public long getTarget()
+    {
+        return target;
+    }
+
     /// How much aluminium is required per production line?
     public int getAluminium() {
         return aluminium;

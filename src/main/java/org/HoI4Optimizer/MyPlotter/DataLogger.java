@@ -40,6 +40,8 @@ public class DataLogger implements Cloneable{
         try {
             DataLogger clone = (DataLogger) super.clone();
             clone.table=new HashMap<>();
+            clone.counters = new HashMap<>();
+            clone.counterFunctions = new ArrayList<>();
             for (var entry : table.entrySet())
             {
                 clone.table.put(entry.getKey(),entry.getValue().clone());

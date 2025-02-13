@@ -5,6 +5,7 @@ import org.HoI4Optimizer.Building.SharedBuilding.CivilianFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Factory;
 import org.HoI4Optimizer.Building.SharedBuilding.MilitaryFactory;
 import org.HoI4Optimizer.Building.SharedBuilding.Refinery;
+import org.HoI4Optimizer.Building.stateBuilding.Infrastructure;
 import org.HoI4Optimizer.Building.stateBuilding.StateBuilding;
 import org.HoI4Optimizer.MyCalendar;
 import org.HoI4Optimizer.Building.*;
@@ -97,6 +98,18 @@ public class NationState  implements Cloneable
             double remainingCost = Building.getCost(building.getMyType())-building.getCIC_invested();
             return (int)(remainingCost/CIC_per_day+1.0/*Round up*/);
         }
+
+        public constructionLine copy() throws CloneNotSupportedException {
+            return switch (building) {
+                case MilitaryFactory militaryFactory -> new constructionLine(militaryFactory.clone());
+                case CivilianFactory civilianFactory -> new constructionLine(civilianFactory.clone());
+                case Refinery refinery -> new constructionLine(refinery.clone());
+                case Infrastructure infrastructure -> new constructionLine(infrastructure.clone());
+                case null, default ->
+                        throw new CloneNotSupportedException("Can not clone construction line of this type of building");
+            };
+        }
+
     }
     
     /// All equipment ever produced, once upon a time, the developers used Unsigned longs for this, players very quickly found numerous ways to overflow that
@@ -214,7 +227,7 @@ public class NationState  implements Cloneable
 
         instituteOfStatistics.addPlot("Resource balance",Map.of("Steel",Color.CYAN,"Aluminium",Color.LIGHT_GRAY,"Tungsten",Color.DARK_GRAY,"Chromium",Color.magenta,"Rubber",Color.BLUE,"Oil",Color.BLACK),"units/day",false);
 
-        instituteOfStatistics.addPlot("National Stockpile",setup.getEquipment().values().stream().map(Equipment::getShortname).toList(),"units",false);
+        instituteOfStatistics.addPlot("National Stockpile",setup.getEquipment().values().stream().map(Equipment::getShortname).toList(),"% of target",false);
 
         nationalStockpile =setup.getEquipment().values().stream().collect(Collectors.toMap(e->e, Equipment::getInitial));
     }
@@ -305,13 +318,18 @@ public class NationState  implements Cloneable
                 ()->
                 {
                     Map<String,Double> counts=new HashMap<>();
-                    for (var entry : nationalStockpile.entrySet())
+                    for (var entry : this.nationalStockpile.entrySet())
                     {
-                        counts.put(entry.getKey().getShortname(),(double)entry.getValue());
+                        if (entry.getKey().getTarget()==0)
+                            counts.put(entry.getKey().getShortname(),(double)1.0);
+                        else {
+                            counts.put(entry.getKey().getShortname(), ((double) entry.getValue()) / ((double) entry.getKey().getTarget()));
+                        }
+
                     }
                     return counts;
                 }
-                , DataLogger.logDataType.PositiveInteger);
+                , DataLogger.logDataType.PositiveUnboundedPercent);
     }
 
     public void displayPlots(boolean save)
@@ -722,21 +740,26 @@ public class NationState  implements Cloneable
             clone.civilianFactories=new ArrayList<>();
             clone.militaryFactories=new ArrayList<>();
             clone.buildingDecisions =new ArrayList<>();
-            //Cloning kills the construction lines
             clone.constructionLines=new ArrayList<>();
-
             for (var s : states)
             {
                 var newState = s.clone();
                 clone.states.add(newState);
+
                 //The id should still work after copying
                 clone.refineries.addAll(newState.getRefineries());
                 clone.civilianFactories.addAll(newState.getCivilianFactories());
                 clone.militaryFactories.addAll(newState.getMilitaryFactories());
+
+                if (newState.getInfrastructure().getUnderConstruction()) clone.constructionLines.add(new constructionLine(newState.getInfrastructure()));
             }
+            //update construction lines, yes we might mess up the order, but that is pretty rare
+            clone.refineries.forEach(r->{if (r.getUnderConstruction()) clone.constructionLines.add(new constructionLine(r));});
+            clone.militaryFactories.forEach(m->{if (m.getUnderConstruction()) clone.constructionLines.add(new constructionLine(m));});
+            clone.civilianFactories.forEach(c->{if (c.getUnderConstruction()) clone.constructionLines.add(new constructionLine(c));});
             //Auto-calculate decisions
             clone.updateDecisionsResourcesAndFactories();
-            clone.nationalStockpile = setup.getEquipment().values().stream().collect(Collectors.toMap(e->e, Equipment::getInitial));
+            clone.nationalStockpile = nationalStockpile.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             //Hand over the institute of statistics
             clone.instituteOfStatistics=instituteOfStatistics.clone();

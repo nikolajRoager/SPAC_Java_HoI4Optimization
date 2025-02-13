@@ -37,15 +37,18 @@ Every nation has a number of "states", these states contains buildings and resou
 * Military factories are used to build military equipment
     - Military factories produce $4.5\times E\times (1+F) (1-R)$ MIC (Military industrial capacity) each day
     - The efficiency $E$ is a number between 0 and the efficiency cap $E_{cap}<1.0$, and where $dE/dt=0.001 E_{cap}^2/E$ every day (So efficiency grows slowly until it reaches the Efficiency cap)
-    - The factories which exist on day 1 start with $E=E_{cap}=0.5$, all new factories start with $E=0.1$
+    - The factories which exist on day 0 can freely be assigned to infantry equipment or support-equipment and start with $E=E_{cap}=0.5$; all new factories start with $E=0.1$
     - $F$ is the factory output bonus for the nation
     - Each Military factory uses a number of resources per factory: either Rubber, Steel, Tungsten, and Chromium (which really represents many rare metals such as Chromium and Nickel), the exact number depends on the type of equipment.
     - For every resource deficit, the resource penalty $R$ grows by 0.05.
     - The MIC is converted to equipment based on its MIC cost, (For example, enough guns to equip one infantry squad costs 0.5 MIC, and a single light tank costs 6 MIC)
     - The program will produce a plot of production efficiency $E$, Factory output bonus $F$, and resource multiplier ($1-R$)
     - Total production is proportional to the area under the efficiency curve
+    - Efficiency growth means older factories are extremely valuable
 
-![Gdansk FB bullet factory, Gdansk Production stats.png](Gdansk%20FB%20bullet%20factory%2C%20Gdansk%20Production%20stats.png "An example of how production efficiency grows until the cap") 
+![Danzig PFK munitions plant, Gdansk Production stats.png](Danzig%20PFK%20munitions%20plant%2C%20Gdansk%20Production%20stats.png "A factory starting at 10% efficiency in 1936 reaches the cap")
+
+![Warsawa SMBA munitions plant, Warsawa Production stats.png](Warsawa%20SMBA%20munitions%20plant%2C%20Warsawa%20Production%20stats.png "A factory starting later does not reach the cap")
 
 * Refineries do not produce points but add synthetic rubber to the states
   - It is not as cost-effective as buying rubber on the free market
@@ -73,8 +76,40 @@ I have decided not to do this, instead, my simulation loads "events" from a JSON
 
 I have even tried to make some sort of in-universe narrative explanation of the events, explaining how Walery Sławek (who historically lost the power struggle to Ignacy Mościcki and Edward Rydz-Śmigły and died in 1939), regained the role as prime-minister, restored democracy, and formed and an alliance of minor states against the Nazis.
 
+How the program works: Setting up the simulation
+------------------------------------------------
+The program loads all information from the nation folder (the first argument, by default `Poland`), and an event Script (the second argument, default `Plan38G.json`).
+
+The nation folder must contain: a file `Properties.json`, where all starting properties of the nation must be defined (look at the Javadocs in the class `NationalProperties.java` to see which exist).
+
+The nation folder also contains: a file `Equipment.json`, where all the possible Equipment is declared (again look at the Javadocs for the class `Equipment.java`). For future work, it is possible to declare future versions of equipment, but in practice that is not taken into account by the simulation
+
+Another required file is `States.json` which contain the list of all states in the nation, (once again, look at the Javadocs in `States.java`).
+
+Finally, the folder should include an event script, this script contains a map of all the events which happen on each day, each event has a name, and a short description, and contain a list with none or more `PropertyEvent` and `StateEvent` which modify the national properties, or the properties of individual states. The state ID is the number in `States.json` the individual state is.
+
+I have provided the event script `PlanG38.json` (it is named so, because it is the 7th (and in my opinion best) attempt), it stores the effects of all the focuses, decisions, and research in Poland, alongside some events with no effects, just for reminding myself what happens.
+
+How the program works: running the program
+------------------------------------------
+You interact with the game through the terminal, you can run it in IntelliJ, but I recommend you build a jar of it, and run it through the terminal.
+
+You will need a terminal which supports colors, (I recommend Microsoft powershell or any Linux terminal, Linux is generally better at displaying polish letters). When you run the program, you will be told what day it is today, and if you have any decisions to make.
+
+You can view all commands, and all arguments py typing `help`, and you can quit by typing `quit`.
+
+The most important command is `print` which prints the current stats of your nation to the terminal you can add more arguments like `print showStates showFactories showProduction showResources showDecisions` to see ever more intricate stats (especially `showProduction` is more detailed than in-game tooltipes). When you `showDecisions` you can see the id of different decisions.
+
+Write `decide id 4` or just `decide 4` to take the decision with id 4.
+
+Apart from printing, you can show plots of the most important national data with the `show` command (`show save` to save to png), or you can write `showFactories` or `showFactories mil 5` to show plots for all military factories, or just military factory 5.
+
+Finally, you can step ahead in time by writing `step` to step to the next event or decision, or `step days 200` or just `step 200` to step 200 days into the future (although non-optional decisions will interrupt the stepper, and the stepper will refuse to step beyond the last event).
+
+You can also save and load earlier states of the simulation (though these aren't saved to disc!) you can manually create a save, or you can rely on autosaves, created every time the stepper stops (But autosaves only saves past events!).
+
 The goal: building an army for 1938
-------------
+-----------------------------------
 Poland starts with a modest army, with:
 
 * 18400 infantry equipment
@@ -109,7 +144,7 @@ so in total, our minimum target is:
 
 Costing 56772 MIC (and 0.8 million men, which Poland can easily mobilize).
 
-Additionally, it would be good to have a few hundred trucks (2.5 MIC per truck) and a few dozen armoured trains (170 MIC per train) to help with logistics.
+Additionally, it would be good to have around 300 trucks (2.5 MIC per truck) and 20 armoured trains (170 MIC per train) to help with logistics. 
 
 It is also worth keeping a few divisions worth of equipment in the stockpile to replace losses.
 
@@ -125,7 +160,7 @@ However, wars are not won by defending, and our basic infantry is not good enoug
 
 Costing 1660 MIC
 
-This is by no means a good division, compared to the German Panzer divisions, but it is a decent compromise between quality and cost, and I would like at least 6 to invade German Silesia and seize their iron mines.
+This is by no means a good division, compared to a German Panzer division, but it is a decent compromise between quality and cost, and I would like at least 3 to invade German Silesia, preferably 6.
 
 We will essentially be able to convert one infantry division to an elite division for every 120 tanks, 1990 infantry equipment and 15 support equipment we are above our target.
 
@@ -150,21 +185,21 @@ The result is that we build the following factories:
 | 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
 | 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
 | 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
+| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  | | air +413 inf -413
 | 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
-| 1st Jan 36   | Warsawa       | owned at start | infantry  | 3479      | 6958  |
-| 19th Jun 36  | Gdansk/Danzig | From event     | infantry  | 2554      | 5109  |
-| 18th Aug 36  | Katowice      | Build          | infantry  | 2453      | 4907  |
-| 1st  Oct 36  | Katowice      | Build          | infantry  | 2303      | 4607  |
-| 13th Nov 36  | Katowice      | Build          | anti-air  | 2153      | 538   |
-| 26th Dec 36  | Katowice      | Build          | anti-air  | 2001      | 500   |
-| 4th Feb 37   | Katowice      | Build          | Howitzer  | 1740      | 497   |
-| 6th Mar 37   | Gdansk        | From event     | anti-air  | 1756      | 439   |
-| 16th Mar 37  | Katowice      | Build          | Howitzer  | 1494      | 426   |
+| 19th Jun 36  | Gdansk/Danzig | From event     | anti-air  | 2554      |       |i-
+| 18th Aug 36  | Katowice      | Build          | infantry  | 2453      | 4907  |a-
+| 1st  Oct 36  | Katowice      | Build          | infantry  | 2303      | 4607  |a-
+| 13th Nov 36  | Katowice      | Build          | infantry  | 2153      | 538   |i
+| 26th Dec 36  | Katowice      | Build          | anti-air  | 2001      | 500   |a
+| 4th Feb 37   | Katowice      | Build          | anti-air  | 1740      |       |i-
+| 6th Mar 37   | Gdansk        | From event     | Howitzer  | 1756      |       |h
+| 16th Mar 37  | Katowice      | Build          | Howitzer  | 1494      | 426   |h
 | 3rd May 37   | Warsawa       | Build          | Support   | 1442      | 360   |
 | 15th June 37 | Warsawa       | Build          | 7TP Tank  | 1396      | 232   |
 | 14th July 37 | Warsawa       | From event     | 7TP Tank  | 1265      | 210   |
 | 26th July 37 | Warsawa       | Build          | 7TP Tank  | 1247      | 207   |
-| 9th Sep 37   | Lublin        | Build          | Anti-air  | 1085      | 271   |
+| 9th Sep 37   | Lublin        | Build          | 7TP Tank  | 1085      |       |
 | 19th Oct 37  | Warsawa       | Build          | Trucks    | 968       | 387   |
 | 28th Nov 37  | Warsawa       | Build          | support   | 762       | 190   |
 | 25th Jan 38  | Katowice      | Build          | Howitzer  | 493       | 140   |
@@ -183,28 +218,31 @@ The sudden drop is when we managed to integrate our main trade-port Gdansk, then
 
 The integration of Gdansk was worth it, as it gave us a 10% boost to construction speed, Factory output and research speed and removed a massive intelligence advantage the Nazis had over Poland (not modelled in this simulation), but it also increased the number of Polish resources exported to the international market, hence why we suddenly need to import steel from Sweden.
 
-
 In the end, we ended up with:
 
-* 1748 Anti-aircraft guns
-* 1063 Howitzers
-* 386 Trucks
-* 2 Armored trains
-* 649 7TP tanks
-* 2497 support equipment
-* 80529 Infantry equipment
+![National Stockpile.png](National%20Stockpile.png "National stockpile as a fraction of 76 regular divisions and 6 elites" )
 
-This is enough to equip our 74 regular infantry divisions, and 4 Elite divisions, with a modest but adequate logistical train off, 386 Trucks and 2 Armored trains.
+* 1603 Anti-aircraft guns
+* 1009 Howitzers          
+* 360 Trucks                       
+* 2 Armored trains (with 2 more nearing completion)
+* 826 7TP tanks
+* 2544 support equipment   
+* 80924 Infantry equipment  
 
-* 188 Anti-aircraft guns
-* 126 Howitzers
-* 99 7TP tanks
-* 84 support equipment
-* 589 Infantry equipment
+If we were to equip 72 regular infantry divisions, and 6 Elite divisions, we would have the following stockpile left over
 
-This is not a big stockpile, and our lack of properly armoured trains means the government will have to seize civilian locomotives (The fact that armoured trains only became available in 1938 means that we can't do anything about it). 
+* 43 Anti-aircraft guns
+* 73 Howitzers
+* 106 7TP tanks
+* 404 Infantry equipment
+* 384 Support equipment
 
-But we still have built an army more than large enough to defend Poland and Czechoslovakia, and even go on limited counter-offensives with our elite armoured divisions (In fact, with this preparation, the combined Polish and Czech army has numerical parity with the Wehrmacht).
+This is not a big stockpile, and we will need to seize civilian locomotives (With armoured trains only available in 1938 means that we can't do anything about it). 
+
+But we still have built an army more than large enough to defend Poland and Czechoslovakia, and even to launch a limited counter-offensives with our elite armoured divisions.
+
+In fact, with this preparation, the combined Polish and Czech army is larger than the Wehrmacht in 1938 (In singleplayer at least)! 
 
 Hitler did not stand a chance. 
 

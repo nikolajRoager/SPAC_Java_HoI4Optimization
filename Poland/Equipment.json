@@ -18,6 +18,7 @@
     "nextGen":
     {
       "initial": 17200,
+      "target":84560,
       "id": 2,
       "category": "infantry",
       "shortname": "Interwar infrantry equipment",
@@ -37,6 +38,7 @@
   },
   {
     "id": 3,
+    "target":984,
     "shortname": "Interwar howitzer",
     "category": "artillery",
     "name": "75mm wz. 31",
@@ -50,28 +52,12 @@
     "chromium": 0,
     "aluminium": 0,
     "tungsten": 1,
-    "nextGen":
-    {
-      "id": 4,
-      "shortname": "Early war howitzer",
-      "category": "artillery",
-      "name": "Haubica 100mm wz. 38 St.",
-      "factoryNames": ["canon foundry","artillery factory","munitions plant","munitions plant","shell plant","shell plant"],
-      "brandNames": ["SMBA","PFK"],
-      "unit_cost": 4.0,
-      "researchTime": 900,
-      "smallUpgrade": false,
-      "rubber": 0,
-      "steel": 2,
-      "chromium": 0,
-      "aluminium": 0,
-      "tungsten": 0,
-      "nextGen":null
-    }
+    "nextGen":null
   },
   {
     "id": 5,
     "shortname": "Interwar anti-air artillery",
+    "target":1640,
     "category": "artillery",
     "factoryNames": ["canon foundry","artillery factory","Air defence factory","munitions plant","munitions plant","shell plant","shell plant"],
     "brandNames": ["Bofors","SMBA","PFK"],
@@ -89,6 +75,7 @@
   {
     "id": 12,
     "shortname": "1920s Truck",
+    "target":300,
     "initial": 0,
     "factoryNames": ["Automotive industry","Truck factory","Mechanic workshop"],
     "brandNames": ["Ursus","Polski Fiat"],
@@ -108,6 +95,7 @@
     "id": 11,
     "shortname": "armored train",
     "initial": 0,
+    "target": 20,
     "factoryNames": ["steam-engine factory","locomotive factory"],
     "brandNames": ["WSADP company"],
     "name": "armored train",
@@ -125,6 +113,7 @@
   {
     "id": 8,
     "shortname": "support equipment",
+    "target": 2550,
     "initial": 209,
     "factoryNames": ["Radio factory","light metal industry","light vehicle factory","construction equipment plant","medical industry","pharmaceutical factory"],
     "brandNames": ["FB","PZK","AVA","PKP"],
@@ -142,6 +131,7 @@
   },
   {
     "id": 10,
+    "target": 720,
     "category": "armor",
     "shortname": "Light Tank",
     "factoryNames": ["Armor factory","heavy vehicle factory"],

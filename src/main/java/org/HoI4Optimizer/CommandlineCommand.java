@@ -127,6 +127,7 @@ public class CommandlineCommand
                 case Flag -> System.out.print(colorize(" ",colors[argi],Attribute.ITALIC(), a.isOptional?Attribute.NONE():Attribute.UNDERLINE()));//Just a flag, no need to include anything
                 case Float -> System.out.print(colorize(" "+(a.isOptional?a.defaultArgument :"Float"),Attribute.ITALIC(),Attribute.BOLD() , a.isOptional?Attribute.NONE():Attribute.UNDERLINE(),colors[argi]));//Just a flag, no need to include anything
                 case Integer -> System.out.print(colorize(" "+(a.isOptional?a.defaultArgument :"Integer "),Attribute.ITALIC(),Attribute.BOLD() , a.isOptional?Attribute.NONE():Attribute.UNDERLINE(),colors[argi]));//Just a flag, no need to include anything
+                case String -> System.out.print(colorize(" "+(a.isOptional?a.defaultArgument :"String "),Attribute.ITALIC(),Attribute.BOLD() , a.isOptional?Attribute.NONE():Attribute.UNDERLINE(),colors[argi]));//Just a flag, no need to include anything
                 case Boolean -> System.out.print(colorize(" "+(a.isOptional?a.defaultArgument :"True/False "),Attribute.ITALIC(),Attribute.BOLD() , a.isOptional?Attribute.NONE():Attribute.UNDERLINE(),colors[argi]));//Just a flag, no need to include anything
             }
             argi=(argi+1)%colors.length;
@@ -165,11 +166,17 @@ public class CommandlineCommand
             {
                 //Index in strings
                 int j;
-                for (j = 0; j < strings.size();++j)
+                //If there is only one arg, we can leave it out
+                if (strings.size()==2 && args.size()==1)
                 {
-                    if (strings.get(j).equalsIgnoreCase(args.get(i).argName))
-                    {
-                        break;
+                    //i=0; this is always true
+                    j=0;
+                }
+                else {
+                    for (j = 0; j < strings.size(); ++j) {
+                        if (strings.get(j).equalsIgnoreCase(args.get(i).argName)) {
+                            break;
+                        }
                     }
                 }
 
@@ -204,6 +211,11 @@ public class CommandlineCommand
                                } else
                                    throw new IllegalArgumentException("Argument "+args.get(i).argName+" ("+strings.get(j+1)+") is not a boolean type");
                            }
+                           else if (args.get(i).myType== Argument.type.String)
+                           {
+                               //Strings are good
+                               out[i] = strings.get(j+1);
+                           }
                            else
                            {
 //                               out[i]=Double.parseDouble(strings.get(j+1));
@@ -217,8 +229,6 @@ public class CommandlineCommand
                                    out[i] = strings.get(j+1);
 
                            }
-
-
                         }
                         else
                         {
