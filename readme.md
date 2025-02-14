@@ -46,7 +46,7 @@ Every nation has a number of "states", these states contains buildings and resou
     - Total production is proportional to the area under the efficiency curve
     - Efficiency growth means older factories are extremely valuable
 
-![Danzig PFK munitions plant, Gdansk Production stats.png](Danzig%20PFK%20munitions%20plant%2C%20Gdansk%20Production%20stats.png "A factory starting at 10% efficiency in 1936 reaches the cap")
+![Early military factory](Mysłowice%20PFK%20firearms%20plant,%20Katowice%20Production%20stats.png  "A factory starting at 10% efficiency in 1936 reaches the cap")
 
 ![Warsawa SMBA munitions plant, Warsawa Production stats.png](Warsawa%20SMBA%20munitions%20plant%2C%20Warsawa%20Production%20stats.png "A factory starting later does not reach the cap")
 
@@ -152,7 +152,7 @@ However, wars are not won by defending, we need a force of elite infantry or cav
 
 Again, these divisions are  utterly unhistorical, and would not actually work in WW2 combat. But in game, it is  a decent compromise between quality and cost, and I would like at least 3 to invade German Silesia, preferably 6.
 
-So I would like between 70 and 76 regular infantry divisions, and 6 elite divisions (roughly twice what Poland actually had at the start of WW2)
+So (roughly twice what Poland actually had at the start of WW2)
 
 Results
 -----------
