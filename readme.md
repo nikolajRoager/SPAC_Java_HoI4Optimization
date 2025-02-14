@@ -117,14 +117,15 @@ Poland starts with a modest army, with:
 
 Sidenote: The game abstracts away a lot of equipment: "1 infantry equipment" really means guns, bullets, uniforms, boots and helmets for 1 infantry squad, and 1 howitzer also includes ammunition.
 
-
 The goal of the economic buildup, from 1936 to 1938 is to build an army to win the war.
+
+![diagram showing regular and elite division structure](divisios.png "THESE ARE NOT HISTORICAL DIVISIONS, and are under-gunned for realistic ww2 combat. These are the divisions I want to make, from left to right: regular infantry division (I want 76 of these things), Elite mountain infantry supported by tanks, and elite cavalry supported by tanks, the latter two cost the same equipment to make in game, Hoi4 division design is a bit weird and not particularly realistic")
 
 The primary task is to defend the Western border in Silesia, and Pommerania; and around the Exclave of East Prussia in the north.
 
-To defend our borders, I estimate that we need 76 infantry divisions.
+To defend our borders, I estimate that we need 76 divisions.
 
-The game allows the player to design their divisions however they like, the cheapest infantry division (which still has a chance against the 1938 German army) contains:
+The game allows the player to design their divisions however they like, the cheapest infantry division (which still has a chance against the 1938 German army) is the left division in the diagram above and it contains:
 
 * 1010 Infantry equipment costs 505 MIC 
 * 30 Support equipment costs 120 MIC    
@@ -132,24 +133,15 @@ The game allows the player to design their divisions however they like, the chea
 * 20 Anti-Aircraft guns costs 80 MIC    
 * 10900 Men not build in a factory
 
+Let me be clear, this is very unhistorical, and wouldn't do well in actual combat, as it only has 1 7th the artillery as the Polish division historically had, and it does not have any anti-tank equipment, but this works in Hoi4, where 40mm Bofors anti-air guns somehow function as anti-tank guns.
+
 Or put another way 747 MIC points for a division
-
-so in total, our minimum target is:
-
-* 76760 Infantry equipment (58360 on top of existing stockpile)
-* 2280 Support equipment   (2071 on top of existing stockpile)
-* 912 Howitzers 
-* 1520 Anti-Aircraft guns 
-* 828400 Men
-
-Costing 56772 MIC (and 0.8 million men, which Poland can easily mobilize).
 
 Additionally, it would be good to have around 300 trucks (2.5 MIC per truck) and 20 armoured trains (170 MIC per train) to help with logistics. 
 
-It is also worth keeping a few divisions worth of equipment in the stockpile to replace losses.
+![Historical photo of polish 7TP tanks](7TP.jpg "An actual historical image of Polish 7TP tanks")
 
-
-However, wars are not won by defending, and our basic infantry is not good enough for attacking, so we also need a force of elite infantry or cavalry supported by tanks. I expect these elite divisions will need the following:
+However, wars are not won by defending, we need a force of elite infantry or cavalry supported by tanks (the two other divisions in the diagram above). I expect these elite divisions will need the following:
 
 * 1300 Infantry equipment costs 650 MIC
 * 120 "7TP" light tanks cost 708 MIC (Becomes available in mid-1937)
@@ -158,11 +150,9 @@ However, wars are not won by defending, and our basic infantry is not good enoug
 * 20 Anti-Aircraft guns costs 80 MIC
 * 12400 Men not build in a factory
 
-Costing 1660 MIC
+Again, these divisions are  utterly unhistorical, and would not actually work in WW2 combat. But in game, it is  a decent compromise between quality and cost, and I would like at least 3 to invade German Silesia, preferably 6.
 
-This is by no means a good division, compared to a German Panzer division, but it is a decent compromise between quality and cost, and I would like at least 3 to invade German Silesia, preferably 6.
-
-We will essentially be able to convert one infantry division to an elite division for every 120 tanks, 1990 infantry equipment and 15 support equipment we are above our target.
+So I would like between 70 and 76 regular infantry divisions, and 6 elite divisions (roughly twice what Poland actually had at the start of WW2)
 
 Results
 -----------
